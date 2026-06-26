@@ -50,9 +50,8 @@ header h1{font-size:40px;line-height:1.02;font-weight:800;color:#fff;margin-bott
 .hero-stat-label{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(138,236,228,.78)}
 .hero-stat-value{font-family:var(--mono);font-size:34px;line-height:1;font-weight:700;color:#fff}
 .hero-stat-value.small{font-size:30px}
-.hero-spark{height:22px;margin-top:12px;position:relative}
-.hero-spark::before{content:'';position:absolute;left:0;right:0;bottom:5px;height:1px;background:rgba(110,245,235,.78);border-radius:99px}
-.hero-spark::after{content:'';position:absolute;left:0;right:0;bottom:1px;height:10px;background:linear-gradient(90deg,transparent 0%,transparent 7%,rgba(110,245,235,.98) 7%,rgba(110,245,235,.98) 12%,transparent 12%,transparent 29%,rgba(110,245,235,.92) 29%,rgba(110,245,235,.92) 34%,transparent 34%,transparent 56%,rgba(110,245,235,.96) 56%,rgba(110,245,235,.96) 61%,transparent 61%,transparent 82%,rgba(110,245,235,.9) 82%,rgba(110,245,235,.9) 87%,transparent 87%,transparent 100%);opacity:.98}
+.hero-spark{height:32px;margin-top:12px;position:relative;overflow:hidden;border-radius:4px}
+.hero-spark canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
 #loading,#error{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;text-align:center}
 .spinner{width:40px;height:40px;border:3px solid var(--line);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -198,6 +197,12 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 @media(max-width:1200px){.hero-grid{grid-template-columns:1fr}.hero-dashboard{grid-template-columns:1fr}.hero-side-col{grid-template-columns:1fr 1fr;grid-template-rows:none}.hero-main-stat .hero-stat-value{font-size:64px}.mot-mini-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:900px){header h1{font-size:34px;max-width:none}.hero-shell{padding:16px}.hero-copy{padding:8px 8px 8px 18px}.hero-main-stat .hero-stat-value{font-size:52px}.hero-side-col{grid-template-columns:1fr}.hero-toolbar{padding:14px 6px 0 10px}.hero-filters{margin-left:0}.kpis{grid-template-columns:repeat(2,1fr)}.g2,.g2eq{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}.alertnum{font-size:32px}.mot-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.perf-toggle-wrap{margin-left:0}.content-wrap{padding:22px 18px 60px}}
 @media(max-width:640px){.hero-chips{flex-direction:column;align-items:flex-start}.hero-shell::before,.hero-shell::after{display:none}.nav-right{margin-left:0;padding-left:0}.hero-tabs,.hero-filters{width:100%}.hero-filter{width:100%;justify-content:space-between}.content-wrap{border-radius:18px}}
+/* animação de energia no fundo dos hero-stats */
+@keyframes energyPulse{0%,100%{opacity:.7}50%{opacity:1}}
+.hero-stat{animation:energyPulse 3s ease-in-out infinite}
+.hero-main-stat{animation-delay:0s}
+.hero-side-stat:first-child{animation-delay:.8s}
+.hero-side-stat:last-child{animation-delay:1.6s}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -223,7 +228,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
               <div class="hero-stat-top"><span class="hero-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 16a7 7 0 1 1 14 0"/><path d="M12 12l4-3"/><circle cx="12" cy="12" r="1.2"/></svg></span><span class="hero-stat-label" id="heroMainLabel">Performance Geral</span></div>
               <div class="hero-stat-value" id="heroPerf">—</div>
             </div>
-            <div class="hero-spark"></div>
+            <div class="hero-spark"><canvas class="spark-canvas"></canvas></div>
           </div>
           <div class="hero-side-col">
             <div class="hero-stat hero-side-stat">
@@ -232,7 +237,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
                 <div class="hero-stat-value" id="heroSide1Value">—</div>
                 <div class="hero-stat-sub" id="heroSide1Sub"></div>
               </div>
-              <div class="hero-spark"></div>
+              <div class="hero-spark"><canvas class="spark-canvas"></canvas></div>
             </div>
             <div class="hero-stat hero-side-stat">
               <div>
@@ -240,7 +245,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
                 <div class="hero-stat-value" id="heroSide2Value">—</div>
                 <div class="hero-stat-sub" id="heroSide2Sub"></div>
               </div>
-              <div class="hero-spark"></div>
+              <div class="hero-spark"><canvas class="spark-canvas"></canvas></div>
             </div>
           </div>
         </div>
@@ -364,23 +369,23 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
   <footer><div class="wrap">Univale Transportes · Telemetria Operacional · Dados atualizados mensalmente</div></footer>
 </div>
 <script>
-var SHEET_URL='https://docs.google.com/spreadsheets/d/1WrTpVDuEX_I4ZyRFMigUmEwtB-CvoKGY/export?format=xlsx';
+var SHEET_URL='https://docs.google.com/spreadsheets/d/11jw5uFKuKcOVE5Jxgf1MsCyOXZPYXra1/export?format=xlsx';
 var SETOR_FIXO='';
 var MESES=["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
 var PAL=['#EA0029','#00A19B','#10CFC9','#0d7d78','#7ad6d2','#0a6e6a','#9aa5a4','#e0a800'];
 var EV_COLS=['Aceleração Brusca','Batendo Transmissão','Curva Brusca','Excesso Marcha Lenta','Excesso Rotação','Excesso RPM Parado','Fora Faixa Verde','Freada Brusca','Pedal Acelerador','Desengrenado'];
 var EV_LABELS={'Aceleração Brusca':'Aceleração<br>Brusca','Batendo Transmissão':'Batendo<br>Transmissão','Curva Brusca':'Curva<br>Brusca','Excesso Marcha Lenta':'Excesso<br>Marcha<br>Lenta','Excesso Rotação':'Excesso<br>Rotação','Excesso RPM Parado':'Excesso<br>RPM<br>Parado','Fora Faixa Verde':'Fora<br>Faixa<br>Verde','Freada Brusca':'Freada<br>Brusca','Pedal Acelerador':'Pedal<br>Acelerador','Desengrenado':'Desengrenado'};
 var EV_ALIASES={
-  'Pedal Acelerador':['Pedal Acelerador','Pedal do Acelerador','Pedal do acelerador','PEDAL ACELERADOR','PEDAL DO ACELERADOR'],
-  'Desengrenado':['Desengrenado','DESENGRENADO'],
-  'Aceleração Brusca':['Aceleração Brusca','Aceleracao Brusca','ACELERACAO BRUSCA'],
-  'Batendo Transmissão':['Batendo Transmissão','Batendo Transmissao','BATENDO TRANSMISSAO'],
-  'Curva Brusca':['Curva Brusca','CURVA BRUSCA'],
-  'Excesso Marcha Lenta':['Excesso Marcha Lenta','EXCESSO MARCHA LENTA'],
-  'Excesso Rotação':['Excesso Rotação','Excesso Rotacao','EXCESSO ROTACAO'],
-  'Excesso RPM Parado':['Excesso RPM Parado','EXCESSO RPM PARADO'],
-  'Fora Faixa Verde':['Fora Faixa Verde','FORA FAIXA VERDE'],
-  'Freada Brusca':['Freada Brusca','FREADA BRUSCA']
+  'Pedal Acelerador':['Pedal Acelerador','(Tr) Pedal Acelerador','Pedal do Acelerador','PEDAL ACELERADOR'],
+  'Aceleração Brusca':['Aceleração Brusca','(Tr) Aceleração Brusca','Aceleracao Brusca','ACELERACAO BRUSCA'],
+  'Desengrenado':['Desengrenado','(Tr) Desengrenado','DESENGRENADO'],
+  'Batendo Transmissão':['Batendo Transmissão','(Tr) Batendo Transmissão','Batendo Transmissao','BATENDO TRANSMISSAO'],
+  'Curva Brusca':['Curva Brusca','(Tr) Curva Brusca','CURVA BRUSCA'],
+  'Excesso Marcha Lenta':['Excesso Marcha Lenta','(Tr) Excesso Marcha Lenta','EXCESSO MARCHA LENTA'],
+  'Excesso Rotação':['Excesso Rotação','(Tr) Excesso Rotação','Excesso Rotacao','EXCESSO ROTACAO'],
+  'Excesso RPM Parado':['Excesso RPM Parado','(Tr) Excesso RPM Parado','EXCESSO RPM PARADO'],
+  'Fora Faixa Verde':['Fora Faixa Verde','(Tr) Fora Faixa Verde','FORA FAIXA VERDE'],
+  'Freada Brusca':['Freada Brusca','(Tr) Freada Brusca','FREADA BRUSCA']
 };
 
 var DIAG={
@@ -785,6 +790,77 @@ function bindEvents(){
   ['q'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',renderTable)});
   document.querySelectorAll('.perf-btn').forEach(function(btn){btn.addEventListener('click',function(){STATE.perfMode=btn.dataset.mode;render()})});
 }
+// ── SPARK ANIMATION ──
+(function(){
+  var sparks=[];
+  function initSpark(canvas){
+    var w=canvas.parentElement.offsetWidth||200;
+    var h=canvas.parentElement.offsetHeight||32;
+    canvas.width=w; canvas.height=h;
+    var pts=12;
+    var ys=[];
+    for(var i=0;i<pts;i++) ys.push(h*(.35+Math.random()*.3));
+    return {canvas:canvas,ctx:canvas.getContext('2d'),pts:pts,ys:ys,vs:ys.map(function(){return(Math.random()-.5)*.6}),t:0,w:w,h:h};
+  }
+  function drawSpark(s){
+    var ctx=s.ctx,w=s.w,h=s.h;
+    ctx.clearRect(0,0,w,h);
+    // linha base sutil
+    ctx.beginPath(); ctx.strokeStyle='rgba(104,255,240,.18)'; ctx.lineWidth=1;
+    ctx.moveTo(0,h*.7); ctx.lineTo(w,h*.7); ctx.stroke();
+    // linha animada
+    s.t+=.025;
+    for(var i=0;i<s.pts;i++){
+      s.ys[i]+=s.vs[i];
+      if(s.ys[i]<h*.1||s.ys[i]>h*.85) s.vs[i]*=-1;
+      s.vs[i]+=(Math.random()-.5)*.05;
+      s.vs[i]=Math.max(-.8,Math.min(.8,s.vs[i]));
+    }
+    ctx.beginPath();
+    var grd=ctx.createLinearGradient(0,0,w,0);
+    grd.addColorStop(0,'rgba(61,240,221,0)');
+    grd.addColorStop(.2,'rgba(61,240,221,.9)');
+    grd.addColorStop(.5,'rgba(104,255,240,1)');
+    grd.addColorStop(.8,'rgba(61,240,221,.9)');
+    grd.addColorStop(1,'rgba(61,240,221,0)');
+    ctx.strokeStyle=grd; ctx.lineWidth=1.5;
+    ctx.shadowColor='rgba(61,240,221,.8)'; ctx.shadowBlur=6;
+    for(var i=0;i<s.pts;i++){
+      var x=i/(s.pts-1)*w;
+      if(i===0) ctx.moveTo(x,s.ys[i]);
+      else ctx.lineTo(x,s.ys[i]);
+    }
+    ctx.stroke(); ctx.shadowBlur=0;
+    // pulsos de energia (quadradinhos removidos — agora são pontos brilhantes)
+    var numDots=3;
+    for(var d=0;d<numDots;d++){
+      var prog=(s.t*.4+d/numDots)%1;
+      var xi=prog*(s.pts-1);
+      var i0=Math.floor(xi),i1=Math.min(i0+1,s.pts-1);
+      var frac=xi-i0;
+      var px=prog*w;
+      var py=s.ys[i0]*(1-frac)+s.ys[i1]*frac;
+      var alpha=Math.sin(prog*Math.PI)*(.7+.3*Math.sin(s.t*3+d));
+      ctx.beginPath();
+      ctx.arc(px,py,2.5,0,Math.PI*2);
+      ctx.fillStyle='rgba(104,255,240,'+alpha+')';
+      ctx.shadowColor='rgba(61,240,221,.9)'; ctx.shadowBlur=10;
+      ctx.fill(); ctx.shadowBlur=0;
+    }
+  }
+  function loop(){
+    sparks.forEach(drawSpark);
+    requestAnimationFrame(loop);
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(function(){
+      document.querySelectorAll('.spark-canvas').forEach(function(c){
+        sparks.push(initSpark(c));
+      });
+      if(sparks.length) loop();
+    },600);
+  });
+})();
 document.addEventListener('DOMContentLoaded',loadSheet);
 </script>
 </body>
