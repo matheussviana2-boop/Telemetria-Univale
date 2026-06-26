@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSAO AJUSTADA: TOP10_DESVIOS_V20 -->
+<!-- VERSAO AJUSTADA: TOP10_DESVIOS_V21 -->
 
 <html lang="pt-BR">
 <head>
@@ -39,11 +39,11 @@ header h1{font-size:40px;line-height:1.02;font-weight:800;color:#fff;margin-bott
 #heroSide1Card{order:1}
 .hero-main-stat{order:2}
 #heroSide2Card{order:3}
-.hero-main-stat{padding:18px 26px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:188px}
+.hero-main-stat{padding:12px 18px 10px;display:flex;flex-direction:column;justify-content:space-between;min-height:104px}
 .hero-main-stat .hero-stat-label{font-size:12px}
-.hero-main-stat .hero-stat-value{font-size:70px;line-height:.9;margin-top:0}
-.hero-side-stat{min-height:188px;display:flex;flex-direction:column;justify-content:space-between;padding:18px 18px 16px}
-.hero-side-stat .hero-stat-value{font-size:18px}
+.hero-main-stat .hero-stat-value{font-size:60px;line-height:.92;margin-top:0}
+.hero-side-stat{min-height:104px;display:flex;flex-direction:column;justify-content:space-between;padding:12px 14px 10px}
+.hero-side-stat .hero-stat-value{font-size:16px}
 .hero-side-stat .hero-stat-value.text{font-size:17px;line-height:1.15;max-width:100%;word-break:break-word}
 .hero-stat-sub{font-size:11px;font-weight:600;color:rgba(226,250,248,.72);margin-top:4px}
 .hero-main-stat>div:first-child{display:flex;flex-direction:column;flex:1;justify-content:center}
@@ -204,8 +204,8 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f7fbfb}
 .diag-pill{display:inline-flex;align-items:center;gap:6px;background:#eef5f5;border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700}
 @media(max-width:900px){.diag-summary-grid{grid-template-columns:1fr}.diag-kpis{grid-template-columns:1fr}}
 footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(--muted);text-align:center}
-@media(max-width:1200px){.hero-grid{grid-template-columns:1fr}.hero-dashboard{grid-template-columns:1fr}.hero-side-col{display:contents}#heroSide1Card{order:1}.hero-main-stat{order:2}#heroSide2Card{order:3}.hero-main-stat .hero-stat-value{font-size:60px}.hero-side-stat{min-height:140px}.mot-mini-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:900px){header h1{font-size:34px;max-width:none}.hero-shell{padding:16px}.hero-copy{padding:8px 8px 8px 18px}.hero-main-stat .hero-stat-value{font-size:48px}.hero-side-col{display:contents}.hero-toolbar{padding:14px 6px 0 10px}.hero-filters{margin-left:0}.kpis{grid-template-columns:repeat(2,1fr)}.g2,.g2eq{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}.alertnum{font-size:32px}.mot-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.perf-toggle-wrap{margin-left:0}.content-wrap{padding:22px 18px 60px}}
+@media(max-width:1200px){.hero-grid{grid-template-columns:1fr}.hero-dashboard{grid-template-columns:1fr}.hero-side-col{display:contents}#heroSide1Card{order:1}.hero-main-stat{order:2}#heroSide2Card{order:3}.hero-main-stat .hero-stat-value{font-size:52px}.hero-side-stat{min-height:96px}.mot-mini-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){header h1{font-size:34px;max-width:none}.hero-shell{padding:16px}.hero-copy{padding:8px 8px 8px 18px}.hero-main-stat .hero-stat-value{font-size:42px}.hero-side-col{display:contents}.hero-toolbar{padding:14px 6px 0 10px}.hero-filters{margin-left:0}.kpis{grid-template-columns:repeat(2,1fr)}.g2,.g2eq{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}.alertnum{font-size:32px}.mot-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.perf-toggle-wrap{margin-left:0}.content-wrap{padding:22px 18px 60px}}
 @media(max-width:640px){.hero-chips{flex-direction:column;align-items:flex-start}.hero-shell::before,.hero-shell::after{display:none}.nav-right{margin-left:0;padding-left:0}.hero-tabs,.hero-filters{width:100%}.hero-filter{width:100%;justify-content:space-between}.content-wrap{border-radius:18px}}
 /* filtros no topo direito do hero */
 /* 6 KPIs visão geral */
@@ -231,18 +231,18 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 .hero-top-filters .hero-filter{display:flex;align-items:center;gap:8px;color:rgba(206,248,244,.9);font-size:12px;font-weight:700}
 .hero-shell{position:relative}
 /* centraliza número no card principal */
-.hero-main-stat{padding:18px 22px 16px;display:flex;flex-direction:column;justify-content:space-between;min-height:176px;gap:6px}
+.hero-main-stat{padding:12px 18px 10px;display:flex;flex-direction:column;justify-content:space-between;min-height:104px;gap:2px}
 .hero-main-stat .hero-stat-top{margin-bottom:2px;justify-content:flex-start}
-.hero-main-stat .hero-stat-value{font-size:76px;line-height:.88;margin-top:0;display:flex;align-items:center;justify-content:center;text-align:center;width:100%;flex:1}
+.hero-main-stat .hero-stat-value{font-size:60px;line-height:.9;margin-top:0;display:flex;align-items:center;justify-content:center;text-align:center;width:100%;flex:1}
 .hero-side-stat.worst-card{border-color:rgba(234,0,41,.38);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 0 22px rgba(234,0,41,.12);background:linear-gradient(180deg,rgba(51,18,24,.82),rgba(33,10,15,.72))}
 .hero-side-stat.worst-card .hero-stat-label,.hero-side-stat.worst-card .hero-stat-sub{color:rgba(255,212,219,.86)}
 .hero-side-stat.worst-card .hero-stat-value{color:#fff}
 .hero-side-stat.worst-card .hero-ico{border-color:rgba(255,110,132,.35);color:#ff9bad;background:rgba(72,18,29,.58);box-shadow:0 0 10px rgba(234,0,41,.14)}
 .hero-side-stat.worst-card .hero-spark::before{background:rgba(255,120,145,.82)}
 .hero-side-stat.worst-card .hero-spark::after{background:linear-gradient(90deg,transparent 0%,transparent 7%,rgba(255,120,145,.98) 7%,rgba(255,120,145,.98) 12%,transparent 12%,transparent 29%,rgba(255,120,145,.92) 29%,rgba(255,120,145,.92) 34%,transparent 34%,transparent 56%,rgba(255,120,145,.96) 56%,rgba(255,120,145,.96) 61%,transparent 61%,transparent 82%,rgba(255,120,145,.9) 82%,rgba(255,120,145,.9) 87%,transparent 87%,transparent 100%)}
-.hero-side-stat .hero-stat-top{margin-bottom:8px}
-.hero-side-stat .hero-stat-sub{font-size:12px;color:rgba(226,250,248,.78)}
-.hero-side-stat .hero-spark{margin-top:14px}
+.hero-side-stat .hero-stat-top{margin-bottom:4px}
+.hero-side-stat .hero-stat-sub{font-size:11px;color:rgba(226,250,248,.78)}
+.hero-side-stat .hero-spark{margin-top:8px}
 /* linha vertical animada */
 @keyframes lineFlow{0%{background-position:0 100%}100%{background-position:0 0}}
 .hero-shell::before{background:linear-gradient(180deg,rgba(18,245,231,.04),rgba(18,245,231,.9) 40%,rgba(18,245,231,.9) 60%,rgba(18,245,231,.04));background-size:100% 300%;animation:lineFlow 3s ease-in-out infinite}
