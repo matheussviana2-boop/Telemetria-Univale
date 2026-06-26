@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSAO AJUSTADA: TOP5_EVENTOS_V5 -->
+<!-- VERSAO AJUSTADA: TOP5_EVENTOS_V6 -->
 
 <html lang="pt-BR">
 <head>
@@ -140,6 +140,20 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f7fbfb}
 .drow{margin-bottom:10px} .drow:last-child{margin-bottom:0}
 .dkey{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--teal);margin-bottom:2px}
 .dkey.red{color:var(--red)}
+.diag-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.diag-summary-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow)}
+.diag-summary-card.accent{border-top:4px solid var(--teal)}
+.diag-summary-card.warn{border-top:4px solid var(--red)}
+.diag-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.diag-kpi{background:#f7fbfb;border:1px solid var(--line);border-radius:10px;padding:10px}
+.diag-kpi-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);line-height:1.2}
+.diag-kpi-val{font-family:var(--mono);font-size:20px;font-weight:800;color:var(--ink);margin-top:4px}
+.diag-list{display:grid;gap:10px;margin-top:12px}
+.diag-line{font-size:13px;color:var(--ink);line-height:1.45}
+.diag-line strong{color:var(--teal-d)}
+.diag-pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.diag-pill{display:inline-flex;align-items:center;gap:6px;background:#eef5f5;border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700}
+@media(max-width:900px){.diag-summary-grid{grid-template-columns:1fr}.diag-kpis{grid-template-columns:1fr}}
 footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(--muted);text-align:center}
 @media(max-width:1200px){.mot-mini-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.g2,.g2eq{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}.alertnum{font-size:32px}.mot-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.perf-toggle-wrap{margin-left:0}}
@@ -263,8 +277,8 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 
     <!-- DIAGNÓSTICO -->
     <section class="panel" id="diag">
-      <div class="stitle">Diagnóstico de desvios</div>
-      <div class="dgrid" id="diagGrid"></div>
+      <div class="stitle">Diagnóstico consolidado</div>
+      <div class="diag-summary-grid" id="diagGrid"></div>
     </section>
 
   </div></main>
@@ -293,11 +307,13 @@ var SLABELS={'FRET_BAHIA':'Fretamento Bahia','CENIBRA':'Fretamento Cenibra','LIN
 var STATE={all:[],setor:'',months:[],scope:'ALL',D:null,full:null,selEvent:null,perfMode:'std'};
 var CH={};
 function fmt(n){return Math.round(n).toLocaleString('pt-BR')}
+function fmtDec(n,d){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
 function kmPorEvento(km,ev){return ev?km/ev:0}
+function calcPerf(km,ev){if(!km||km<=0)return null;return (1-(ev/km))*100}
 function evLabel(e){return EV_LABELS[e]||e}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]||c})}
 function pClass(p){if(p==null)return 'p-na';if(p<0)return 'p-red';if(p<50)return 'p-orange';if(p<90)return 'p-yellow';return 'p-green'}
-function pPill(p){return '<span class="ppill '+pClass(p)+'">'+(p==null?'—':p.toFixed(1)+'%')+'</span>'}
+function pPill(p){return '<span class="ppill '+pClass(p)+'">'+(p==null?'—':fmtDec(p,2)+'%')+'</span>'}
 function kmWeight(km,maxKm){if(!maxKm||!km)return .35;return .35+.65*Math.sqrt(km/maxKm)}
 function drvPerf(d){return STATE.perfMode==='weighted'?d.perfWeighted:d.perfStd}
 function perfTitle(){return STATE.perfMode==='weighted'?'Performance ponderada':'Performance padrão'}
@@ -335,21 +351,20 @@ function init(wb){
 function buildModel(rows){
   var monthly=STATE.months.map(function(m){
     var mr=rows.filter(function(r){return String(r.MES||'').toUpperCase()===m});
-    var km=0,ev=0,wp=0,brk={};EV_COLS.forEach(function(e){brk[e]=0});
-    mr.forEach(function(r){km+=+r.KM||0;ev+=+r.PONTUACAO||0;if(r.PERFORMANCE!=null)wp+=(+r.PERFORMANCE||0)*(+r.KM||0);EV_COLS.forEach(function(e){brk[e]+=+r[e]||0})});
-    return{m:m,km:Math.round(km),ev:ev,perf:km?Math.round(wp/km*100)/100:0,kme:Math.round(kmPorEvento(km,ev)*10)/10,brk:brk}
+    var km=0,ev=0,brk={};EV_COLS.forEach(function(e){brk[e]=0});
+    mr.forEach(function(r){km+=+r.KM||0;ev+=+r.PONTUACAO||0;EV_COLS.forEach(function(e){brk[e]+=+r[e]||0})});
+    return{m:m,km:Math.round(km),ev:ev,perf:calcPerf(km,ev),kme:Math.round(kmPorEvento(km,ev)*10)/10,brk:brk}
   });
   var drv={};
   rows.forEach(function(r){
     var n=String(r.MOTORISTA||'').trim();if(!n)return;
-    var o=drv[n]||(drv[n]={nome:n,km:0,pts:0,pk:0,ps:0,ev:{},fluig:null});
+    var o=drv[n]||(drv[n]={nome:n,km:0,pts:0,ev:{},fluig:null});
     o.km+=+r.KM||0;o.pts+=+r.PONTUACAO||0;
-    if(r.PERFORMANCE!=null){o.ps+=(+r.PERFORMANCE||0)*(+r.KM||0);o.pk+=+r.KM||0}
     EV_COLS.forEach(function(e){o.ev[e]=(o.ev[e]||0)+(+r[e]||0)});
     if(r.FLUIG)o.fluig=r.FLUIG
   });
   var drivers=Object.values(drv).map(function(o){
-    var perf=o.pk?Math.round(o.ps/o.pk*10)/10:null;
+    var perf=calcPerf(o.km,o.pts);
     var rate=o.km?o.pts/o.km:0;
     var kme=Math.round(kmPorEvento(o.km,o.pts)*10)/10;
     var dom='—',mx=-1;EV_COLS.forEach(function(e){if((o.ev[e]||0)>mx){mx=o.ev[e]||0;dom=e}});
@@ -357,7 +372,7 @@ function buildModel(rows){
     return{nome:o.nome,km:Math.round(o.km),pts:o.pts,perf:perf,perfStd:perf,perfWeighted:null,rate:rate,kme:kme,ev:o.ev,fluig:o.fluig,dom:dom,fcode:fCode(o.fluig)}
   });
   var maxKm=drivers.reduce(function(m,d){return Math.max(m,d.km||0)},0);
-  drivers.forEach(function(d){d.perfWeighted=d.perfStd==null?null:Math.round((d.perfStd*kmWeight(d.km,maxKm))*10)/10});
+  drivers.forEach(function(d){d.perfWeighted=d.perfStd==null?null:(d.perfStd*kmWeight(d.km,maxKm))});
   var evTot={};EV_COLS.forEach(function(e){evTot[e]=0});
   monthly.forEach(function(m){EV_COLS.forEach(function(e){evTot[e]+=m.brk[e]||0})});
   var totEv=Object.values(evTot).reduce(function(a,b){return a+b},0);
@@ -376,12 +391,12 @@ function render(){
   var pt=sc==='ALL'?STATE.months.join(' · ')+' · '+D.motN+' motoristas':sc+' · '+D.motN+' motoristas';
   document.getElementById('hPeriod').textContent='📅 '+pt;
   var f=full.monthly[0],l=full.monthly[full.monthly.length-1],mul=full.monthly.length>1;
-  var pa=D.monthly.reduce(function(s,m){return s+(m.perf||0)},0)/(D.monthly.length||1);
+  var pa=calcPerf(D.totKm,D.totEv)||0;
   var dp=mul?(l.perf-f.perf).toFixed(2):null;
   var de=(mul&&f.ev)?Math.round((l.ev-f.ev)/f.ev*100):null;
   var dk=(mul&&f.kme)?Math.round((l.kme-f.kme)/f.kme*100):null;
   var kpis=[
-    {l:'Performance média',v:pa.toFixed(1),u:'%',t:dp!=null?((+dp>=0?'▲ +':'▼ ')+dp+' p.p. no período'):'ref. '+sc,up:dp==null||+dp>=0,al:pa<90},
+    {l:'Performance média',v:fmtDec(pa,2),u:'%',t:dp!=null?((+dp>=0?'▲ +':'▼ ')+dp+' p.p. no período'):'ref. '+sc,up:dp==null||+dp>=0,al:pa<90},
     {l:'Eventos no período',v:fmt(D.totEv),u:'',t:de!=null?((de<=0?'▼ ':'▲ +')+de+'% 1º→últ.'):'ref. '+sc,up:de==null||de<=0},
     {l:'KM rodado',v:fmt(D.totKm),u:'km',t:D.motN+' motoristas avaliados',up:true},
     {l:'KM por evento',v:kmPorEvento(D.totKm,D.totEv).toFixed(1),u:'km',t:dk!=null?((dk>=0?'▲ +':'▼ ')+dk+'% 1º→últ.'):'ref. '+sc,up:dk==null||dk>=0},
@@ -395,8 +410,9 @@ function render(){
   if(typeof Chart!=='undefined'){Chart.defaults.font.family="'Inter',sans-serif";Chart.defaults.color='#5b7a78'}
   var M=full.monthly.map(function(m){return m.m});
   var perfs=full.monthly.map(function(m){return m.perf});
-  var pmin=Math.max(0,Math.floor(Math.min.apply(null,perfs)-1));
-  var pmax=Math.min(100,Math.ceil(Math.max.apply(null,perfs)+1));
+  var perfVals=perfs.filter(function(v){return v!=null&&isFinite(v)});
+  var pmin=perfVals.length?Math.max(0,Math.floor(Math.min.apply(null,perfVals)-1)):0;
+  var pmax=perfVals.length?Math.min(100,Math.ceil(Math.max.apply(null,perfVals)+1)):100;
   sc2(CH,'cTrend',{data:{labels:M,datasets:[
     {type:'bar',label:'Eventos',data:full.monthly.map(function(m){return m.ev}),backgroundColor:full.monthly.map(function(m){return(sc!=='ALL'&&m.m!==sc)?'#cdeeec':'#10CFC9'}),borderRadius:5,yAxisID:'y'},
     {type:'line',label:'Performance %',data:perfs,borderColor:'#EA0029',backgroundColor:'#EA0029',tension:.3,borderWidth:2.5,pointRadius:4,yAxisID:'y1'}
@@ -415,7 +431,7 @@ function render(){
   document.getElementById('top10w').innerHTML=rw.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>';
   var rb=D.drivers.filter(function(d){return d.km>250&&drvPerf(d)!=null}).sort(function(a,b){return drvPerf(b)-drvPerf(a)}).slice(0,10);
   document.getElementById('top10b').innerHTML=rb.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>';
-  document.getElementById('diagGrid').innerHTML=D.evRank.map(function(r){var g=dFor(r[0]);return'<div class="dcard"><div class="dhead"><div class="dicon '+g.cor+'">'+g.icon+'</div><div><div class="dname">'+r[0]+'</div><span class="dbadge '+eBadge(g.eixo)+'">'+g.eixo+'</span></div><div class="dpct"><strong>'+r[2]+'%</strong><span>'+fmt(r[1])+' eventos</span></div></div><div class="dbody"><div class="drow"><div class="dkey">O que foi registrado</div>'+g.mede+'</div><div class="drow"><div class="dkey red">Ação recomendada</div>'+g.acao+'</div></div></div>'}).join('');
+  renderDiag();
   setupTable(D)
 }
 function sc2(ch,id,cfg){try{var el=document.getElementById(id);if(!el||typeof Chart==='undefined')return;ch[id]=new Chart(el,cfg)}catch(e){}}
@@ -428,7 +444,7 @@ function showRankChart(D){
       labels:D.evRank.map(function(r){return r[0]}),
       datasets:[{
         data:D.evRank.map(function(r){return r[1]}),
-        backgroundColor:D.evRank.map(function(r,i){return i===0?'#EA0029':i<3?'#00A19B':'#10CFC9'}),
+        backgroundColor:D.evRank.map(function(){return '#00A19B'}),
         borderColor:D.evRank.map(function(r){return r[0]===STATE.selEvent?'#0b1f1e':'rgba(0,0,0,0)'}),
         borderWidth:D.evRank.map(function(r){return r[0]===STATE.selEvent?3:0}),
         borderSkipped:false,
@@ -470,6 +486,74 @@ function showTop5(evName,D){
   var box=document.getElementById('top5List');
   box.className='top5panel';
   box.innerHTML=sorted.map(function(d,i){return'<div class="top5item"><span class="top5rank">'+(i+1)+'</span><span class="top5nome" title="'+esc(d.nome)+'">'+esc(d.nome)+'</span><span class="top5meta"><span class="top5val">'+fmt(d.ev[evName]||0)+' eventos</span><span class="top5km">'+fmt(d.km)+' km · '+(d.kme||0).toFixed(1)+' km/evento</span></span></div>'}).join('')||'<div class="top5empty"><div class="top5hint">Sem ocorrências</div><div>Nenhum motorista com este desvio no período selecionado.</div></div>';
+}
+
+function bestWorstDrivers(D,limit){
+  var valid=D.drivers.filter(function(d){return d.km>250&&d.perfStd!=null});
+  var worst=valid.slice().sort(function(a,b){return drvPerf(a)-drvPerf(b)}).slice(0,limit||3);
+  var best=valid.slice().sort(function(a,b){return drvPerf(b)-drvPerf(a)}).slice(0,limit||3);
+  return{best:best,worst:worst}
+}
+function driverNames(arr){
+  return arr.map(function(d){return esc(d.nome)+' ('+fmtDec(drvPerf(d),2)+'%)'}).join(', ')||'—'
+}
+function renderDiag(){
+  var D=STATE.D,full=STATE.full,sc=STATE.scope;
+  if(!D||!full)return;
+  var cur=bestWorstDrivers(D,3);
+  var topEvent=D.evRank[0];
+  var topEvent2=D.evRank[1];
+  var kmEvent=kmPorEvento(D.totKm,D.totEv);
+  var perfCur=calcPerf(D.totKm,D.totEv)||0;
+
+  var months=full.monthly.filter(function(m){return m.km>0||m.ev>0});
+  var first=months[0]||{m:'—',km:0,ev:0,perf:0,kme:0};
+  var last=months[months.length-1]||first;
+  var evDelta=first.ev?((last.ev-first.ev)/first.ev*100):0;
+  var perfDelta=(last.perf||0)-(first.perf||0);
+  var kmeDelta=first.kme?((last.kme-first.kme)/first.kme*100):0;
+  var evolBest=full.monthly.slice().sort(function(a,b){return (b.kme||0)-(a.kme||0)})[0]||last;
+  var evolWorst=full.monthly.slice().filter(function(m){return m.ev>0}).sort(function(a,b){return (a.kme||0)-(b.kme||0)})[0]||last;
+  var fullBW=bestWorstDrivers(full,3);
+  var statusEv=evDelta<=0?'queda':'alta';
+  var statusPerf=perfDelta>=0?'melhora':'queda';
+
+  document.getElementById('diagGrid').innerHTML=
+    '<div class="diag-summary-card accent">'+
+      '<div class="ctitle">Diagnóstico evolutivo</div>'+
+      '<div class="csub">Comparativo do primeiro ao último mês disponível.</div>'+
+      '<div class="diag-kpis">'+
+        '<div class="diag-kpi"><div class="diag-kpi-label">Performance</div><div class="diag-kpi-val">'+fmtDec(first.perf||0,2)+'% → '+fmtDec(last.perf||0,2)+'%</div></div>'+
+        '<div class="diag-kpi"><div class="diag-kpi-label">Eventos</div><div class="diag-kpi-val">'+fmt(first.ev)+' → '+fmt(last.ev)+'</div></div>'+
+        '<div class="diag-kpi"><div class="diag-kpi-label">KM/evento</div><div class="diag-kpi-val">'+fmtDec(first.kme||0,1)+' → '+fmtDec(last.kme||0,1)+'</div></div>'+
+      '</div>'+
+      '<div class="diag-list">'+
+        '<div class="diag-line">No evolutivo, houve <strong>'+statusPerf+' de '+fmtDec(Math.abs(perfDelta),2)+' p.p.</strong> na performance e <strong>'+statusEv+' de '+fmtDec(Math.abs(evDelta),1)+'%</strong> no volume de eventos.</div>'+
+        '<div class="diag-line">Melhor mês operacional por eficiência: <strong>'+evolBest.m+'</strong>, com '+fmtDec(evolBest.kme||0,1)+' km/evento. Ponto de atenção: <strong>'+evolWorst.m+'</strong>, com '+fmtDec(evolWorst.kme||0,1)+' km/evento.</div>'+
+        '<div class="diag-line">No período completo, os destaques positivos são: <strong>'+driverNames(fullBW.best)+'</strong>.</div>'+
+        '<div class="diag-line">Piores desempenhos no evolutivo: <strong>'+driverNames(fullBW.worst)+'</strong>.</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="diag-summary-card warn">'+
+      '<div class="ctitle">Diagnóstico específico '+(sc==='ALL'?'do período':'de '+sc)+'</div>'+
+      '<div class="csub">Leitura consolidada do filtro selecionado no topo.</div>'+
+      '<div class="diag-kpis">'+
+        '<div class="diag-kpi"><div class="diag-kpi-label">Performance</div><div class="diag-kpi-val">'+fmtDec(perfCur,2)+'%</div></div>'+
+        '<div class="diag-kpi"><div class="diag-kpi-label">Eventos</div><div class="diag-kpi-val">'+fmt(D.totEv)+'</div></div>'+
+        '<div class="diag-kpi"><div class="diag-kpi-label">KM/evento</div><div class="diag-kpi-val">'+fmtDec(kmEvent,1)+'</div></div>'+
+      '</div>'+
+      '<div class="diag-list">'+
+        '<div class="diag-line">Principal ponto de atenção: <strong>'+(topEvent?topEvent[0]:'—')+'</strong>, com '+(topEvent?fmt(topEvent[1]):'0')+' ocorrências'+(topEvent2?'; segundo foco: <strong>'+topEvent2[0]+'</strong>, com '+fmt(topEvent2[1])+' ocorrências.':'.')+'</div>'+
+        '<div class="diag-line">Piores motoristas no filtro atual: <strong>'+driverNames(cur.worst)+'</strong>.</div>'+
+        '<div class="diag-line">Motoristas destaque no filtro atual: <strong>'+driverNames(cur.best)+'</strong>.</div>'+
+        '<div class="diag-line">Norte recomendado: priorizar orientação nos desvios com maior volume e acompanhar individualmente os motoristas com baixa performance, sem deixar de reconhecer os destaques positivos.</div>'+
+      '</div>'+
+      '<div class="diag-pill-row">'+
+        '<span class="diag-pill">🚨 Atenção: '+(topEvent?topEvent[0]:'—')+'</span>'+
+        '<span class="diag-pill">🏁 '+fmt(D.motN)+' motoristas avaliados</span>'+
+        '<span class="diag-pill">🛣️ '+fmt(D.totKm)+' km</span>'+
+      '</div>'+
+    '</div>';
 }
 var TBL={D:null,sortK:'activePerf',sortDir:-1};
 function renderMotEventCards(D){
