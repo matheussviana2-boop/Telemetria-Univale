@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSAO AJUSTADA: TOP10_DESVIOS_V26 -->
+<!-- VERSAO AJUSTADA: TOP10_DESVIOS_V27 -->
 
 <html lang="pt-BR">
 <head>
@@ -245,6 +245,17 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 .hero-side-stat.worst-card .hero-ico{border-color:rgba(255,110,132,.35);color:#ff9bad;background:rgba(72,18,29,.58);box-shadow:0 0 10px rgba(234,0,41,.14)}
 .hero-side-stat.worst-card .hero-spark::before{background:rgba(255,120,145,.82)}
 .hero-side-stat.worst-card .hero-spark::after{background:linear-gradient(90deg,transparent 0%,transparent 7%,rgba(255,120,145,.98) 7%,rgba(255,120,145,.98) 12%,transparent 12%,transparent 29%,rgba(255,120,145,.92) 29%,rgba(255,120,145,.92) 34%,transparent 34%,transparent 56%,rgba(255,120,145,.96) 56%,rgba(255,120,145,.96) 61%,transparent 61%,transparent 82%,rgba(255,120,145,.9) 82%,rgba(255,120,145,.9) 87%,transparent 87%,transparent 100%)}
+.hero-main-stat.perf-good{border-color:rgba(89,228,220,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 0 26px rgba(13,169,160,.08);background:linear-gradient(180deg,rgba(7,42,43,.72),rgba(5,26,27,.64))}
+.hero-main-stat.perf-good .hero-stat-label{color:rgba(126,241,233,.82)}
+.hero-main-stat.perf-warn{border-color:rgba(224,168,0,.38);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 0 22px rgba(224,168,0,.12);background:linear-gradient(180deg,rgba(58,47,12,.82),rgba(37,28,8,.72))}
+.hero-main-stat.perf-warn .hero-stat-label,.hero-main-stat.perf-warn .hero-stat-sub{color:rgba(255,233,168,.88)}
+.hero-main-stat.perf-warn .hero-ico{border-color:rgba(255,215,76,.35);color:#ffd84c;background:rgba(72,57,14,.58);box-shadow:0 0 10px rgba(224,168,0,.14)}
+.hero-main-stat.perf-alert{border-color:rgba(230,126,34,.38);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 0 22px rgba(230,126,34,.12);background:linear-gradient(180deg,rgba(61,34,14,.82),rgba(38,20,8,.72))}
+.hero-main-stat.perf-alert .hero-stat-label,.hero-main-stat.perf-alert .hero-stat-sub{color:rgba(255,220,188,.88)}
+.hero-main-stat.perf-alert .hero-ico{border-color:rgba(255,161,91,.35);color:#ffa15b;background:rgba(75,39,15,.58);box-shadow:0 0 10px rgba(230,126,34,.14)}
+.hero-main-stat.perf-bad{border-color:rgba(234,0,41,.38);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 0 22px rgba(234,0,41,.12);background:linear-gradient(180deg,rgba(51,18,24,.82),rgba(33,10,15,.72))}
+.hero-main-stat.perf-bad .hero-stat-label,.hero-main-stat.perf-bad .hero-stat-sub{color:rgba(255,212,219,.86)}
+.hero-main-stat.perf-bad .hero-ico{border-color:rgba(255,110,132,.35);color:#ff9bad;background:rgba(72,18,29,.58);box-shadow:0 0 10px rgba(234,0,41,.14)}
 .hero-side-stat .hero-stat-top{margin-bottom:4px;justify-content:center}
 .hero-side-stat .hero-stat-sub{font-size:11px;color:rgba(226,250,248,.82)}
 .hero-side-stat .hero-spark{margin-top:2px}
@@ -575,15 +586,22 @@ function setHeroForTab(D,pa){
   var worstEvt=D.evRank[0]||null;
   var tset=document.getElementById('hSetor'), ttl=document.getElementById('hTitulo'), sub=document.getElementById('hSubtitle');
   safeText('hSectorChip',lbl);
-  document.getElementById('heroMainLabel').textContent=tab==='mot'?'Performance Média':'Performance Geral';
+  document.getElementById('heroMainLabel').textContent='Performance Geral';
   document.getElementById('heroPerf').textContent=fmtDec(pa,2)+'%';
   var pshort=periodLabelCompact();
   safeSet('heroMainPeriod','Período <b>'+esc(pshort)+'</b>');
   safeSet('heroSide1Period','Período <b>'+esc(pshort)+'</b>');
   safeSet('heroSide2Period','Período <b>'+esc(pshort)+'</b>');
-  var side1Card=document.getElementById('heroSide1Card'),side2Card=document.getElementById('heroSide2Card');
+  var side1Card=document.getElementById('heroSide1Card'),side2Card=document.getElementById('heroSide2Card'),mainCard=document.querySelector('.hero-main-stat');
   if(side1Card)side1Card.classList.remove('worst-card');
   if(side2Card)side2Card.classList.remove('worst-card');
+  if(mainCard)mainCard.classList.remove('perf-good','perf-warn','perf-alert','perf-bad');
+  if(mainCard){
+    if(pa<0)mainCard.classList.add('perf-bad');
+    else if(pa<50)mainCard.classList.add('perf-alert');
+    else if(pa<90)mainCard.classList.add('perf-warn');
+    else mainCard.classList.add('perf-good');
+  }
   if(tab==='mot'){
     tset.textContent='MOTORISTAS';
     ttl.innerHTML='Desempenho dos Motoristas';
@@ -1008,9 +1026,11 @@ function bindEvents(){
       s.vs[i]=Math.max(-.11,Math.min(.11,s.vs[i]));
     }
     ctx.beginPath();
-    var worst=s.canvas.closest('.worst-card');
+    var worst=s.canvas.closest('.worst-card'), perfBad=s.canvas.closest('.perf-bad'), perfWarn=s.canvas.closest('.perf-warn'), perfAlert=s.canvas.closest('.perf-alert');
     var base='104,255,240', glow='61,240,221';
-    if(worst){base='255,122,145'; glow='234,0,41';}
+    if(worst||perfBad){base='255,122,145'; glow='234,0,41';}
+    else if(perfWarn){base='255,221,102'; glow='224,168,0';}
+    else if(perfAlert){base='255,179,102'; glow='230,126,34';}
     var grd=ctx.createLinearGradient(0,0,w,0);
     grd.addColorStop(0,'rgba('+base+',0)');
     grd.addColorStop(.2,'rgba('+glow+',.92)');
@@ -1041,8 +1061,8 @@ function bindEvents(){
       var alpha=Math.sin(prog*Math.PI)*(.7+.3*Math.sin(s.t*3+d));
       ctx.beginPath();
       ctx.arc(px,py,2.5,0,Math.PI*2);
-      var dotRGB=worst?'255,122,145':'104,255,240';
-      var glowRGB=worst?'234,0,41':'61,240,221';
+      var dotRGB=(worst||perfBad)?'255,122,145':(perfWarn?'255,221,102':(perfAlert?'255,179,102':'104,255,240'));
+      var glowRGB=(worst||perfBad)?'234,0,41':(perfWarn?'224,168,0':(perfAlert?'230,126,34':'61,240,221'));
       ctx.fillStyle='rgba('+dotRGB+','+alpha+')';
       ctx.shadowColor='rgba('+glowRGB+',.9)'; ctx.shadowBlur=10;
       ctx.fill(); ctx.shadowBlur=0;
