@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSAO AJUSTADA: TOP10_DESVIOS_V27 -->
+<!-- VERSAO AJUSTADA: TOP10_DESVIOS_V28 -->
 
 <html lang="pt-BR">
 <head>
@@ -12,7 +12,7 @@
 <style>
 :root{--teal:#00A19B;--teal-d:#007d78;--teal-l:#10CFC9;--red:#EA0029;--red-l:#fde7eb;--ink:#0b1f1e;--muted:#5b7a78;--line:#e2eeee;--bg:#f2f8f8;--card:#fff;--mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;--shadow:0 1px 2px rgba(0,49,47,.04),0 4px 16px rgba(0,49,47,.06);--radius:12px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--sans);background:radial-gradient(circle at top right,rgba(10,161,155,.22),transparent 24%),linear-gradient(180deg,#03292a 0%,#083f40 18%,#eaf4f4 18%,#eaf4f4 100%);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased}
+body{font-family:var(--sans);background:radial-gradient(circle at 86% 12%,rgba(18,245,231,.18),transparent 18%),radial-gradient(circle at 18% 78%,rgba(18,245,231,.08),transparent 18%),linear-gradient(135deg,#03292a 0%,#083f40 45%,#0b5c5d 78%,#119c9d 100%);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased}
 header{background:radial-gradient(circle at top right,rgba(16,207,201,.28),transparent 28%),linear-gradient(135deg,#031f20 0%,#06393a 42%,#085f60 78%,#0aa19b 100%);padding:18px 0 18px;position:relative;overflow:hidden}
 header::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent 0 18%,rgba(255,255,255,.04) 18.2%,transparent 18.4%,transparent 52%,rgba(255,255,255,.03) 52.2%,transparent 52.5%),repeating-linear-gradient(-55deg,transparent,transparent 54px,rgba(255,255,255,.02) 54px,rgba(255,255,255,.02) 55px)}
 header::after{content:'';position:absolute;right:-140px;top:-120px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(18,245,231,.22) 0%,transparent 70%)}
@@ -82,7 +82,7 @@ header .tab{background:rgba(5,26,27,.35);border:1px solid rgba(129,245,236,.14);
 header .tab:hover{color:#fff;border-color:rgba(129,245,236,.28);background:rgba(6,39,40,.55)}
 header .tab.active{color:#041a1b;background:linear-gradient(180deg,#4ff6e6,#18d6c8);border-color:transparent;box-shadow:0 0 18px rgba(61,240,221,.22)}
 header .msel{background:rgba(4,27,28,.5);border:1px solid rgba(129,245,236,.18);color:#fff;border-radius:999px;padding:8px 12px}
-.content-wrap{background:#fff;border-radius:24px;padding:26px 24px 80px;box-shadow:0 18px 44px rgba(3,39,40,.08);margin-top:0}
+.content-wrap{background:#fff;border-radius:24px;padding:26px 24px 80px;box-shadow:0 18px 44px rgba(3,39,40,.08);margin-top:0;position:relative;z-index:2}
 
 main{padding:0 0 80px}
 .panel{display:none} .panel.active{display:block;animation:fadeUp .3s ease}
@@ -258,6 +258,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 .hero-main-stat.perf-bad .hero-ico{border-color:rgba(255,110,132,.35);color:#ff9bad;background:rgba(72,18,29,.58);box-shadow:0 0 10px rgba(234,0,41,.14)}
 .hero-side-stat .hero-stat-top{margin-bottom:4px;justify-content:center}
 .hero-side-stat .hero-stat-sub{font-size:11px;color:rgba(226,250,248,.82)}
+.hero-stat-delta{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;font-size:11px;font-weight:700;line-height:1.2;text-align:center}.hero-stat-delta .ico{font-size:12px;line-height:1}.hero-stat-delta.good{color:#7cf3d9}.hero-stat-delta.bad{color:#ff9bad}.hero-stat-delta.neutral{color:rgba(226,250,248,.72)}.hero-side-stat .hero-stat-sub-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}.hero-main-stat .hero-stat-delta{margin-top:2px}.hero-side-stat.worst-card .hero-stat-delta.good{color:#9cf7d3}.hero-side-stat.worst-card .hero-stat-delta.bad{color:#ffb0bf}.hero-main-stat.perf-warn .hero-stat-delta.good,.hero-main-stat.perf-warn .hero-stat-delta.neutral{color:#ffe9a8}.hero-main-stat.perf-alert .hero-stat-delta.good,.hero-main-stat.perf-alert .hero-stat-delta.neutral{color:#ffdcbc}.hero-main-stat.perf-bad .hero-stat-delta.good,.hero-main-stat.perf-bad .hero-stat-delta.neutral{color:#ffd4db}
 .hero-side-stat .hero-spark{margin-top:2px}
 /* linha vertical animada */
 @keyframes lineFlow{0%{background-position:0 100%}100%{background-position:0 0}}
@@ -298,7 +299,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
           <div class="hero-stat hero-main-stat">
             <div>
               <div class="hero-stat-top"><span class="hero-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 16a7 7 0 1 1 14 0"/><path d="M12 12l4-3"/><circle cx="12" cy="12" r="1.2"/></svg></span><span class="hero-stat-label" id="heroMainLabel">Performance Geral</span><span class="metric-period" id="heroMainPeriod">Período <b>ALL</b></span></div>
-              <div class="hero-stat-value" id="heroPerf">—</div>
+              <div class="hero-stat-value" id="heroPerf">—</div><div class="hero-stat-delta neutral" id="heroMainDelta"></div>
             </div>
             <div class="hero-spark"><canvas class="spark-canvas"></canvas></div>
           </div>
@@ -307,7 +308,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
               <div>
                 <div class="hero-stat-top"><span class="hero-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5h16"/><rect x="6" y="10" width="3" height="6" rx="1"/><rect x="11" y="7" width="3" height="9" rx="1"/><rect x="16" y="4" width="3" height="12" rx="1"/></svg></span><span class="hero-stat-label" id="heroSide1Label">KM Total</span><span class="metric-period" id="heroSide1Period">Período <b>ALL</b></span></div>
                 <div class="hero-stat-value" id="heroSide1Value">—</div>
-                <div class="hero-stat-sub" id="heroSide1Sub"></div>
+                <div class="hero-stat-sub-wrap"><div class="hero-stat-sub" id="heroSide1Sub"></div><div class="hero-stat-delta neutral" id="heroSide1Delta"></div></div>
               </div>
               <div class="hero-spark"><canvas class="spark-canvas"></canvas></div>
             </div>
@@ -315,7 +316,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
               <div>
                 <div class="hero-stat-top"><span class="hero-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5h16"/><rect x="6" y="10" width="3" height="6" rx="1"/><rect x="11" y="7" width="3" height="9" rx="1"/><rect x="16" y="4" width="3" height="12" rx="1"/></svg></span><span class="hero-stat-label" id="heroSide2Label">Eventos Totais</span><span class="metric-period" id="heroSide2Period">Período <b>ALL</b></span></div>
                 <div class="hero-stat-value" id="heroSide2Value">—</div>
-                <div class="hero-stat-sub" id="heroSide2Sub"></div>
+                <div class="hero-stat-sub-wrap"><div class="hero-stat-sub" id="heroSide2Sub"></div><div class="hero-stat-delta neutral" id="heroSide2Delta"></div></div>
               </div>
               <div class="hero-spark"><canvas class="spark-canvas"></canvas></div>
             </div>
@@ -602,6 +603,8 @@ function setHeroForTab(D,pa){
     else if(pa<90)mainCard.classList.add('perf-warn');
     else mainCard.classList.add('perf-good');
   }
+  var prevM=prevMonthKey(), prevLabel=monthNameFromKey(prevM), prevCtx=prevModelForCurrentContext();
+  setDelta('heroMainDelta',null,'',false); setDelta('heroSide1Delta',null,'',false); setDelta('heroSide2Delta',null,'',false);
   if(tab==='mot'){
     tset.textContent='MOTORISTAS';
     ttl.innerHTML='Desempenho dos Motoristas';
@@ -643,6 +646,13 @@ function setHeroForTab(D,pa){
 }
 function safeSet(id,html){var el=document.getElementById(id);if(el)el.innerHTML=html;}
 function safeText(id,txt){var el=document.getElementById(id);if(el)el.textContent=txt;}
+
+function prevMonthKey(){if(STATE.scope==='ALL')return null; var idx=STATE.months.indexOf(STATE.scope); return idx>0?STATE.months[idx-1]:null}
+function prevModelForCurrentContext(){var pm=prevMonthKey(); if(!pm)return null; var rows=STATE.all.filter(function(r){return String(r.MES||'').toUpperCase()===pm}); return buildModel(rows)}
+function monthNameFromKey(k){return monthFull(k||'')}
+function pctVar(curr,prev){if(prev==null||prev===0)return null; return ((curr-prev)/Math.abs(prev))*100}
+function deltaHTML(delta,label,isInverse){ if(delta==null||!isFinite(delta)) return ''; var good=isInverse?delta<0:delta>0; var bad=isInverse?delta>0:delta<0; var cls=good?'good':(bad?'bad':'neutral'); var arrow=delta>0?'▲':(delta<0?'▼':'•'); var val=(delta>0?'+':'')+fmtDec(delta,1)+'%'; return '<span class="ico">'+arrow+'</span><span>'+val+' vs '+esc(label)+'</span>'; }
+function setDelta(id,delta,label,isInverse){ var el=document.getElementById(id); if(!el)return; if(delta==null||!isFinite(delta)){el.className='hero-stat-delta neutral'; el.innerHTML=''; return;} var good=isInverse?delta<0:delta>0; var bad=isInverse?delta>0:delta<0; el.className='hero-stat-delta '+(good?'good':(bad?'bad':'neutral')); el.innerHTML=deltaHTML(delta,label,isInverse);}
 
 function renderHeroMiniStats(D){
   var nSetores=STATE.setor==='ALL'?activeSectorCount():1;
