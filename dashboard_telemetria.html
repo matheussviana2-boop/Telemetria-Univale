@@ -198,6 +198,20 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 @media(max-width:900px){header h1{font-size:34px;max-width:none}.hero-shell{padding:16px}.hero-copy{padding:8px 8px 8px 18px}.hero-main-stat .hero-stat-value{font-size:52px}.hero-side-col{grid-template-columns:1fr}.hero-toolbar{padding:14px 6px 0 10px}.hero-filters{margin-left:0}.kpis{grid-template-columns:repeat(2,1fr)}.g2,.g2eq{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}.alertnum{font-size:32px}.mot-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.perf-toggle-wrap{margin-left:0}.content-wrap{padding:22px 18px 60px}}
 @media(max-width:640px){.hero-chips{flex-direction:column;align-items:flex-start}.hero-shell::before,.hero-shell::after{display:none}.nav-right{margin-left:0;padding-left:0}.hero-tabs,.hero-filters{width:100%}.hero-filter{width:100%;justify-content:space-between}.content-wrap{border-radius:18px}}
 /* filtros no topo direito do hero */
+/* 6 KPIs visão geral */
+.kpis6{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
+.kpis6 .kpi{background:var(--card);border-radius:var(--radius);padding:16px 14px;box-shadow:var(--shadow);border:1px solid var(--line);position:relative;overflow:hidden}
+.kpis6 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--teal)}
+.kpis6 .kpi.alert::before{background:var(--red)}
+/* top5 desvios */
+.dev5-item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.dev5-item:last-child{border-bottom:none}
+.dev5-name{font-weight:600;font-size:13px}
+.dev5-qty{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink);text-align:right;min-width:70px}
+.dev5-pct{font-family:var(--mono);font-size:12px;font-weight:700;background:#eef5f5;color:var(--teal-d);padding:2px 7px;border-radius:6px;min-width:48px;text-align:center}
+.dev5-var{font-family:var(--mono);font-size:11.5px;font-weight:700;min-width:52px;text-align:right}
+.dev5-var.up{color:var(--red)} .dev5-var.dn{color:var(--teal)} .dev5-var.eq{color:var(--muted)}
+@media(max-width:900px){.kpis6{grid-template-columns:repeat(3,1fr)}}
 .hero-top-filters{position:absolute;top:18px;right:18px;display:flex;align-items:center;gap:10px;z-index:10}
 .hero-top-filters .hero-filter{display:flex;align-items:center;gap:8px;color:rgba(206,248,244,.9);font-size:12px;font-weight:700}
 .hero-shell{position:relative}
@@ -275,14 +289,31 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 
     <!-- VISÃO GERAL -->
     <section class="panel active" id="visao">
-      <div class="alertbar"><div class="alertnum" id="aPct">—</div><div class="alerttxt"><h3 id="aH">—</h3><p id="aP">—</p></div></div>
 
-      <div class="g2 mb18">
-        <div class="card"><div class="ctitle">Evolução mensal</div><div class="csub">Eventos (barras) e performance média (linha) mês a mês.</div><div class="cbox"><canvas id="cTrend"></canvas></div></div>
-        <div class="card"><div class="ctitle">KM por evento</div><div class="csub">KM total dividido pela quantidade de eventos. Quanto maior, melhor a eficiência operacional.</div><div class="cbox"><canvas id="cKme"></canvas></div></div>
+      <!-- 6 KPIs -->
+      <div class="kpis6" id="kpis6"></div>
+
+      <!-- Top 5 desvios + comparativo setores -->
+      <div class="g2eq mb18">
+        <div class="card">
+          <div class="ctitle">Top 5 desvios</div>
+          <div class="csub">Participação, volume e variação vs período anterior.</div>
+          <div id="top5devCard"></div>
+        </div>
+        <div class="card" id="setorCard">
+          <div class="ctitle" id="setorCardTitle">Comparativo por setor</div>
+          <div class="csub" id="setorCardSub">Performance e eficiência de cada setor no período.</div>
+          <div class="cbox"><canvas id="cSetor"></canvas></div>
+        </div>
       </div>
 
-      <!-- Eventos clicáveis + Top 5 ao lado -->
+      <!-- Evolução + KM por evento -->
+      <div class="g2 mb18">
+        <div class="card"><div class="ctitle">Evolução mensal</div><div class="csub">Eventos (barras) e performance média (linha) mês a mês.</div><div class="cbox"><canvas id="cTrend"></canvas></div></div>
+        <div class="card"><div class="ctitle">KM por evento</div><div class="csub">Quanto maior, mais quilômetros entre desvios — operação mais eficiente.</div><div class="cbox"><canvas id="cKme"></canvas></div></div>
+      </div>
+
+      <!-- Eventos + Top5 motorista -->
       <div class="g2eq mb18">
         <div class="card" id="cardRank">
           <div class="ctitle">Eventos por tipo</div>
@@ -572,6 +603,90 @@ function setHeroForTab(D,pa){
 }
 function safeSet(id,html){var el=document.getElementById(id);if(el)el.innerHTML=html;}
 function safeText(id,txt){var el=document.getElementById(id);if(el)el.textContent=txt;}
+
+function renderKpis6(D,full){
+  var pa=calcPerf(D.totKm,D.totEv)||0;
+  var nSetores=STATE.setor==='ALL'?activeSectorCount():1;
+  var kpis=[
+    {l:'Performance geral',v:fmtDec(pa,2),u:'%',al:pa<90},
+    {l:'KM total rodado',v:fmt(D.totKm),u:'km'},
+    {l:'Eventos totais',v:fmt(D.totEv),u:''},
+    {l:'KM por evento',v:kmPorEvento(D.totKm,D.totEv).toFixed(1),u:'km'},
+    {l:'Motoristas avaliados',v:fmt(D.motN),u:''},
+    {l:'Setores monitorados',v:fmt(nSetores),u:''},
+  ];
+  safeSet('kpis6',kpis.map(function(k){
+    return'<div class="kpi'+(k.al?' alert':'')+'"><div class="kpi-label">'+k.l+'</div>'+
+      '<div class="kpi-value">'+k.v+'<span class="kpi-unit"> '+k.u+'</span></div></div>';
+  }).join(''));
+}
+
+function renderTop5Dev(D,full){
+  // pegar mês anterior ao escopo atual para variação
+  var prevEv={};
+  if(STATE.scope!=='ALL'){
+    var idx=STATE.months.indexOf(STATE.scope);
+    if(idx>0){
+      var prevM=STATE.months[idx-1];
+      var prevRows=STATE.all.filter(function(r){return String(r.MES||'').toUpperCase()===prevM});
+      var prevModel=buildModel(prevRows);
+      EV_COLS.forEach(function(e){prevEv[e]=prevModel.evTot[e]||0});
+    }
+  }
+  var top5=D.evRank.slice(0,5);
+  safeSet('top5devCard',top5.map(function(r){
+    var prev=prevEv[r[0]];
+    var varHtml='';
+    if(prev!=null&&prev>0){
+      var delta=Math.round((r[1]-prev)/prev*100);
+      var cls=delta>0?'up':delta<0?'dn':'eq';
+      varHtml='<span class="dev5-var '+cls+'">'+(delta>0?'▲ +':'▼ ')+Math.abs(delta)+'%</span>';
+    } else {
+      varHtml='<span class="dev5-var eq">—</span>';
+    }
+    return'<div class="dev5-item">'+
+      '<span class="dev5-name">'+r[0]+'</span>'+
+      '<span class="dev5-qty">'+fmt(r[1])+'</span>'+
+      '<span class="dev5-pct">'+r[2]+'%</span>'+
+      varHtml+'</div>';
+  }).join('')||'<p style="color:var(--muted);font-size:13px;padding:16px 0">Sem eventos no período.</p>');
+}
+
+function renderSetorChart(full){
+  if(CH['cSetor']){try{CH['cSetor'].destroy()}catch(e){}}
+  var el=document.getElementById('cSetor');
+  var card=document.getElementById('setorCard');
+  if(!el||!card)return;
+  if(STATE.setor!=='ALL'){
+    card.style.display='none'; return;
+  }
+  card.style.display='';
+  // agrupar por setor
+  var ss={};
+  STATE.all.forEach(function(r){
+    var s=String(r.SETOR||'').toUpperCase();if(!s)return;
+    var o=ss[s]||(ss[s]={km:0,ev:0});
+    o.km+=+r.KM||0; o.ev+=+r.PONTUACAO||0;
+  });
+  var setores=Object.keys(ss).sort();
+  var perfs=setores.map(function(s){return ss[s].km?Math.max(0,parseFloat(calcPerf(ss[s].km,ss[s].ev).toFixed(2))):0});
+  var kmes=setores.map(function(s){return ss[s].ev?Math.round(ss[s].km/ss[s].ev*10)/10:0});
+  var lbls=setores.map(function(s){return SLABELS[s]||s});
+  if(typeof Chart==='undefined')return;
+  CH['cSetor']=new Chart(el,{
+    type:'bar',
+    data:{labels:lbls,datasets:[
+      {label:'Performance %',data:perfs,backgroundColor:'rgba(0,161,155,.75)',borderRadius:4,yAxisID:'y'},
+      {label:'KM/Evento',data:kmes,backgroundColor:'rgba(234,0,41,.6)',borderRadius:4,yAxisID:'y1'}
+    ]},
+    options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10}}},
+        y:{title:{display:true,text:'performance %'},min:80,max:100,grid:{color:'#eef4f3'}},
+        y1:{position:'right',title:{display:true,text:'km/evento'},beginAtZero:true,grid:{drawOnChartArea:false}}
+      }}
+  });
+}
 function render(){
   var D=STATE.D,full=STATE.full,sc=STATE.scope;killCH();
   var pt=sc==='ALL'?periodRangeLabel()+' · '+D.motN+' motoristas':sc+' · '+D.motN+' motoristas';
@@ -583,6 +698,9 @@ function render(){
   var dk=(mul&&f.kme)?Math.round((l.kme-f.kme)/f.kme*100):null;
   setHeroForTab(D,pa);
   safeText('hUpdated','Atualizado hoje');
+  renderKpis6(D,full);
+  renderTop5Dev(D,full);
+  renderSetorChart(full);
   var top=D.evRank[0];
   safeText('aPct',(top?top[2]:0)+'%');
   safeText('aH',top?top[0]+' é o desvio mais frequente'+(sc!=='ALL'?' em '+sc:''):'Sem eventos');
@@ -803,12 +921,12 @@ function populateSectorSel(){
   var sel=document.getElementById('sectorSel');if(!sel)return;
   var ss={};STATE.raw.forEach(function(r){var s=String(r.SETOR||'').toUpperCase();if(s)ss[s]=1});
   var setores=Object.keys(ss).sort();
-  sel.innerHTML='<option value="ALL">Todos os setores</option>'+setores.map(function(s){return'<option value="'+s+'">'+setorLabel(s)+'</option>'}).join('');
+  sel.innerHTML='<option value="ALL">Todos</option>'+setores.map(function(s){return'<option value="'+s+'">'+setorLabel(s)+'</option>'}).join('');
   sel.value=STATE.setor||'ALL';
 }
 function populateSel(){
   var sel=document.getElementById('monthSel');
-  sel.innerHTML='<option value="ALL">Todos os meses</option>'+STATE.months.map(function(m){return'<option value="'+m+'">'+m+'</option>'}).join('');
+  sel.innerHTML='<option value="ALL">Todos</option>'+STATE.months.map(function(m){return'<option value="'+m+'">'+m+'</option>'}).join('');
   sel.value=STATE.scope;
 }
 function bindEvents(){
