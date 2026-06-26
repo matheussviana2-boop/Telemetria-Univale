@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSAO AJUSTADA: TOP5_EVENTOS_V6 -->
+<!-- VERSAO AJUSTADA: TOP5_EVENTOS_V7 -->
 
 <html lang="pt-BR">
 <head>
@@ -32,7 +32,7 @@ nav{background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-bottom:1p
 nav .wrap{display:flex;align-items:center;gap:2px;overflow-x:auto}
 .tab{background:none;border:none;font-family:var(--sans);font-size:13.5px;font-weight:600;color:var(--muted);padding:14px 16px;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s}
 .tab:hover{color:var(--ink)} .tab.active{color:var(--teal);border-bottom-color:var(--teal)}
-.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 0 0 12px}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 0 0 12px;flex-wrap:wrap}
 .msel{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--ink);padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
 main{padding:28px 0 80px}
 .panel{display:none} .panel.active{display:block;animation:fadeUp .3s ease}
@@ -78,16 +78,16 @@ thead th:hover{color:var(--ink)}
 tbody td{padding:10px 14px;border-bottom:1px solid #f0f5f5;text-align:left}
 tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f7fbfb}
 #mot .twrap{border-width:3px;overflow-x:auto}
-#tbl{min-width:1500px;table-layout:fixed;font-size:12px}
+#tbl{min-width:0;width:100%;table-layout:fixed;font-size:11.5px}
 #tbl thead th{white-space:normal;line-height:1.15;text-align:center;padding:8px 6px;vertical-align:middle;letter-spacing:.035em;cursor:pointer}
 #tbl tbody td{padding:8px 6px;text-align:center;vertical-align:middle;line-height:1.25}
 #tbl th:nth-child(1),#tbl td:nth-child(1){width:40px}
-#tbl th:nth-child(2),#tbl td:nth-child(2){width:180px;text-align:left}
-#tbl th:nth-child(3),#tbl td:nth-child(3){width:116px}
-#tbl th:nth-child(4),#tbl td:nth-child(4){width:82px}
-#tbl th:nth-child(5),#tbl td:nth-child(5){width:86px}
-#tbl .evth{width:102px;min-width:102px}
-#tbl th:last-child,#tbl td:last-child{width:114px;min-width:114px;padding-right:12px}
+#tbl th:nth-child(2),#tbl td:nth-child(2){width:170px;text-align:left}
+#tbl th:nth-child(3),#tbl td:nth-child(3){width:110px}
+#tbl th:nth-child(4),#tbl td:nth-child(4){width:72px}
+#tbl th:nth-child(5),#tbl td:nth-child(5){width:76px}
+#tbl .evth{width:84px;min-width:76px;overflow-wrap:anywhere}
+#tbl th:last-child,#tbl td:last-child{width:92px;min-width:86px;padding-right:10px}
 #tbl .nmcell{white-space:normal;overflow-wrap:anywhere;font-size:12.5px;line-height:1.35}
 .mot-mini-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:0 0 16px}
 .mini-ev{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:12px 12px;min-height:82px;display:flex;flex-direction:column;justify-content:center}
@@ -178,6 +178,8 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
       <button class="tab" data-t="mot">Motoristas</button>
       <button class="tab" data-t="diag">Diagnóstico</button>
       <div class="nav-right">
+        <label style="font-size:12px;font-weight:600;color:var(--muted)">Setor</label>
+        <select class="msel" id="sectorSel"><option value="ALL">Todos os setores</option></select>
         <label style="font-size:12px;font-weight:600;color:var(--muted)">Período</label>
         <select class="msel" id="monthSel"><option value="ALL">Todos os meses</option></select>
       </div>
@@ -291,6 +293,19 @@ var MESES=["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DE
 var PAL=['#EA0029','#00A19B','#10CFC9','#0d7d78','#7ad6d2','#0a6e6a','#9aa5a4','#e0a800'];
 var EV_COLS=['Aceleração Brusca','Batendo Transmissão','Curva Brusca','Excesso Marcha Lenta','Excesso Rotação','Excesso RPM Parado','Fora Faixa Verde','Freada Brusca','Pedal Acelerador','Desengrenado'];
 var EV_LABELS={'Aceleração Brusca':'Aceleração<br>Brusca','Batendo Transmissão':'Batendo<br>Transmissão','Curva Brusca':'Curva<br>Brusca','Excesso Marcha Lenta':'Excesso<br>Marcha<br>Lenta','Excesso Rotação':'Excesso<br>Rotação','Excesso RPM Parado':'Excesso<br>RPM<br>Parado','Fora Faixa Verde':'Fora<br>Faixa<br>Verde','Freada Brusca':'Freada<br>Brusca','Pedal Acelerador':'Pedal<br>Acelerador','Desengrenado':'Desengrenado'};
+var EV_ALIASES={
+  'Pedal Acelerador':['Pedal Acelerador','Pedal do Acelerador','Pedal do acelerador','PEDAL ACELERADOR','PEDAL DO ACELERADOR'],
+  'Desengrenado':['Desengrenado','DESENGRENADO'],
+  'Aceleração Brusca':['Aceleração Brusca','Aceleracao Brusca','ACELERACAO BRUSCA'],
+  'Batendo Transmissão':['Batendo Transmissão','Batendo Transmissao','BATENDO TRANSMISSAO'],
+  'Curva Brusca':['Curva Brusca','CURVA BRUSCA'],
+  'Excesso Marcha Lenta':['Excesso Marcha Lenta','EXCESSO MARCHA LENTA'],
+  'Excesso Rotação':['Excesso Rotação','Excesso Rotacao','EXCESSO ROTACAO'],
+  'Excesso RPM Parado':['Excesso RPM Parado','EXCESSO RPM PARADO'],
+  'Fora Faixa Verde':['Fora Faixa Verde','FORA FAIXA VERDE'],
+  'Freada Brusca':['Freada Brusca','FREADA BRUSCA']
+};
+
 var DIAG={
   "Curva Brusca":{eixo:"Segurança",cor:"ic-red",icon:"↪",mede:"Força lateral excessiva ao curvar — velocidade inadequada na entrada da curva.",acao:"Reduzir a velocidade antes da curva, antecipar visualmente a via."},
   "Freada Brusca":{eixo:"Segurança",cor:"ic-red",icon:"⊟",mede:"Desaceleração forte ou de emergência — principal indicador de risco de colisão.",acao:"Manter distância segura do veículo à frente e antecipar o tráfego."},
@@ -304,7 +319,7 @@ var DIAG={
   "Excesso RPM Parado":{eixo:"Manutenção",cor:"ic-teal-l",icon:"◉",mede:"Aceleração do motor com o veículo parado.",acao:"Motores modernos não precisam ser aquecidos acelerando parado."}
 };
 var SLABELS={'FRET_BAHIA':'Fretamento Bahia','CENIBRA':'Fretamento Cenibra','LINHAS':'Linhas','MUSA':'Musa','TURIM':'Turim Rodoviário','GARAG_BAHIA':'Garagistas Bahia','GARAG_MG':'Garagistas MG','CIPALAM':'Cipalam','BEMISA':'Fretamento Bemisa'};
-var STATE={all:[],setor:'',months:[],scope:'ALL',D:null,full:null,selEvent:null,perfMode:'std'};
+var STATE={raw:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,selEvent:null,perfMode:'std'};
 var CH={};
 function fmt(n){return Math.round(n).toLocaleString('pt-BR')}
 function fmtDec(n,d){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
@@ -312,6 +327,35 @@ function kmPorEvento(km,ev){return ev?km/ev:0}
 function calcPerf(km,ev){if(!km||km<=0)return null;return (1-(ev/km))*100}
 function evLabel(e){return EV_LABELS[e]||e}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]||c})}
+function nkey(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function evVal(r,e){
+  var names=[e].concat(EV_ALIASES[e]||[]);
+  for(var i=0;i<names.length;i++){if(r[names[i]]!=null&&r[names[i]]!=='')return +r[names[i]]||0}
+  var wanted={};names.forEach(function(n){wanted[nkey(n)]=1});
+  for(var k in r){if(wanted[nkey(k)])return +r[k]||0}
+  return 0
+}
+function setorLabel(s){return s==='ALL'||!s?'Todos os Setores':(SLABELS[s]||s)}
+function currentSetorRows(){return STATE.setor&&STATE.setor!=='ALL'?STATE.raw.filter(function(r){return String(r.SETOR||'').toUpperCase()===STATE.setor}):STATE.raw.slice()}
+function refreshHeader(){
+  var lbl=setorLabel(STATE.setor);
+  document.getElementById('hSetor').textContent=STATE.setor==='ALL'?'TODOS OS SETORES':STATE.setor;
+  document.getElementById('hTitulo').textContent='Performance — '+lbl;
+}
+function refreshMonths(){
+  var ms={};STATE.months=[];
+  STATE.all.forEach(function(r){var m=String(r.MES||'').toUpperCase();if(m&&!ms[m]){ms[m]=1;STATE.months.push(m)}});
+  STATE.months.sort(function(a,b){return MESES.indexOf(a)-MESES.indexOf(b)});
+  if(STATE.scope!=='ALL'&&STATE.months.indexOf(STATE.scope)<0)STATE.scope='ALL';
+}
+function applySetor(){
+  STATE.all=currentSetorRows();
+  if(!STATE.all.length){showErr('Nenhum dado para o setor "'+STATE.setor+'".');return}
+  refreshMonths();
+  refreshHeader();
+  populateSel();
+  buildRender();
+}
 function pClass(p){if(p==null)return 'p-na';if(p<0)return 'p-red';if(p<50)return 'p-orange';if(p<90)return 'p-yellow';return 'p-green'}
 function pPill(p){return '<span class="ppill '+pClass(p)+'">'+(p==null?'—':fmtDec(p,2)+'%')+'</span>'}
 function kmWeight(km,maxKm){if(!maxKm||!km)return .35;return .35+.65*Math.sqrt(km/maxKm)}
@@ -333,17 +377,11 @@ function init(wb){
   var ws=wb.Sheets['DADOS_MOTORISTAS'];
   if(!ws){showErr('Aba DADOS_MOTORISTAS não encontrada.');return}
   var rows=XLSX.utils.sheet_to_json(ws);
-  STATE.setor=getSetor();
-  var fil=STATE.setor?rows.filter(function(r){return String(r.SETOR||'').toUpperCase()===STATE.setor}):rows;
-  if(!fil.length){showErr('Nenhum dado para o setor "'+STATE.setor+'".');return}
-  STATE.all=fil;
-  var ms={};STATE.months=[];
-  fil.forEach(function(r){var m=String(r.MES||'').toUpperCase();if(m&&!ms[m]){ms[m]=1;STATE.months.push(m)}});
-  STATE.months.sort(function(a,b){return MESES.indexOf(a)-MESES.indexOf(b)});
-  var lbl=SLABELS[STATE.setor]||STATE.setor||'Todos os Setores';
-  document.getElementById('hSetor').textContent=STATE.setor||'TODOS OS SETORES';
-  document.getElementById('hTitulo').textContent='Performance — '+lbl;
-  populateSel();buildRender();
+  STATE.raw=rows;
+  var qs=getSetor();
+  STATE.setor=qs||'ALL';
+  populateSectorSel();
+  applySetor();
   document.getElementById('loading').style.display='none';
   document.getElementById('app').style.display='block';
   bindEvents();
@@ -352,7 +390,7 @@ function buildModel(rows){
   var monthly=STATE.months.map(function(m){
     var mr=rows.filter(function(r){return String(r.MES||'').toUpperCase()===m});
     var km=0,ev=0,brk={};EV_COLS.forEach(function(e){brk[e]=0});
-    mr.forEach(function(r){km+=+r.KM||0;ev+=+r.PONTUACAO||0;EV_COLS.forEach(function(e){brk[e]+=+r[e]||0})});
+    mr.forEach(function(r){km+=+r.KM||0;ev+=+r.PONTUACAO||0;EV_COLS.forEach(function(e){brk[e]+=evVal(r,e)})});
     return{m:m,km:Math.round(km),ev:ev,perf:calcPerf(km,ev),kme:Math.round(kmPorEvento(km,ev)*10)/10,brk:brk}
   });
   var drv={};
@@ -360,7 +398,7 @@ function buildModel(rows){
     var n=String(r.MOTORISTA||'').trim();if(!n)return;
     var o=drv[n]||(drv[n]={nome:n,km:0,pts:0,ev:{},fluig:null});
     o.km+=+r.KM||0;o.pts+=+r.PONTUACAO||0;
-    EV_COLS.forEach(function(e){o.ev[e]=(o.ev[e]||0)+(+r[e]||0)});
+    EV_COLS.forEach(function(e){o.ev[e]=(o.ev[e]||0)+evVal(r,e)});
     if(r.FLUIG)o.fluig=r.FLUIG
   });
   var drivers=Object.values(drv).map(function(o){
@@ -596,9 +634,21 @@ function renderTable(){
     return'<tr><td class="rank">'+(i+1)+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+pPill(perf)+'</td><td>'+fmt(d.km)+'</td><td>'+fmt(d.pts)+'</td>'+ep.map(function(e){return'<td>'+(d.ev[e]||0)+'</td>'}).join('')+'</tr>'
   }).join('')||'<tr><td colspan="20" style="padding:24px;text-align:center;color:var(--muted)">Nenhum motorista encontrado.</td></tr>'
 }
-function populateSel(){var sel=document.getElementById('monthSel');sel.innerHTML='<option value="ALL">Todos os meses</option>'+STATE.months.map(function(m){return'<option value="'+m+'">'+m+'</option>'}).join('')}
+function populateSectorSel(){
+  var sel=document.getElementById('sectorSel');if(!sel)return;
+  var ss={};STATE.raw.forEach(function(r){var s=String(r.SETOR||'').toUpperCase();if(s)ss[s]=1});
+  var setores=Object.keys(ss).sort();
+  sel.innerHTML='<option value="ALL">Todos os setores</option>'+setores.map(function(s){return'<option value="'+s+'">'+setorLabel(s)+'</option>'}).join('');
+  sel.value=STATE.setor||'ALL';
+}
+function populateSel(){
+  var sel=document.getElementById('monthSel');
+  sel.innerHTML='<option value="ALL">Todos os meses</option>'+STATE.months.map(function(m){return'<option value="'+m+'">'+m+'</option>'}).join('');
+  sel.value=STATE.scope;
+}
 function bindEvents(){
   document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');var el=document.getElementById(b.dataset.t);if(el)el.classList.add('active');window.scrollTo({top:0,behavior:'smooth'})})});
+  document.getElementById('sectorSel').addEventListener('change',function(){STATE.setor=this.value;STATE.scope='ALL';STATE.selEvent=null;applySetor()});
   document.getElementById('monthSel').addEventListener('change',function(){STATE.scope=this.value;buildRender()});
   ['q'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',renderTable)});
   document.querySelectorAll('.perf-btn').forEach(function(btn){btn.addEventListener('click',function(){STATE.perfMode=btn.dataset.mode;render()})});
