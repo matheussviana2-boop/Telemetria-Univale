@@ -19,7 +19,7 @@ header::after{content:'';position:absolute;right:-140px;top:-120px;width:420px;h
 .wrap{max-width:1360px;margin:0 auto;padding:0 20px}
 .hero-shell{position:relative;z-index:1;border:1px solid rgba(101,244,231,.2);border-radius:26px;background:linear-gradient(180deg,rgba(2,33,34,.6),rgba(2,33,34,.38));backdrop-filter:blur(6px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 16px 50px rgba(0,34,34,.22);padding:18px 18px 16px;overflow:hidden}
 .hero-shell::before{content:'';position:absolute;left:22px;top:52px;bottom:26px;width:2px;background:linear-gradient(180deg,rgba(18,245,231,.9),rgba(18,245,231,.05));box-shadow:0 0 16px rgba(18,245,231,.6)}
-.hero-shell::after{content:'';position:absolute;left:22px;top:50px;width:8px;height:8px;border-radius:50%;background:#68fff0;box-shadow:0 0 0 4px rgba(104,255,240,.14),0 0 14px rgba(104,255,240,.9)}
+.hero-shell::after{content:'';position:absolute;right:-140px;top:-120px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(18,245,231,.22) 0%,transparent 70%)}
 .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;position:relative;z-index:1}
 .brand-name{font-weight:800;font-size:18px;color:#fff;letter-spacing:.5px}
 .brand-sep{width:1px;height:16px;background:rgba(255,255,255,.24)}
@@ -36,10 +36,10 @@ header h1{font-size:40px;line-height:1.02;font-weight:800;color:#fff;margin-bott
 .hero-side-col{display:grid;grid-template-rows:1fr 1fr;gap:14px}
 .hero-stats{display:none}
 .hero-stat{position:relative;overflow:hidden;border-radius:18px;padding:14px 14px 12px;background:linear-gradient(180deg,rgba(7,42,43,.72),rgba(5,26,27,.64));border:1px solid rgba(89,228,220,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 0 26px rgba(13,169,160,.08)}
-.hero-main-stat{padding:18px 20px 14px;display:flex;flex-direction:column;justify-content:space-between;min-height:220px}
+.hero-main-stat{padding:14px 18px 12px;display:flex;flex-direction:column;justify-content:space-between;min-height:160px}
 .hero-main-stat .hero-stat-label{font-size:11px}
-.hero-main-stat .hero-stat-value{font-size:82px;line-height:.9;margin-top:6px}
-.hero-side-stat{min-height:102px;display:flex;flex-direction:column;justify-content:space-between}
+.hero-main-stat .hero-stat-value{font-size:68px;line-height:.92;margin-top:4px}
+.hero-side-stat{min-height:72px;display:flex;flex-direction:column;justify-content:space-between}
 .hero-side-stat .hero-stat-value{font-size:22px}
 .hero-side-stat .hero-stat-value.text{font-size:18px;line-height:1.15;max-width:100%;word-break:break-word}
 .hero-stat-sub{font-size:11px;font-weight:600;color:rgba(226,250,248,.72);margin-top:4px}
@@ -212,6 +212,11 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 .dev5-var{font-family:var(--mono);font-size:11.5px;font-weight:700;min-width:52px;text-align:right}
 .dev5-var.up{color:var(--red)} .dev5-var.dn{color:var(--teal)} .dev5-var.eq{color:var(--muted)}
 @media(max-width:900px){.kpis6{grid-template-columns:repeat(3,1fr)}}
+/* mini-stats no hero-copy */
+.hero-mini-stats{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap}
+.hero-mini-stat{background:rgba(5,26,27,.5);border:1px solid rgba(129,245,236,.18);border-radius:10px;padding:10px 14px;min-width:80px}
+.hero-mini-label{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(138,236,228,.7);margin-bottom:4px}
+.hero-mini-val{font-family:var(--mono);font-size:18px;font-weight:700;color:#fff;line-height:1}
 .hero-top-filters{position:absolute;top:18px;right:18px;display:flex;align-items:center;gap:10px;z-index:10}
 .hero-top-filters .hero-filter{display:flex;align-items:center;gap:8px;color:rgba(206,248,244,.9);font-size:12px;font-weight:700}
 .hero-shell{position:relative}
@@ -238,10 +243,20 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
           <div class="hsetor" id="hSetor">Carregando...</div>
           <h1 id="hTitulo">Performance<br>Todos os Setores</h1>
           <div class="hsubtitle" id="hSubtitle">Consolidando dados do painel...</div>
-          <div class="hero-chips">
-            <div class="hperiod" id="hPeriod">Carregando dados...</div>
-            <div class="hero-chip" id="hSectorChip">Todos os setores</div>
-            <div class="hero-chip"><span class="hero-chip-dot"></span><span id="hUpdated">Atualizado hoje</span></div>
+          <!-- 3 mini-stats adicionais no hero -->
+          <div class="hero-mini-stats">
+            <div class="hero-mini-stat">
+              <div class="hero-mini-label">KM/Evento</div>
+              <div class="hero-mini-val" id="hMiniKme">—</div>
+            </div>
+            <div class="hero-mini-stat">
+              <div class="hero-mini-label">Motoristas</div>
+              <div class="hero-mini-val" id="hMiniMot">—</div>
+            </div>
+            <div class="hero-mini-stat">
+              <div class="hero-mini-label">Setores</div>
+              <div class="hero-mini-val" id="hMiniSet">—</div>
+            </div>
           </div>
         </div>
         <div class="hero-dashboard">
@@ -290,10 +305,13 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
     <!-- VISÃO GERAL -->
     <section class="panel active" id="visao">
 
-      <!-- 6 KPIs -->
-      <div class="kpis6" id="kpis6"></div>
+      <!-- Evolução + KM por evento PRIMEIRO -->
+      <div class="g2 mb18">
+        <div class="card"><div class="ctitle">Evolução mensal</div><div class="csub">Eventos (barras) e performance média (linha) mês a mês.</div><div class="cbox"><canvas id="cTrend"></canvas></div></div>
+        <div class="card"><div class="ctitle">KM por evento</div><div class="csub">Quanto maior, mais quilômetros entre desvios — operação mais eficiente.</div><div class="cbox"><canvas id="cKme"></canvas></div></div>
+      </div>
 
-      <!-- Top 5 desvios + comparativo setores -->
+      <!-- Top 10 desvios + Comparativo setores -->
       <div class="g2eq mb18">
         <div class="card">
           <div class="ctitle">Top 10 desvios</div>
@@ -303,14 +321,8 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
         <div class="card" id="setorCard">
           <div class="ctitle" id="setorCardTitle">Comparativo por setor</div>
           <div class="csub" id="setorCardSub">Performance e eficiência de cada setor no período.</div>
-          <div class="cbox"><canvas id="cSetor"></canvas></div>
+          <div class="cbox" style="height:320px"><canvas id="cSetor"></canvas></div>
         </div>
-      </div>
-
-      <!-- Evolução + KM por evento -->
-      <div class="g2 mb18">
-        <div class="card"><div class="ctitle">Evolução mensal</div><div class="csub">Eventos (barras) e performance média (linha) mês a mês.</div><div class="cbox"><canvas id="cTrend"></canvas></div></div>
-        <div class="card"><div class="ctitle">KM por evento</div><div class="csub">Quanto maior, mais quilômetros entre desvios — operação mais eficiente.</div><div class="cbox"><canvas id="cKme"></canvas></div></div>
       </div>
 
       <!-- Eventos + Top5 motorista -->
@@ -604,21 +616,12 @@ function setHeroForTab(D,pa){
 function safeSet(id,html){var el=document.getElementById(id);if(el)el.innerHTML=html;}
 function safeText(id,txt){var el=document.getElementById(id);if(el)el.textContent=txt;}
 
-function renderKpis6(D,full){
-  var pa=calcPerf(D.totKm,D.totEv)||0;
+function renderHeroMiniStats(D){
   var nSetores=STATE.setor==='ALL'?activeSectorCount():1;
-  var kpis=[
-    {l:'Performance geral',v:fmtDec(pa,2),u:'%',al:pa<90},
-    {l:'KM total rodado',v:fmt(D.totKm),u:'km'},
-    {l:'Eventos totais',v:fmt(D.totEv),u:''},
-    {l:'KM por evento',v:kmPorEvento(D.totKm,D.totEv).toFixed(1),u:'km'},
-    {l:'Motoristas avaliados',v:fmt(D.motN),u:''},
-    {l:'Setores monitorados',v:fmt(nSetores),u:''},
-  ];
-  safeSet('kpis6',kpis.map(function(k){
-    return'<div class="kpi'+(k.al?' alert':'')+'"><div class="kpi-label">'+k.l+'</div>'+
-      '<div class="kpi-value">'+k.v+'<span class="kpi-unit"> '+k.u+'</span></div></div>';
-  }).join(''));
+  var kme=kmPorEvento(D.totKm,D.totEv);
+  safeText('hMiniKme',kme.toFixed(1)+' km');
+  safeText('hMiniMot',fmt(D.motN));
+  safeText('hMiniSet',fmt(nSetores));
 }
 
 function renderTop5Dev(D,full){
@@ -682,9 +685,9 @@ function renderSetorChart(full){
     ]},
     options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}}},
       scales:{
-        x:{grid:{display:false},ticks:{font:{size:10}}},
-        y:{title:{display:true,text:'performance %'},min:80,max:100,grid:{color:'#eef4f3'}},
-        y1:{position:'right',title:{display:true,text:'km/evento'},beginAtZero:true,grid:{drawOnChartArea:false}}
+        x:{grid:{display:false},ticks:{font:{size:10},maxRotation:35,minRotation:25}},
+        y:{title:{display:true,text:'performance %'},min:0,max:100,ticks:{stepSize:10},grid:{color:'#eef4f3'}},
+        y1:{position:'right',title:{display:true,text:'km/evento'},min:0,beginAtZero:true,grid:{drawOnChartArea:false}}
       }}
   });
 }
@@ -699,7 +702,7 @@ function render(){
   var dk=(mul&&f.kme)?Math.round((l.kme-f.kme)/f.kme*100):null;
   setHeroForTab(D,pa);
   safeText('hUpdated','Atualizado hoje');
-  renderKpis6(D,full);
+  renderHeroMiniStats(D);
   renderTop5Dev(D,full);
   renderSetorChart(full);
   var top=D.evRank[0];
