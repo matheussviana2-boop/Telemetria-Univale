@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSAO AJUSTADA: TOP10_DESVIOS_V29 -->
+<!-- VERSAO AJUSTADA: TOP10_DESVIOS_V30 -->
 
 <html lang="pt-BR">
 <head>
@@ -643,6 +643,12 @@ function setHeroForTab(D,pa){
     document.getElementById('heroSide2Value').className='hero-stat-value';
     document.getElementById('heroSide2Sub').textContent='ocorrências registradas';
     if(side2Card)side2Card.classList.add('worst-card');
+    if(prevCtx){
+      var prevPerf=calcPerf(prevCtx.totKm,prevCtx.totEv)||0;
+      setDelta('heroMainDelta',pctVar(pa,prevPerf),prevLabel,false);
+      setDelta('heroSide1Delta',pctVar(D.totKm,prevCtx.totKm),prevLabel,false);
+      setDelta('heroSide2Delta',pctVar(D.totEv,prevCtx.totEv),prevLabel,true);
+    }
   }
 }
 function safeSet(id,html){var el=document.getElementById(id);if(el)el.innerHTML=html;}
