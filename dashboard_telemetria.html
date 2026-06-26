@@ -197,19 +197,26 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 @media(max-width:1200px){.hero-grid{grid-template-columns:1fr}.hero-dashboard{grid-template-columns:1fr}.hero-side-col{grid-template-columns:1fr 1fr;grid-template-rows:none}.hero-main-stat .hero-stat-value{font-size:64px}.mot-mini-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:900px){header h1{font-size:34px;max-width:none}.hero-shell{padding:16px}.hero-copy{padding:8px 8px 8px 18px}.hero-main-stat .hero-stat-value{font-size:52px}.hero-side-col{grid-template-columns:1fr}.hero-toolbar{padding:14px 6px 0 10px}.hero-filters{margin-left:0}.kpis{grid-template-columns:repeat(2,1fr)}.g2,.g2eq{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}.alertnum{font-size:32px}.mot-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.perf-toggle-wrap{margin-left:0}.content-wrap{padding:22px 18px 60px}}
 @media(max-width:640px){.hero-chips{flex-direction:column;align-items:flex-start}.hero-shell::before,.hero-shell::after{display:none}.nav-right{margin-left:0;padding-left:0}.hero-tabs,.hero-filters{width:100%}.hero-filter{width:100%;justify-content:space-between}.content-wrap{border-radius:18px}}
-/* animação de energia no fundo dos hero-stats */
-@keyframes energyPulse{0%,100%{opacity:.7}50%{opacity:1}}
-.hero-stat{animation:energyPulse 3s ease-in-out infinite}
-.hero-main-stat{animation-delay:0s}
-.hero-side-stat:first-child{animation-delay:.8s}
-.hero-side-stat:last-child{animation-delay:1.6s}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* filtros no topo direito do hero */
+.hero-top-filters{position:absolute;top:18px;right:18px;display:flex;align-items:center;gap:10px;z-index:10}
+.hero-top-filters .hero-filter{display:flex;align-items:center;gap:8px;color:rgba(206,248,244,.9);font-size:12px;font-weight:700}
+/* centraliza número no card principal */
+.hero-main-stat{padding:18px 20px 14px;display:flex;flex-direction:column;justify-content:center;min-height:220px;gap:0}
+.hero-main-stat .hero-stat-top{margin-bottom:6px}
+.hero-main-stat .hero-stat-value{font-size:82px;line-height:.9;margin-top:0;flex:1;display:flex;align-items:center}
+/* linha vertical animada */
+@keyframes lineFlow{0%{background-position:0 100%}100%{background-position:0 0}}
+.hero-shell::before{background:linear-gradient(180deg,rgba(18,245,231,.04),rgba(18,245,231,.9) 40%,rgba(18,245,231,.9) 60%,rgba(18,245,231,.04));background-size:100% 300%;animation:lineFlow 3s ease-in-out infinite}
 </style>
 </head>
 <body>
 <header>
   <div class="wrap">
     <div class="hero-shell">
+      <div class="hero-top-filters">
+        <label class="hero-filter">Setor <select class="msel" id="sectorSel"><option value="ALL">Todos os setores</option></select></label>
+        <label class="hero-filter">Período <select class="msel" id="monthSel"><option value="ALL">Todos os meses</option></select></label>
+      </div>
       <div class="brand"><span class="brand-name">Univale</span><span class="brand-sep"></span><span class="brand-sub">Telemetria Operacional</span></div>
       <div class="hero-grid">
         <div class="hero-copy">
@@ -256,10 +263,6 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
           <button class="tab" data-t="mot">Motoristas</button>
           <button class="tab" data-t="diag">Diagnóstico</button>
         </div>
-        <div class="hero-filters">
-          <label class="hero-filter">Setor <select class="msel" id="sectorSel"><option value="ALL">Todos os setores</option></select></label>
-          <label class="hero-filter">Período <select class="msel" id="monthSel"><option value="ALL">Todos os meses</option></select></label>
-        </div>
       </div>
     </div>
   </div>
@@ -271,7 +274,6 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 
     <!-- VISÃO GERAL -->
     <section class="panel active" id="visao">
-      <div class="kpis" id="kpis"></div>
       <div class="alertbar"><div class="alertnum" id="aPct">—</div><div class="alerttxt"><h3 id="aH">—</h3><p id="aP">—</p></div></div>
 
       <div class="g2 mb18">
@@ -295,68 +297,76 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
           </div>
         </div>
       </div>
-
-      <!-- Top 10 piores -->
-      <div class="card mb18">
-        <div class="card-topbar">
-          <div>
-            <div class="ctitle" id="t10wTitle">10 motoristas com menor performance</div>
-            <div class="csub" id="t10wSub">Motoristas com mais de 250 km rodados no período.</div>
-          </div>
-          <div class="card-top-actions">
-            <span class="perf-toggle-label">Tipo de performance</span>
-            <div class="perf-toggle">
-              <button type="button" class="perf-btn sm active" data-mode="std">Padrão</button>
-              <button type="button" class="perf-btn sm" data-mode="weighted">Ponderada</button>
-            </div>
-          </div>
-        </div>
-        <div class="twrap" style="box-shadow:none;border:1px solid var(--line)">
-          <table><thead><tr><th>#</th><th>Motorista</th><th>Performance</th><th>KM</th><th>Eventos</th><th>Desvio principal</th></tr></thead><tbody id="top10w"></tbody></table>
-        </div>
-      </div>
-
-      <!-- Top 10 melhores -->
-      <div class="card mb18">
-        <div class="card-topbar">
-          <div>
-            <div class="ctitle" id="t10bTitle">10 motoristas com melhor performance</div>
-            <div class="csub" id="t10bSub">Motoristas com mais de 250 km rodados no período.</div>
-          </div>
-          <div class="card-top-actions">
-            <span class="perf-toggle-label">Tipo de performance</span>
-            <div class="perf-toggle">
-              <button type="button" class="perf-btn sm active" data-mode="std">Padrão</button>
-              <button type="button" class="perf-btn sm" data-mode="weighted">Ponderada</button>
-            </div>
-          </div>
-        </div>
-        <div class="twrap" style="box-shadow:none;border:1px solid var(--line)">
-          <table><thead><tr><th>#</th><th>Motorista</th><th>Performance</th><th>KM</th><th>Eventos</th><th>Desvio principal</th></tr></thead><tbody id="top10b"></tbody></table>
-        </div>
-      </div>
-
-
     </section>
 
     <!-- MOTORISTAS -->
     <section class="panel" id="mot">
-      <div class="controls mot-controls">
-        <div class="mot-controls-left">
-          <input type="search" id="q" placeholder="Buscar motorista...">
+      <!-- toggle Resumo / Detalhado -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px">
+        <div class="perf-toggle" role="tablist">
+          <button type="button" class="perf-btn active" id="btnViewResumo" data-view="resumo">Resumo</button>
+          <button type="button" class="perf-btn" id="btnViewDetalhado" data-view="detalhado">Detalhado</button>
         </div>
-        <div class="perf-toggle-wrap">
-          <span class="perf-toggle-label">Tipo de performance</span>
-          <div class="perf-toggle" role="tablist" aria-label="Tipo de performance">
-            <button type="button" class="perf-btn active" id="btnPerfStd" data-mode="std">Performance padrão</button>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="perf-toggle-label">Performance</span>
+          <div class="perf-toggle" role="tablist">
+            <button type="button" class="perf-btn active" id="btnPerfStd" data-mode="std">Padrão</button>
             <button type="button" class="perf-btn" id="btnPerfWeighted" data-mode="weighted">Ponderada por KM</button>
           </div>
         </div>
       </div>
-      <div class="perf-note" id="perfHint">Padrão: usa a performance atual do indicador, sem ponderação extra por quilometragem.</div>
-      <div class="mot-mini-grid" id="motEventCards"></div>
-      <div class="cnt" id="cnt"></div>
-      <div class="twrap"><table id="tbl"><thead><tr id="tblHead"></tr></thead><tbody id="tbody"></tbody></table></div>
+
+      <!-- RESUMO -->
+      <div id="motResumo">
+        <div class="mot-mini-grid" id="motEventCards"></div>
+
+        <!-- Top 5 por evento -->
+        <div class="g2eq mb18" id="top5Section">
+          <div class="card" id="cardRank2">
+            <div class="ctitle">Eventos por tipo</div>
+            <div class="csub">Clique em um desvio para ver o top 5.</div>
+            <div class="cbox" id="rankBox2"><canvas id="cRank2"></canvas></div>
+          </div>
+          <div class="card" id="top5Card2">
+            <div class="ctitle" id="top5Titulo2">Top 5 piores motoristas por evento</div>
+            <div class="csub" id="top5Sub2">Selecione um desvio ao lado.</div>
+            <div class="top5panel top5empty" id="top5List2">
+              <div class="top5hint">Aguardando seleção</div>
+              <div>Clique em um tipo de evento para carregar os motoristas com mais ocorrências.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top 10 piores -->
+        <div class="card mb18">
+          <div class="card-topbar">
+            <div><div class="ctitle" id="t10wTitle">10 motoristas com menor performance</div><div class="csub" id="t10wSub">Motoristas com mais de 250 km rodados no período.</div></div>
+          </div>
+          <div class="twrap" style="box-shadow:none;border:1px solid var(--line)">
+            <table><thead><tr><th>#</th><th>Motorista</th><th>Performance</th><th>KM</th><th>Eventos</th><th>Desvio principal</th></tr></thead><tbody id="top10w"></tbody></table>
+          </div>
+        </div>
+
+        <!-- Top 10 melhores -->
+        <div class="card mb18">
+          <div class="card-topbar">
+            <div><div class="ctitle" id="t10bTitle">10 motoristas com melhor performance</div><div class="csub" id="t10bSub">Motoristas com mais de 250 km rodados no período.</div></div>
+          </div>
+          <div class="twrap" style="box-shadow:none;border:1px solid var(--line)">
+            <table><thead><tr><th>#</th><th>Motorista</th><th>Performance</th><th>KM</th><th>Eventos</th><th>Desvio principal</th></tr></thead><tbody id="top10b"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETALHADO -->
+      <div id="motDetalhado" style="display:none">
+        <div class="perf-note" id="perfHint">Padrão: usa a performance atual do indicador, sem ponderação extra por quilometragem.</div>
+        <div class="controls mot-controls" style="margin-top:8px">
+          <input type="search" id="q" placeholder="Buscar motorista...">
+        </div>
+        <div class="cnt" id="cnt"></div>
+        <div class="twrap"><table id="tbl"><thead><tr id="tblHead"></tr></thead><tbody id="tbody"></tbody></table></div>
+      </div>
     </section>
 
     <!-- DIAGNÓSTICO -->
@@ -401,7 +411,7 @@ var DIAG={
   "Excesso RPM Parado":{eixo:"Manutenção",cor:"ic-teal-l",icon:"◉",mede:"Aceleração do motor com o veículo parado.",acao:"Motores modernos não precisam ser aquecidos acelerando parado."}
 };
 var SLABELS={'FRET_BAHIA':'Fretamento Bahia','CENIBRA':'Fretamento Cenibra','LINHAS':'Linhas','MUSA':'Musa','TURIM':'Turim Rodoviário','GARAG_BAHIA':'Garagistas Bahia','GARAG_MG':'Garagistas MG','CIPALAM':'Cipalam','BEMISA':'Fretamento Bemisa'};
-var STATE={raw:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,selEvent:null,perfMode:'std'};
+var STATE={raw:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,selEvent:null,selEvent2:null,perfMode:'std',motView:'resumo'};
 var CH={};
 function fmt(n){return Math.round(n).toLocaleString('pt-BR')}
 function fmtDec(n,d){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
@@ -607,7 +617,8 @@ function render(){
   var rb=D.drivers.filter(function(d){return d.km>250&&drvPerf(d)!=null}).sort(function(a,b){return drvPerf(b)-drvPerf(a)}).slice(0,10);
   document.getElementById('top10b').innerHTML=rb.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>';
   renderDiag();
-  setupTable(D)
+  setupTable(D);
+  setTimeout(function(){showRankChart2(D);},100);
 }
 function sc2(ch,id,cfg){try{var el=document.getElementById(id);if(!el||typeof Chart==='undefined')return;ch[id]=new Chart(el,cfg)}catch(e){}}
 function showRankChart(D){
@@ -663,7 +674,28 @@ function showTop5(evName,D){
   box.innerHTML=sorted.map(function(d,i){return'<div class="top5item"><span class="top5rank">'+(i+1)+'</span><span class="top5nome" title="'+esc(d.nome)+'">'+esc(d.nome)+'</span><span class="top5meta"><span class="top5val">'+fmt(d.ev[evName]||0)+' eventos</span><span class="top5km">'+fmt(d.km)+' km · '+(d.kme||0).toFixed(1)+' km/evento</span></span></div>'}).join('')||'<div class="top5empty"><div class="top5hint">Sem ocorrências</div><div>Nenhum motorista com este desvio no período selecionado.</div></div>';
 }
 
-function bestWorstDrivers(D,limit){
+function showRankChart2(D){
+  if(!document.getElementById('cRank2'))return;
+  if(CH['cRank2']){try{CH['cRank2'].destroy()}catch(e){}}
+  var el=document.getElementById('cRank2');if(!el||typeof Chart==='undefined')return;
+  CH['cRank2']=new Chart(el,{
+    type:'bar',
+    data:{labels:D.evRank.map(function(r){return r[0]}),datasets:[{data:D.evRank.map(function(r){return r[1]}),backgroundColor:D.evRank.map(function(r){return r[0]===STATE.selEvent2?'#EA0029':'#00A19B'}),borderRadius:4}]},
+    options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmt(c.raw)+' eventos ('+D.evRank[c.dataIndex][2]+'%)');}}}},
+    scales:{x:{grid:{color:'#eef4f3'}},y:{ticks:{font:{size:11}}}},
+    onClick:function(evt,els){if(els&&els.length){STATE.selEvent2=D.evRank[els[0].index][0];showRankChart2(D);showTop52(STATE.selEvent2,D);}}}
+  });
+  var ev2=STATE.selEvent2&&D.evTot[STATE.selEvent2]>0?STATE.selEvent2:(D.evRank[0]?D.evRank[0][0]:null);
+  if(ev2){STATE.selEvent2=ev2;showTop52(ev2,D);}
+}
+function showTop52(evName,D){
+  var sorted=D.drivers.filter(function(d){return(d.ev[evName]||0)>0}).sort(function(a,b){return(b.ev[evName]||0)-(a.ev[evName]||0)}).slice(0,5);
+  document.getElementById('top5Titulo2').textContent='Top 5 piores — '+evName;
+  document.getElementById('top5Sub2').textContent='Ranking por ocorrências no período.';
+  var box=document.getElementById('top5List2');
+  box.className='top5panel';
+  box.innerHTML=sorted.map(function(d,i){return'<div class="top5item"><span class="top5rank">'+(i+1)+'</span><span class="top5nome">'+esc(d.nome)+'</span><span class="top5meta"><span class="top5val">'+fmt(d.ev[evName]||0)+' eventos</span><span class="top5km">'+fmt(d.km)+' km</span></span></div>'}).join('')||'<div class="top5empty"><div class="top5hint">Sem ocorrências</div></div>';
+}
   var valid=D.drivers.filter(function(d){return d.km>250&&d.perfStd!=null});
   var worst=valid.slice().sort(function(a,b){return drvPerf(a)-drvPerf(b)}).slice(0,limit||3);
   var best=valid.slice().sort(function(a,b){return drvPerf(b)-drvPerf(a)}).slice(0,limit||3);
@@ -788,7 +820,18 @@ function bindEvents(){
   document.getElementById('sectorSel').addEventListener('change',function(){STATE.setor=this.value;STATE.scope='ALL';STATE.selEvent=null;applySetor()});
   document.getElementById('monthSel').addEventListener('change',function(){STATE.scope=this.value;buildRender()});
   ['q'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',renderTable)});
-  document.querySelectorAll('.perf-btn').forEach(function(btn){btn.addEventListener('click',function(){STATE.perfMode=btn.dataset.mode;render()})});
+  document.querySelectorAll('.perf-btn[data-mode]').forEach(function(btn){btn.addEventListener('click',function(){STATE.perfMode=btn.dataset.mode;render()})});
+  // toggle resumo/detalhado
+  document.querySelectorAll('.perf-btn[data-view]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      STATE.motView=btn.dataset.view;
+      document.querySelectorAll('.perf-btn[data-view]').forEach(function(b){b.classList.toggle('active',b.dataset.view===STATE.motView)});
+      document.getElementById('motResumo').style.display=STATE.motView==='resumo'?'':'none';
+      document.getElementById('motDetalhado').style.display=STATE.motView==='detalhado'?'':'none';
+      if(STATE.motView==='detalhado'&&STATE.D) setupTable(STATE.D);
+      if(STATE.motView==='resumo'&&STATE.D) showRankChart2(STATE.D);
+    });
+  });
 }
 // ── SPARK ANIMATION ──
 (function(){
@@ -808,13 +851,13 @@ function bindEvents(){
     // linha base sutil
     ctx.beginPath(); ctx.strokeStyle='rgba(104,255,240,.18)'; ctx.lineWidth=1;
     ctx.moveTo(0,h*.7); ctx.lineTo(w,h*.7); ctx.stroke();
-    // linha animada
-    s.t+=.025;
+    // linha animada — mais lenta
+    s.t+=.008;
     for(var i=0;i<s.pts;i++){
       s.ys[i]+=s.vs[i];
       if(s.ys[i]<h*.1||s.ys[i]>h*.85) s.vs[i]*=-1;
-      s.vs[i]+=(Math.random()-.5)*.05;
-      s.vs[i]=Math.max(-.8,Math.min(.8,s.vs[i]));
+      s.vs[i]+=(Math.random()-.5)*.02;
+      s.vs[i]=Math.max(-.3,Math.min(.3,s.vs[i]));
     }
     ctx.beginPath();
     var grd=ctx.createLinearGradient(0,0,w,0);
@@ -834,7 +877,7 @@ function bindEvents(){
     // pulsos de energia (quadradinhos removidos — agora são pontos brilhantes)
     var numDots=3;
     for(var d=0;d<numDots;d++){
-      var prog=(s.t*.4+d/numDots)%1;
+      var prog=(s.t*.15+d/numDots)%1;
       var xi=prog*(s.pts-1);
       var i0=Math.floor(xi),i1=Math.min(i0+1,s.pts-1);
       var frac=xi-i0;
