@@ -570,29 +570,23 @@ function setHeroForTab(D,pa){
     document.getElementById('heroSide2Sub').textContent='ocorrências no período';
   }
 }
+function safeSet(id,html){var el=document.getElementById(id);if(el)el.innerHTML=html;}
+function safeText(id,txt){var el=document.getElementById(id);if(el)el.textContent=txt;}
 function render(){
   var D=STATE.D,full=STATE.full,sc=STATE.scope;killCH();
   var pt=sc==='ALL'?periodRangeLabel()+' · '+D.motN+' motoristas':sc+' · '+D.motN+' motoristas';
-  document.getElementById('hPeriod').textContent='📅 '+pt;
+  safeText('hPeriod','📅 '+pt);
   var f=full.monthly[0],l=full.monthly[full.monthly.length-1],mul=full.monthly.length>1;
   var pa=calcPerf(D.totKm,D.totEv)||0;
   var dp=mul?(l.perf-f.perf).toFixed(2):null;
   var de=(mul&&f.ev)?Math.round((l.ev-f.ev)/f.ev*100):null;
   var dk=(mul&&f.kme)?Math.round((l.kme-f.kme)/f.kme*100):null;
-  var kpis=[
-    {l:'Performance média',v:fmtDec(pa,2),u:'%',t:dp!=null?((+dp>=0?'▲ +':'▼ ')+dp+' p.p. no período'):'ref. '+sc,up:dp==null||+dp>=0,al:pa<90},
-    {l:'Eventos no período',v:fmt(D.totEv),u:'',t:de!=null?((de<=0?'▼ ':'▲ +')+de+'% 1º→últ.'):'ref. '+sc,up:de==null||de<=0},
-    {l:'KM rodado',v:fmt(D.totKm),u:'km',t:D.motN+' motoristas avaliados',up:true},
-    {l:'KM por evento',v:kmPorEvento(D.totKm,D.totEv).toFixed(1),u:'km',t:dk!=null?((dk>=0?'▲ +':'▼ ')+dk+'% 1º→últ.'):'ref. '+sc,up:dk==null||dk>=0},
-    {l:'Desvio mais frequente',v:(D.evRank[0]?D.evRank[0][2]:0),u:'%',t:(D.evRank[0]?D.evRank[0][0]:'—'),up:false,al:true}
-  ];
-  document.getElementById('kpis').innerHTML=kpis.map(function(k){return'<div class="kpi'+(k.al?' alert':'')+'"><div class="kpi-label">'+k.l+'</div><div class="kpi-value">'+k.v+'<span class="kpi-unit"> '+k.u+'</span></div><div class="kpi-trend '+(k.up?'up':'dn')+'">'+k.t+'</div></div>'}).join('');
   setHeroForTab(D,pa);
-  document.getElementById('hUpdated').textContent='Atualizado hoje';
+  safeText('hUpdated','Atualizado hoje');
   var top=D.evRank[0];
-  document.getElementById('aPct').textContent=(top?top[2]:0)+'%';
-  document.getElementById('aH').textContent=top?top[0]+' é o desvio mais frequente'+(sc!=='ALL'?' em '+sc:''):'Sem eventos';
-  document.getElementById('aP').textContent=top?fmt(top[1])+' ocorrências de '+top[0].toLowerCase()+(sc!=='ALL'?' em '+sc:' no período')+'. Concentrar o treinamento neste desvio gera o maior impacto no indicador.':'';
+  safeText('aPct',(top?top[2]:0)+'%');
+  safeText('aH',top?top[0]+' é o desvio mais frequente'+(sc!=='ALL'?' em '+sc:''):'Sem eventos');
+  safeText('aP',top?fmt(top[1])+' ocorrências de '+top[0].toLowerCase()+(sc!=='ALL'?' em '+sc:' no período')+'. Concentrar o treinamento neste desvio gera o maior impacto no indicador.':'');
   if(typeof Chart!=='undefined'){Chart.defaults.font.family="'Inter',sans-serif";Chart.defaults.color='#5b7a78'}
   var M=full.monthly.map(function(m){return m.m});
   var perfs=full.monthly.map(function(m){return m.perf});
@@ -608,15 +602,15 @@ function render(){
   STATE.selEvent=atual;
   showRankChart(D);
   if(atual)showTop5(atual,D);else clearTop5();
-  document.getElementById('t10wTitle').textContent='10 motoristas com menor '+perfTitle().toLowerCase();
-  document.getElementById('t10bTitle').textContent='10 motoristas com melhor '+perfTitle().toLowerCase();
-  document.getElementById('t10wSub').textContent='Motoristas com mais de 250 km rodados no período · análise em '+perfTitle().toLowerCase()+'.';
-  document.getElementById('t10bSub').textContent='Motoristas com mais de 250 km rodados no período · análise em '+perfTitle().toLowerCase()+'.';
+  safeText('t10wTitle','10 motoristas com menor '+perfTitle().toLowerCase());
+  safeText('t10bTitle','10 motoristas com melhor '+perfTitle().toLowerCase());
+  safeText('t10wSub','Motoristas com mais de 250 km rodados no período · análise em '+perfTitle().toLowerCase()+'.');
+  safeText('t10bSub','Motoristas com mais de 250 km rodados no período · análise em '+perfTitle().toLowerCase()+'.');
   function rowFn(d,i){var perf=drvPerf(d);return'<tr><td class="rank">'+(i+1)+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+pPill(perf)+'</td><td>'+fmt(d.km)+'</td><td>'+fmt(d.pts)+'</td><td><span class="dtag">'+esc(d.dom)+'</span></td></tr>'}
   var rw=D.drivers.filter(function(d){return d.km>250&&drvPerf(d)!=null}).sort(function(a,b){return drvPerf(a)-drvPerf(b)}).slice(0,10);
-  document.getElementById('top10w').innerHTML=rw.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>';
+  safeSet('top10w',rw.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>');
   var rb=D.drivers.filter(function(d){return d.km>250&&drvPerf(d)!=null}).sort(function(a,b){return drvPerf(b)-drvPerf(a)}).slice(0,10);
-  document.getElementById('top10b').innerHTML=rb.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>';
+  safeSet('top10b',rb.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>');
   renderDiag();
   setupTable(D);
   setTimeout(function(){showRankChart2(D);},100);
