@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSAO CORRIGIDA: TOP5_EVENTOS_V10_1 -->
+<!-- VERSAO AJUSTADA: TOP10_DESVIOS_V12 -->
 
 <html lang="pt-BR">
 <head>
@@ -194,8 +194,8 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f7fbfb}
 .diag-pill{display:inline-flex;align-items:center;gap:6px;background:#eef5f5;border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700}
 @media(max-width:900px){.diag-summary-grid{grid-template-columns:1fr}.diag-kpis{grid-template-columns:1fr}}
 footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(--muted);text-align:center}
-@media(max-width:1200px){.hero-grid{grid-template-columns:1fr}.hero-dashboard{grid-template-columns:1fr}.hero-side-col{grid-template-columns:1fr 1fr;grid-template-rows:none}.hero-main-stat .hero-stat-value{font-size:64px}.mot-mini-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:900px){header h1{font-size:34px;max-width:none}.hero-shell{padding:16px}.hero-copy{padding:8px 8px 8px 18px}.hero-main-stat .hero-stat-value{font-size:52px}.hero-side-col{grid-template-columns:1fr}.hero-toolbar{padding:14px 6px 0 10px}.hero-filters{margin-left:0}.kpis{grid-template-columns:repeat(2,1fr)}.g2,.g2eq{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}.alertnum{font-size:32px}.mot-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.perf-toggle-wrap{margin-left:0}.content-wrap{padding:22px 18px 60px}}
+@media(max-width:1200px){.hero-grid{grid-template-columns:1fr}.hero-dashboard{grid-template-columns:1fr}.hero-side-col{grid-template-columns:1fr 1fr;grid-template-rows:none}.hero-main-stat .hero-stat-value{font-size:60px}.mot-mini-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){header h1{font-size:34px;max-width:none}.hero-shell{padding:16px}.hero-copy{padding:8px 8px 8px 18px}.hero-main-stat .hero-stat-value{font-size:48px}.hero-side-col{grid-template-columns:1fr}.hero-toolbar{padding:14px 6px 0 10px}.hero-filters{margin-left:0}.kpis{grid-template-columns:repeat(2,1fr)}.g2,.g2eq{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}.alertnum{font-size:32px}.mot-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.perf-toggle-wrap{margin-left:0}.content-wrap{padding:22px 18px 60px}}
 @media(max-width:640px){.hero-chips{flex-direction:column;align-items:flex-start}.hero-shell::before,.hero-shell::after{display:none}.nav-right{margin-left:0;padding-left:0}.hero-tabs,.hero-filters{width:100%}.hero-filter{width:100%;justify-content:space-between}.content-wrap{border-radius:18px}}
 /* filtros no topo direito do hero */
 /* 6 KPIs visão geral */
@@ -221,9 +221,15 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 .hero-top-filters .hero-filter{display:flex;align-items:center;gap:8px;color:rgba(206,248,244,.9);font-size:12px;font-weight:700}
 .hero-shell{position:relative}
 /* centraliza número no card principal */
-.hero-main-stat{padding:18px 20px 14px;display:flex;flex-direction:column;justify-content:center;min-height:220px;gap:0}
-.hero-main-stat .hero-stat-top{margin-bottom:6px}
-.hero-main-stat .hero-stat-value{font-size:82px;line-height:.9;margin-top:0;flex:1;display:flex;align-items:center}
+.hero-main-stat{padding:16px 18px 12px;display:flex;flex-direction:column;justify-content:space-between;min-height:180px;gap:6px}
+.hero-main-stat .hero-stat-top{margin-bottom:2px}
+.hero-main-stat .hero-stat-value{font-size:72px;line-height:.9;margin-top:0;display:flex;align-items:flex-start}
+.hero-side-stat.worst-card{border-color:rgba(234,0,41,.38);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 0 22px rgba(234,0,41,.12);background:linear-gradient(180deg,rgba(51,18,24,.82),rgba(33,10,15,.72))}
+.hero-side-stat.worst-card .hero-stat-label,.hero-side-stat.worst-card .hero-stat-sub{color:rgba(255,212,219,.86)}
+.hero-side-stat.worst-card .hero-stat-value{color:#fff}
+.hero-side-stat.worst-card .hero-ico{border-color:rgba(255,110,132,.35);color:#ff9bad;background:rgba(72,18,29,.58);box-shadow:0 0 10px rgba(234,0,41,.14)}
+.hero-side-stat.worst-card .hero-spark::before{background:rgba(255,120,145,.82)}
+.hero-side-stat.worst-card .hero-spark::after{background:linear-gradient(90deg,transparent 0%,transparent 7%,rgba(255,120,145,.98) 7%,rgba(255,120,145,.98) 12%,transparent 12%,transparent 29%,rgba(255,120,145,.92) 29%,rgba(255,120,145,.92) 34%,transparent 34%,transparent 56%,rgba(255,120,145,.96) 56%,rgba(255,120,145,.96) 61%,transparent 61%,transparent 82%,rgba(255,120,145,.9) 82%,rgba(255,120,145,.9) 87%,transparent 87%,transparent 100%)}
 /* linha vertical animada */
 @keyframes lineFlow{0%{background-position:0 100%}100%{background-position:0 0}}
 .hero-shell::before{background:linear-gradient(180deg,rgba(18,245,231,.04),rgba(18,245,231,.9) 40%,rgba(18,245,231,.9) 60%,rgba(18,245,231,.04));background-size:100% 300%;animation:lineFlow 3s ease-in-out infinite}
@@ -268,7 +274,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
             <div class="hero-spark"><canvas class="spark-canvas"></canvas></div>
           </div>
           <div class="hero-side-col">
-            <div class="hero-stat hero-side-stat">
+            <div class="hero-stat hero-side-stat" id="heroSide1Card">
               <div>
                 <div class="hero-stat-top"><span class="hero-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5h16"/><rect x="6" y="10" width="3" height="6" rx="1"/><rect x="11" y="7" width="3" height="9" rx="1"/><rect x="16" y="4" width="3" height="12" rx="1"/></svg></span><span class="hero-stat-label" id="heroSide1Label">KM Total</span></div>
                 <div class="hero-stat-value" id="heroSide1Value">—</div>
@@ -276,7 +282,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
               </div>
               <div class="hero-spark"><canvas class="spark-canvas"></canvas></div>
             </div>
-            <div class="hero-stat hero-side-stat">
+            <div class="hero-stat hero-side-stat" id="heroSide2Card">
               <div>
                 <div class="hero-stat-top"><span class="hero-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h4l2-5 4 10 2-5h4"/></svg></span><span class="hero-stat-label" id="heroSide2Label">Eventos Totais</span></div>
                 <div class="hero-stat-value" id="heroSide2Value">—</div>
@@ -325,38 +331,15 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
         </div>
       </div>
 
-      <!-- Eventos + Top5 motorista -->
-      <div class="g2eq mb18">
-        <div class="card" id="cardRank">
-          <div class="ctitle">Eventos por tipo</div>
-          <div class="csub" id="rankSub">Clique em um desvio para atualizar o Top 5 ao lado.</div>
-          <div class="cbox" id="rankBox"><canvas id="cRank"></canvas></div>
-        </div>
-        <div class="card" id="top5Card">
-          <div class="ctitle" id="top5Titulo">Top 5 piores motoristas por evento</div>
-          <div class="csub" id="top5Sub">Selecione um desvio no card Eventos por tipo.</div>
-          <div class="top5panel top5empty" id="top5List">
-            <div class="top5hint">Aguardando seleção</div>
-            <div>Clique em um tipo de evento para carregar os motoristas com mais ocorrências.</div>
-          </div>
-        </div>
-      </div>
     </section>
 
     <!-- MOTORISTAS -->
     <section class="panel" id="mot">
       <!-- toggle Resumo / Detalhado -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px">
+      <div style="display:flex;align-items:center;justify-content:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:12px">
         <div class="perf-toggle" role="tablist">
           <button type="button" class="perf-btn active" id="btnViewResumo" data-view="resumo">Resumo</button>
           <button type="button" class="perf-btn" id="btnViewDetalhado" data-view="detalhado">Detalhado</button>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <span class="perf-toggle-label">Performance</span>
-          <div class="perf-toggle" role="tablist">
-            <button type="button" class="perf-btn active" id="btnPerfStd" data-mode="std">Padrão</button>
-            <button type="button" class="perf-btn" id="btnPerfWeighted" data-mode="weighted">Ponderada por KM</button>
-          </div>
         </div>
       </div>
 
@@ -404,7 +387,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 
       <!-- DETALHADO -->
       <div id="motDetalhado" style="display:none">
-        <div class="perf-note" id="perfHint">Padrão: usa a performance atual do indicador, sem ponderação extra por quilometragem.</div>
+        <div class="perf-note" id="perfHint">Performance padrão: calcula a relação entre eventos e quilometragem rodada no período selecionado.</div>
         <div class="controls mot-controls" style="margin-top:8px">
           <input type="search" id="q" placeholder="Buscar motorista...">
         </div>
@@ -455,7 +438,7 @@ var DIAG={
   "Excesso RPM Parado":{eixo:"Manutenção",cor:"ic-teal-l",icon:"◉",mede:"Aceleração do motor com o veículo parado.",acao:"Motores modernos não precisam ser aquecidos acelerando parado."}
 };
 var SLABELS={'FRET_BAHIA':'Fretamento Bahia','CENIBRA':'Fretamento Cenibra','LINHAS':'Linhas','MUSA':'Musa','TURIM':'Turim Rodoviário','GARAG_BAHIA':'Garagistas Bahia','GARAG_MG':'Garagistas MG','CIPALAM':'Cipalam','BEMISA':'Fretamento Bemisa'};
-var STATE={raw:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,selEvent:null,selEvent2:null,perfMode:'std',motView:'resumo'};
+var STATE={raw:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,selEvent:null,selEvent2:null,motView:'resumo'};
 var CH={};
 function fmt(n){return Math.round(n).toLocaleString('pt-BR')}
 function fmtDec(n,d){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
@@ -499,9 +482,8 @@ function applySetor(){
 }
 function pClass(p){if(p==null)return 'p-na';if(p<0)return 'p-red';if(p<50)return 'p-orange';if(p<90)return 'p-yellow';return 'p-green'}
 function pPill(p){return '<span class="ppill '+pClass(p)+'">'+(p==null?'—':fmtDec(p,2)+'%')+'</span>'}
-function kmWeight(km,maxKm){if(!maxKm||!km)return .35;return .35+.65*Math.sqrt(km/maxKm)}
-function drvPerf(d){return STATE.perfMode==='weighted'?d.perfWeighted:d.perfStd}
-function perfTitle(){return STATE.perfMode==='weighted'?'Performance ponderada':'Performance padrão'}
+function drvPerf(d){return d.perfStd}
+function perfTitle(){return 'Performance padrão'}
 function rClass(r){return r>=0.08?'r-hi':r>=0.04?'r-md':'r-lo'}
 function dFor(n){return DIAG[n]||{eixo:'Manutenção',cor:'ic-teal-l',icon:'·',mede:'Evento registrado pela telemetria.',acao:'Acompanhar e orientar conforme o caso.'}}
 function eBadge(e){return e==='Segurança'?'b-seg':e==='Economia'?'b-eco':'b-man'}
@@ -548,10 +530,8 @@ function buildModel(rows){
     var kme=Math.round(kmPorEvento(o.km,o.pts)*10)/10;
     var dom='—',mx=-1;EV_COLS.forEach(function(e){if((o.ev[e]||0)>mx){mx=o.ev[e]||0;dom=e}});
     if(o.pts===0)dom='—';
-    return{nome:o.nome,km:Math.round(o.km),pts:o.pts,perf:perf,perfStd:perf,perfWeighted:null,rate:rate,kme:kme,ev:o.ev,fluig:o.fluig,dom:dom,fcode:fCode(o.fluig)}
+    return{nome:o.nome,km:Math.round(o.km),pts:o.pts,perf:perf,perfStd:perf,rate:rate,kme:kme,ev:o.ev,fluig:o.fluig,dom:dom,fcode:fCode(o.fluig)}
   });
-  var maxKm=drivers.reduce(function(m,d){return Math.max(m,d.km||0)},0);
-  drivers.forEach(function(d){d.perfWeighted=d.perfStd==null?null:(d.perfStd*kmWeight(d.km,maxKm))});
   var evTot={};EV_COLS.forEach(function(e){evTot[e]=0});
   monthly.forEach(function(m){EV_COLS.forEach(function(e){evTot[e]+=m.brk[e]||0})});
   var totEv=Object.values(evTot).reduce(function(a,b){return a+b},0);
@@ -575,6 +555,9 @@ function setHeroForTab(D,pa){
   safeText('hSectorChip',lbl);
   document.getElementById('heroMainLabel').textContent=tab==='mot'?'Performance Média':'Performance Geral';
   document.getElementById('heroPerf').textContent=fmtDec(pa,2)+'%';
+  var side1Card=document.getElementById('heroSide1Card'),side2Card=document.getElementById('heroSide2Card');
+  if(side1Card)side1Card.classList.remove('worst-card');
+  if(side2Card)side2Card.classList.remove('worst-card');
   if(tab==='mot'){
     tset.textContent='MOTORISTAS';
     ttl.innerHTML='Desempenho dos Motoristas';
@@ -587,6 +570,7 @@ function setHeroForTab(D,pa){
     document.getElementById('heroSide2Value').textContent=worstEvt?worstEvt[0]:'Sem eventos';
     document.getElementById('heroSide2Value').className='hero-stat-value text';
     document.getElementById('heroSide2Sub').textContent=worstEvt?fmt(worstEvt[1])+' ocorrências no período':'';
+    if(side2Card)side2Card.classList.add('worst-card');
   }else if(tab==='diag'){
     tset.textContent='DIAGNÓSTICO';
     ttl.innerHTML='Leitura Diagnóstica';
@@ -625,7 +609,8 @@ function renderHeroMiniStats(D){
 }
 
 function renderTop5Dev(D,full){
-  // pegar mês anterior ao escopo atual para variação
+  // Sempre mostra os 10 tipos de eventos, mesmo zerados.
+  // A variação só aparece quando existe um mês anterior disponível.
   var prevEv={};
   if(STATE.scope!=='ALL'){
     var idx=STATE.months.indexOf(STATE.scope);
@@ -636,23 +621,28 @@ function renderTop5Dev(D,full){
       EV_COLS.forEach(function(e){prevEv[e]=prevModel.evTot[e]||0});
     }
   }
-  var top5=D.evRank.slice(0,10);
-  safeSet('top5devCard',top5.map(function(r){
+  var tot=D.totEv||0;
+  var rows=EV_COLS.map(function(e){
+    var qtd=D.evTot[e]||0;
+    var pct=tot?Math.round(qtd/tot*1000)/10:0;
+    return [e,qtd,pct];
+  }).sort(function(a,b){return b[1]-a[1] || EV_COLS.indexOf(a[0])-EV_COLS.indexOf(b[0])});
+  safeSet('top5devCard',rows.map(function(r){
     var prev=prevEv[r[0]];
     var varHtml='';
     if(prev!=null&&prev>0){
       var delta=Math.round((r[1]-prev)/prev*100);
       var cls=delta>0?'up':delta<0?'dn':'eq';
-      varHtml='<span class="dev5-var '+cls+'">'+(delta>0?'▲ +':'▼ ')+Math.abs(delta)+'%</span>';
+      varHtml='<span class="dev5-var '+cls+'">'+(delta>0?'▲ +':delta<0?'▼ ':'— ')+(delta===0?'':Math.abs(delta)+'%')+'</span>';
     } else {
       varHtml='<span class="dev5-var eq">—</span>';
     }
     return'<div class="dev5-item">'+
-      '<span class="dev5-name">'+r[0]+'</span>'+
-      '<span class="dev5-qty">'+fmt(r[1])+'</span>'+
-      '<span class="dev5-pct">'+r[2]+'%</span>'+
+      '<span class="dev5-name">'+r[0]+'</span>'+ 
+      '<span class="dev5-qty">'+fmt(r[1])+'</span>'+ 
+      '<span class="dev5-pct">'+fmtDec(r[2],1)+'%</span>'+ 
       varHtml+'</div>';
-  }).join('')||'<p style="color:var(--muted);font-size:13px;padding:16px 0">Sem eventos no período.</p>');
+  }).join(''));
 }
 
 function renderSetorChart(full){
@@ -720,10 +710,6 @@ function render(){
     {type:'line',label:'Performance %',data:perfs,borderColor:'#EA0029',backgroundColor:'#EA0029',tension:.3,borderWidth:2.5,pointRadius:4,yAxisID:'y1'}
   ]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}}},scales:{y:{title:{display:true,text:'eventos'},grid:{color:'#eef4f3'}},y1:{position:'right',min:pmin,max:pmax,title:{display:true,text:'perf %'},grid:{drawOnChartArea:false}}}}});
   sc2(CH,'cKme',{type:'line',data:{labels:M,datasets:[{label:'KM por evento',data:full.monthly.map(function(m){return m.kme}),borderColor:'#00A19B',backgroundColor:'rgba(0,161,155,.12)',fill:true,tension:.35,borderWidth:2.5,pointRadius:full.monthly.map(function(m){return(sc!=='ALL'&&m.m===sc)?7:4}),pointBackgroundColor:full.monthly.map(function(m){return(sc==='ALL'||m.m===sc)?'#00A19B':'#9fd9d6'})}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false,grid:{color:'#eef4f3'}}}}});
-  var atual=STATE.selEvent&&D.evTot[STATE.selEvent]>0?STATE.selEvent:(D.evRank[0]?D.evRank[0][0]:null);
-  STATE.selEvent=atual;
-  showRankChart(D);
-  if(atual)showTop5(atual,D);else clearTop5();
   safeText('t10wTitle','10 motoristas com menor '+perfTitle().toLowerCase());
   safeText('t10bTitle','10 motoristas com melhor '+perfTitle().toLowerCase());
   safeText('t10wSub','Motoristas com mais de 250 km rodados no período · análise em '+perfTitle().toLowerCase()+'.');
@@ -886,13 +872,9 @@ function renderMotEventCards(D){
   document.getElementById('motEventCards').innerHTML=ep.map(function(e){return '<div class="mini-ev"><div class="mini-ev-name">'+evLabel(e).replace(/<br>/g,' ')+'</div><div class="mini-ev-val">'+fmt(D.evTot[e]||0)+'</div><div class="mini-ev-sub">eventos no período</div></div>'}).join('');
 }
 function updatePerfHint(){
-  document.getElementById('perfHint').textContent=STATE.perfMode==='weighted'
-    ? 'Performance ponderada: usa a performance atual com peso proporcional à quilometragem rodada, tornando a comparação mais justa.'
-    : 'Performance padrão: usa a performance atual do indicador, sem ponderação extra por quilometragem.';
+  document.getElementById('perfHint').textContent='Performance padrão: calcula a relação entre eventos e quilometragem rodada no período selecionado.';
 }
-function updatePerfButtons(){
-  document.querySelectorAll('.perf-btn').forEach(function(btn){btn.classList.toggle('active',btn.dataset.mode===STATE.perfMode)})
-}
+function updatePerfButtons(){}
 function setupTable(D){
   TBL.D=D;TBL.sortK='activePerf';TBL.sortDir=-1;
   var ep=EV_COLS;
@@ -933,23 +915,26 @@ function populateSel(){
   sel.innerHTML='<option value="ALL">Todos</option>'+STATE.months.map(function(m){return'<option value="'+m+'">'+m+'</option>'}).join('');
   sel.value=STATE.scope;
 }
+function setMotView(view){
+  STATE.motView=view||'resumo';
+  document.querySelectorAll('.perf-btn[data-view]').forEach(function(b){b.classList.toggle('active',b.dataset.view===STATE.motView)});
+  var resumo=document.getElementById('motResumo');
+  var detalhado=document.getElementById('motDetalhado');
+  if(resumo)resumo.style.display=STATE.motView==='resumo'?'':'none';
+  if(detalhado)detalhado.style.display=STATE.motView==='detalhado'?'':'none';
+  if(STATE.motView==='detalhado'&&STATE.D)setupTable(STATE.D);
+  if(STATE.motView==='resumo'&&STATE.D)showRankChart2(STATE.D);
+}
 function bindEvents(){
-  document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');var el=document.getElementById(b.dataset.t);if(el)el.classList.add('active');if(STATE.D){var pa=calcPerf(STATE.D.totKm,STATE.D.totEv)||0;setHeroForTab(STATE.D,pa)}window.scrollTo({top:0,behavior:'smooth'})})});
+  document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');var el=document.getElementById(b.dataset.t);if(el)el.classList.add('active');if(b.dataset.t==='mot')setMotView('resumo');if(STATE.D){var pa=calcPerf(STATE.D.totKm,STATE.D.totEv)||0;setHeroForTab(STATE.D,pa)}window.scrollTo({top:0,behavior:'smooth'})})});
   document.getElementById('sectorSel').addEventListener('change',function(){STATE.setor=this.value;STATE.scope='ALL';STATE.selEvent=null;applySetor()});
   document.getElementById('monthSel').addEventListener('change',function(){STATE.scope=this.value;buildRender()});
   ['q'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',renderTable)});
-  document.querySelectorAll('.perf-btn[data-mode]').forEach(function(btn){btn.addEventListener('click',function(){STATE.perfMode=btn.dataset.mode;render()})});
   // toggle resumo/detalhado
   document.querySelectorAll('.perf-btn[data-view]').forEach(function(btn){
-    btn.addEventListener('click',function(){
-      STATE.motView=btn.dataset.view;
-      document.querySelectorAll('.perf-btn[data-view]').forEach(function(b){b.classList.toggle('active',b.dataset.view===STATE.motView)});
-      document.getElementById('motResumo').style.display=STATE.motView==='resumo'?'':'none';
-      document.getElementById('motDetalhado').style.display=STATE.motView==='detalhado'?'':'none';
-      if(STATE.motView==='detalhado'&&STATE.D) setupTable(STATE.D);
-      if(STATE.motView==='resumo'&&STATE.D) showRankChart2(STATE.D);
-    });
+    btn.addEventListener('click',function(){setMotView(btn.dataset.view)});
   });
+  setMotView(STATE.motView||'resumo');
 }
 // ── SPARK ANIMATION ──
 (function(){
