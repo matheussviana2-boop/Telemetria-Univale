@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSAO AJUSTADA: TOP5_EVENTOS_V3 -->
+<!-- VERSAO AJUSTADA: TOP5_EVENTOS_V5 -->
 
 <html lang="pt-BR">
 <head>
@@ -78,20 +78,20 @@ thead th:hover{color:var(--ink)}
 tbody td{padding:10px 14px;border-bottom:1px solid #f0f5f5;text-align:left}
 tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f7fbfb}
 #mot .twrap{border-width:3px;overflow-x:auto}
-#tbl{min-width:1260px;table-layout:fixed;font-size:12px}
+#tbl{min-width:1500px;table-layout:fixed;font-size:12px}
 #tbl thead th{white-space:normal;line-height:1.15;text-align:center;padding:8px 6px;vertical-align:middle;letter-spacing:.035em;cursor:pointer}
 #tbl tbody td{padding:8px 6px;text-align:center;vertical-align:middle;line-height:1.25}
 #tbl th:nth-child(1),#tbl td:nth-child(1){width:40px}
 #tbl th:nth-child(2),#tbl td:nth-child(2){width:180px;text-align:left}
-#tbl th:nth-child(3),#tbl td:nth-child(3){width:106px}
+#tbl th:nth-child(3),#tbl td:nth-child(3){width:116px}
 #tbl th:nth-child(4),#tbl td:nth-child(4){width:82px}
 #tbl th:nth-child(5),#tbl td:nth-child(5){width:86px}
-#tbl .evth{width:92px;min-width:92px}
-#tbl th:last-child,#tbl td:last-child{width:98px}
+#tbl .evth{width:102px;min-width:102px}
+#tbl th:last-child,#tbl td:last-child{width:114px;min-width:114px;padding-right:12px}
 #tbl .nmcell{white-space:normal;overflow-wrap:anywhere;font-size:12.5px;line-height:1.35}
-.mot-mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:10px;margin:0 0 16px}
-.mini-ev{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:10px 12px;min-height:72px;display:flex;flex-direction:column;justify-content:center}
-.mini-ev-name{font-size:10.5px;font-weight:700;line-height:1.15;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.mot-mini-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:0 0 16px}
+.mini-ev{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:12px 12px;min-height:82px;display:flex;flex-direction:column;justify-content:center}
+.mini-ev-name{font-size:10.5px;font-weight:700;line-height:1.15;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
 .mini-ev-val{font-family:var(--mono);font-size:22px;font-weight:800;color:var(--ink);line-height:1}
 .mini-ev-sub{font-size:11px;font-weight:600;color:var(--muted);margin-top:4px}
 .perf-note{font-size:12px;color:var(--muted);margin:-4px 0 14px}
@@ -108,6 +108,20 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f7fbfb}
 .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
 .controls input,.controls select{font-family:var(--sans);font-size:13px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
 .controls input[type=search]{min-width:200px}
+.mot-controls{justify-content:space-between;align-items:center}
+.mot-controls-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.perf-toggle-wrap{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.perf-toggle-label{font-size:13px;font-weight:700;color:var(--muted)}
+.perf-toggle{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px;box-shadow:var(--shadow)}
+.perf-btn{appearance:none;border:1px solid transparent;background:transparent;color:var(--muted);font-family:var(--sans);font-size:13px;font-weight:700;padding:8px 12px;border-radius:8px;cursor:pointer;transition:all .15s}
+.perf-btn:hover{background:#eef8f8;color:var(--ink)}
+.perf-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.perf-btn.sm{font-size:12px;padding:6px 10px}
+.card-topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:2px}
+.card-topbar .ctitle{margin-bottom:0}
+.card-top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.card-top-actions .perf-toggle{box-shadow:none}
+.card-top-actions .perf-toggle-label{font-size:12px}
 .cnt{font-size:12.5px;color:var(--muted);margin-bottom:10px}
 .stitle{font-size:16px;font-weight:700;margin-bottom:14px}
 /* diag */
@@ -127,7 +141,8 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f7fbfb}
 .dkey{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--teal);margin-bottom:2px}
 .dkey.red{color:var(--red)}
 footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(--muted);text-align:center}
-@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.g2,.g2eq{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}.alertnum{font-size:32px}}
+@media(max-width:1200px){.mot-mini-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.g2,.g2eq{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}.alertnum{font-size:32px}.mot-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.perf-toggle-wrap{margin-left:0}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -185,8 +200,19 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 
       <!-- Top 10 piores -->
       <div class="card mb18">
-        <div class="ctitle" id="t10wTitle">10 motoristas com menor performance</div>
-        <div class="csub">Motoristas com mais de 250 km rodados no período.</div>
+        <div class="card-topbar">
+          <div>
+            <div class="ctitle" id="t10wTitle">10 motoristas com menor performance</div>
+            <div class="csub" id="t10wSub">Motoristas com mais de 250 km rodados no período.</div>
+          </div>
+          <div class="card-top-actions">
+            <span class="perf-toggle-label">Tipo de performance</span>
+            <div class="perf-toggle">
+              <button type="button" class="perf-btn sm active" data-mode="std">Padrão</button>
+              <button type="button" class="perf-btn sm" data-mode="weighted">Ponderada</button>
+            </div>
+          </div>
+        </div>
         <div class="twrap" style="box-shadow:none;border:1px solid var(--line)">
           <table><thead><tr><th>#</th><th>Motorista</th><th>Performance</th><th>KM</th><th>Eventos</th><th>Desvio principal</th></tr></thead><tbody id="top10w"></tbody></table>
         </div>
@@ -194,8 +220,19 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 
       <!-- Top 10 melhores -->
       <div class="card mb18">
-        <div class="ctitle" id="t10bTitle">10 motoristas com melhor performance</div>
-        <div class="csub">Motoristas com mais de 250 km rodados no período.</div>
+        <div class="card-topbar">
+          <div>
+            <div class="ctitle" id="t10bTitle">10 motoristas com melhor performance</div>
+            <div class="csub" id="t10bSub">Motoristas com mais de 250 km rodados no período.</div>
+          </div>
+          <div class="card-top-actions">
+            <span class="perf-toggle-label">Tipo de performance</span>
+            <div class="perf-toggle">
+              <button type="button" class="perf-btn sm active" data-mode="std">Padrão</button>
+              <button type="button" class="perf-btn sm" data-mode="weighted">Ponderada</button>
+            </div>
+          </div>
+        </div>
         <div class="twrap" style="box-shadow:none;border:1px solid var(--line)">
           <table><thead><tr><th>#</th><th>Motorista</th><th>Performance</th><th>KM</th><th>Eventos</th><th>Desvio principal</th></tr></thead><tbody id="top10b"></tbody></table>
         </div>
@@ -206,16 +243,19 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 
     <!-- MOTORISTAS -->
     <section class="panel" id="mot">
-      <div class="controls">
-        <input type="search" id="q" placeholder="Buscar motorista...">
-        <label style="font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:7px">Tipo de performance
-          <select id="perfMode">
-            <option value="std" selected>Performance padrão</option>
-            <option value="weighted">Performance ponderada por KM</option>
-          </select>
-        </label>
+      <div class="controls mot-controls">
+        <div class="mot-controls-left">
+          <input type="search" id="q" placeholder="Buscar motorista...">
+        </div>
+        <div class="perf-toggle-wrap">
+          <span class="perf-toggle-label">Tipo de performance</span>
+          <div class="perf-toggle" role="tablist" aria-label="Tipo de performance">
+            <button type="button" class="perf-btn active" id="btnPerfStd" data-mode="std">Performance padrão</button>
+            <button type="button" class="perf-btn" id="btnPerfWeighted" data-mode="weighted">Ponderada por KM</button>
+          </div>
+        </div>
       </div>
-      <div class="perf-note" id="perfHint">Padrão: usa a performance atual do indicador. Ponderada: ajusta a performance proporcionalmente à quilometragem rodada.</div>
+      <div class="perf-note" id="perfHint">Padrão: usa a performance atual do indicador, sem ponderação extra por quilometragem.</div>
       <div class="mot-mini-grid" id="motEventCards"></div>
       <div class="cnt" id="cnt"></div>
       <div class="twrap"><table id="tbl"><thead><tr id="tblHead"></tr></thead><tbody id="tbody"></tbody></table></div>
@@ -366,10 +406,14 @@ function render(){
   STATE.selEvent=atual;
   showRankChart(D);
   if(atual)showTop5(atual,D);else clearTop5();
-  function rowFn(d,i){return'<tr><td class="rank">'+(i+1)+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+pPill(d.perf)+'</td><td>'+fmt(d.km)+'</td><td>'+fmt(d.pts)+'</td><td><span class="dtag">'+esc(d.dom)+'</span></td></tr>'}
-  var rw=D.drivers.filter(function(d){return d.km>250&&d.perf!=null}).sort(function(a,b){return a.perf-b.perf}).slice(0,10);
+  document.getElementById('t10wTitle').textContent='10 motoristas com menor '+perfTitle().toLowerCase();
+  document.getElementById('t10bTitle').textContent='10 motoristas com melhor '+perfTitle().toLowerCase();
+  document.getElementById('t10wSub').textContent='Motoristas com mais de 250 km rodados no período · análise em '+perfTitle().toLowerCase()+'.';
+  document.getElementById('t10bSub').textContent='Motoristas com mais de 250 km rodados no período · análise em '+perfTitle().toLowerCase()+'.';
+  function rowFn(d,i){var perf=drvPerf(d);return'<tr><td class="rank">'+(i+1)+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+pPill(perf)+'</td><td>'+fmt(d.km)+'</td><td>'+fmt(d.pts)+'</td><td><span class="dtag">'+esc(d.dom)+'</span></td></tr>'}
+  var rw=D.drivers.filter(function(d){return d.km>250&&drvPerf(d)!=null}).sort(function(a,b){return drvPerf(a)-drvPerf(b)}).slice(0,10);
   document.getElementById('top10w').innerHTML=rw.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>';
-  var rb=D.drivers.filter(function(d){return d.km>250&&d.perf!=null}).sort(function(a,b){return b.perf-a.perf}).slice(0,10);
+  var rb=D.drivers.filter(function(d){return d.km>250&&drvPerf(d)!=null}).sort(function(a,b){return drvPerf(b)-drvPerf(a)}).slice(0,10);
   document.getElementById('top10b').innerHTML=rb.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>';
   document.getElementById('diagGrid').innerHTML=D.evRank.map(function(r){var g=dFor(r[0]);return'<div class="dcard"><div class="dhead"><div class="dicon '+g.cor+'">'+g.icon+'</div><div><div class="dname">'+r[0]+'</div><span class="dbadge '+eBadge(g.eixo)+'">'+g.eixo+'</span></div><div class="dpct"><strong>'+r[2]+'%</strong><span>'+fmt(r[1])+' eventos</span></div></div><div class="dbody"><div class="drow"><div class="dkey">O que foi registrado</div>'+g.mede+'</div><div class="drow"><div class="dkey red">Ação recomendada</div>'+g.acao+'</div></div></div>'}).join('');
   setupTable(D)
@@ -384,7 +428,10 @@ function showRankChart(D){
       labels:D.evRank.map(function(r){return r[0]}),
       datasets:[{
         data:D.evRank.map(function(r){return r[1]}),
-        backgroundColor:D.evRank.map(function(r,i){return r[0]===STATE.selEvent?'#EA0029':i<3?'#00A19B':'#10CFC9'}),
+        backgroundColor:D.evRank.map(function(r,i){return i===0?'#EA0029':i<3?'#00A19B':'#10CFC9'}),
+        borderColor:D.evRank.map(function(r){return r[0]===STATE.selEvent?'#0b1f1e':'rgba(0,0,0,0)'}),
+        borderWidth:D.evRank.map(function(r){return r[0]===STATE.selEvent?3:0}),
+        borderSkipped:false,
         borderRadius:4
       }]
     },
@@ -426,7 +473,7 @@ function showTop5(evName,D){
 }
 var TBL={D:null,sortK:'activePerf',sortDir:-1};
 function renderMotEventCards(D){
-  var ep=EV_COLS.filter(function(e){return D.evTot[e]>0});
+  var ep=EV_COLS;
   document.getElementById('motEventCards').innerHTML=ep.map(function(e){return '<div class="mini-ev"><div class="mini-ev-name">'+evLabel(e).replace(/<br>/g,' ')+'</div><div class="mini-ev-val">'+fmt(D.evTot[e]||0)+'</div><div class="mini-ev-sub">eventos no período</div></div>'}).join('');
 }
 function updatePerfHint(){
@@ -434,11 +481,15 @@ function updatePerfHint(){
     ? 'Performance ponderada: usa a performance atual com peso proporcional à quilometragem rodada, tornando a comparação mais justa.'
     : 'Performance padrão: usa a performance atual do indicador, sem ponderação extra por quilometragem.';
 }
+function updatePerfButtons(){
+  document.querySelectorAll('.perf-btn').forEach(function(btn){btn.classList.toggle('active',btn.dataset.mode===STATE.perfMode)})
+}
 function setupTable(D){
   TBL.D=D;TBL.sortK='activePerf';TBL.sortDir=-1;
-  var ep=EV_COLS.filter(function(e){return D.evTot[e]>0});
+  var ep=EV_COLS;
   renderMotEventCards(D);
   updatePerfHint();
+  updatePerfButtons();
   document.getElementById('tblHead').innerHTML='<th>#</th><th class="s" data-k="nome">Motorista ↕</th><th class="s" data-k="activePerf">'+perfTitle()+' ↕</th><th class="s" data-k="km">KM ↕</th><th class="s" data-k="pts">Eventos ↕</th>'+ep.map(function(e){return'<th class="evth">'+evLabel(e)+'</th>'}).join('');
   document.querySelectorAll('#tbl th.s').forEach(function(th){th.addEventListener('click',function(){var k=th.dataset.k;if(TBL.sortK===k)TBL.sortDir*=-1;else{TBL.sortK=k;TBL.sortDir=(k==='nome')?1:-1};renderTable()})});
   renderTable()
@@ -446,7 +497,7 @@ function setupTable(D){
 function renderTable(){
   var D=TBL.D;if(!D)return;
   var q=document.getElementById('q').value.trim().toUpperCase();
-  var ep=EV_COLS.filter(function(e){return D.evTot[e]>0});
+  var ep=EV_COLS;
   var rows=D.drivers.filter(function(d){return !q||d.nome.toUpperCase().indexOf(q)>=0});
   var k=TBL.sortK,dir=TBL.sortDir;
   rows.sort(function(a,b){
@@ -466,7 +517,7 @@ function bindEvents(){
   document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');var el=document.getElementById(b.dataset.t);if(el)el.classList.add('active');window.scrollTo({top:0,behavior:'smooth'})})});
   document.getElementById('monthSel').addEventListener('change',function(){STATE.scope=this.value;buildRender()});
   ['q'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',renderTable)});
-  var pm=document.getElementById('perfMode');if(pm)pm.addEventListener('change',function(){STATE.perfMode=this.value;setupTable(STATE.D)});
+  document.querySelectorAll('.perf-btn').forEach(function(btn){btn.addEventListener('click',function(){STATE.perfMode=btn.dataset.mode;render()})});
 }
 document.addEventListener('DOMContentLoaded',loadSheet);
 </script>
