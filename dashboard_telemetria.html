@@ -481,7 +481,7 @@ function refreshHeader(){
   document.getElementById('hTitulo').innerHTML=STATE.setor==='ALL'?'Performance<br>Todos os Setores':'Performance<br>'+lbl;
   var sub='Consolidado '+periodRangeLabel()+' · '+(STATE.all?STATE.all.length:0)+' registros base';
   document.getElementById('hSubtitle').textContent=sub;
-  document.getElementById('hSectorChip').textContent=lbl;
+  safeText('hSectorChip',lbl);
 }
 function refreshMonths(){
   var ms={};STATE.months=[];
@@ -572,7 +572,7 @@ function setHeroForTab(D,pa){
   var bestEvt=D.evRank.length?D.evRank.slice().sort(function(a,b){return a[1]-b[1]})[0]:null;
   var worstEvt=D.evRank[0]||null;
   var tset=document.getElementById('hSetor'), ttl=document.getElementById('hTitulo'), sub=document.getElementById('hSubtitle');
-  document.getElementById('hSectorChip').textContent=lbl;
+  safeText('hSectorChip',lbl);
   document.getElementById('heroMainLabel').textContent=tab==='mot'?'Performance Média':'Performance Geral';
   document.getElementById('heroPerf').textContent=fmtDec(pa,2)+'%';
   if(tab==='mot'){
