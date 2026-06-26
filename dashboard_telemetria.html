@@ -200,6 +200,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 /* filtros no topo direito do hero */
 .hero-top-filters{position:absolute;top:18px;right:18px;display:flex;align-items:center;gap:10px;z-index:10}
 .hero-top-filters .hero-filter{display:flex;align-items:center;gap:8px;color:rgba(206,248,244,.9);font-size:12px;font-weight:700}
+.hero-shell{position:relative}
 /* centraliza número no card principal */
 .hero-main-stat{padding:18px 20px 14px;display:flex;flex-direction:column;justify-content:center;min-height:220px;gap:0}
 .hero-main-stat .hero-stat-top{margin-bottom:6px}
@@ -681,7 +682,7 @@ function showRankChart2(D){
   CH['cRank2']=new Chart(el,{
     type:'bar',
     data:{labels:D.evRank.map(function(r){return r[0]}),datasets:[{data:D.evRank.map(function(r){return r[1]}),backgroundColor:D.evRank.map(function(r){return r[0]===STATE.selEvent2?'#EA0029':'#00A19B'}),borderRadius:4}]},
-    options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmt(c.raw)+' eventos ('+D.evRank[c.dataIndex][2]+'%)');}}}},
+    options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmt(c.raw)+' eventos ('+D.evRank[c.dataIndex][2]+'%)';}}}},
     scales:{x:{grid:{color:'#eef4f3'}},y:{ticks:{font:{size:11}}}},
     onClick:function(evt,els){if(els&&els.length){STATE.selEvent2=D.evRank[els[0].index][0];showRankChart2(D);showTop52(STATE.selEvent2,D);}}}
   });
@@ -696,6 +697,7 @@ function showTop52(evName,D){
   box.className='top5panel';
   box.innerHTML=sorted.map(function(d,i){return'<div class="top5item"><span class="top5rank">'+(i+1)+'</span><span class="top5nome">'+esc(d.nome)+'</span><span class="top5meta"><span class="top5val">'+fmt(d.ev[evName]||0)+' eventos</span><span class="top5km">'+fmt(d.km)+' km</span></span></div>'}).join('')||'<div class="top5empty"><div class="top5hint">Sem ocorrências</div></div>';
 }
+function bestWorstDrivers(D,limit){
   var valid=D.drivers.filter(function(d){return d.km>250&&d.perfStd!=null});
   var worst=valid.slice().sort(function(a,b){return drvPerf(a)-drvPerf(b)}).slice(0,limit||3);
   var best=valid.slice().sort(function(a,b){return drvPerf(b)-drvPerf(a)}).slice(0,limit||3);
