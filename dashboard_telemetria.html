@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSAO AJUSTADA: TOP10_DESVIOS_V28 -->
+<!-- VERSAO AJUSTADA: TOP10_DESVIOS_V29 -->
 
 <html lang="pt-BR">
 <head>
@@ -642,6 +642,7 @@ function setHeroForTab(D,pa){
     document.getElementById('heroSide2Value').textContent=fmt(D.totEv);
     document.getElementById('heroSide2Value').className='hero-stat-value';
     document.getElementById('heroSide2Sub').textContent='ocorrências registradas';
+    if(side2Card)side2Card.classList.add('worst-card');
   }
 }
 function safeSet(id,html){var el=document.getElementById(id);if(el)el.innerHTML=html;}
