@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- VERSAO AJUSTADA: TOP5_EVENTOS_V10 -->
+<!-- VERSAO CORRIGIDA: TOP5_EVENTOS_V10_1 -->
 
 <html lang="pt-BR">
 <head>
@@ -571,7 +571,6 @@ function render(){
     {l:'Desvio mais frequente',v:(D.evRank[0]?D.evRank[0][2]:0),u:'%',t:(D.evRank[0]?D.evRank[0][0]:'—'),up:false,al:true}
   ];
   document.getElementById('kpis').innerHTML=kpis.map(function(k){return'<div class="kpi'+(k.al?' alert':'')+'"><div class="kpi-label">'+k.l+'</div><div class="kpi-value">'+k.v+'<span class="kpi-unit"> '+k.u+'</span></div><div class="kpi-trend '+(k.up?'up':'dn')+'">'+k.t+'</div></div>'}).join('');
-  document.getElementById('heroMot').textContent=fmt(D.motN);
   setHeroForTab(D,pa);
   document.getElementById('hUpdated').textContent='Atualizado hoje';
   var top=D.evRank[0];
