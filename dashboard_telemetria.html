@@ -1131,6 +1131,68 @@ header .msel optgroup,
   color:#f3fffe !important;
 }
 
+
+
+/* ===== AJUSTE V15: comparativo por setor horizontal com toggle ===== */
+.view-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px;
+  border-radius:999px;
+  background:linear-gradient(180deg,rgba(7,56,58,.72),rgba(4,34,36,.64));
+  border:1px solid rgba(136,236,229,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+}
+.view-flag{
+  border:0;
+  background:transparent;
+  color:#6d8e8b;
+  font:600 11px/1 var(--sans);
+  padding:8px 12px;
+  border-radius:999px;
+  cursor:pointer;
+  transition:.18s ease;
+}
+.view-flag:hover{
+  color:#dffefd;
+}
+.view-flag.active{
+  color:#063436;
+  background:linear-gradient(180deg,#64f4ea,#1fd9d0);
+  box-shadow:0 6px 16px rgba(20,220,211,.18), inset 0 1px 0 rgba(255,255,255,.25);
+}
+#setorCard .card-topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+#setorCard .card-head-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+#setorCard .cbox{
+  min-height:360px;
+}
+@media(max-width:900px){
+  #setorCard .card-head-left{
+    width:100%;
+    justify-content:space-between;
+  }
+  .view-toggle{
+    width:100%;
+    justify-content:stretch;
+  }
+  .view-flag{
+    flex:1 1 0;
+    text-align:center;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1221,9 +1283,9 @@ header .msel optgroup,
           <div id="top5devCard"></div>
         </div>
         <div class="card" id="setorCard">
-          <div class="card-topbar"><div class="ctitle" id="setorCardTitle">Comparativo por setor</div><div class="period-badge" id="setorCardPeriod">Todos os meses</div></div>
-          <div class="csub" id="setorCardSub">Performance e eficiência de cada setor no período.</div>
-          <div class="cbox" style="height:320px"><canvas id="cSetor"></canvas></div>
+          <div class="card-topbar"><div class="ctitle" id="setorCardTitle">Comparativo por setor</div></div><div class="view-toggle" id="setorMetricToggle" role="tablist" aria-label="Alternar métrica do comparativo por setor"><button type="button" class="view-flag active" id="btnSetorPerf" data-metric="perf">Performance</button><button type="button" class="view-flag" id="btnSetorKme" data-metric="kme">KM/Evento</button></div><div class="period-badge" id="setorCardPeriod">Todos os meses</div></div>
+          <div class="csub" id="setorCardSub">Clique nas flags para alternar entre performance e KM por evento.</div>
+          <div class="cbox" style="height:360px"><canvas id="cSetor"></canvas></div>
         </div>
       </div>
 
@@ -1335,7 +1397,7 @@ var DIAG={
   "Excesso RPM Parado":{eixo:"Manutenção",cor:"ic-teal-l",icon:"◉",mede:"Aceleração do motor com o veículo parado.",acao:"Motores modernos não precisam ser aquecidos acelerando parado."}
 };
 var SLABELS={'FRET_BAHIA':'Fretamento Bahia','CENIBRA':'Fretamento Cenibra','LINHAS':'Linhas','MUSA':'Musa','TURIM':'Turim Rodoviário','GARAG_BAHIA':'Garagistas Bahia','GARAG_MG':'Garagistas MG','CIPALAM':'Cipalam','BEMISA':'Fretamento Bemisa'};
-var STATE={raw:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,selEvent:null,selEvent2:null,motView:'resumo'};
+var STATE={raw:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,selEvent:null,selEvent2:null,motView:'resumo',setorMetric:'perf'};
 var CH={};
 function fmt(n){return Math.round(n).toLocaleString('pt-BR')}
 function fmtDec(n,d){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
@@ -1597,41 +1659,128 @@ function renderSetorChart(full){
   }
   if(wrap)wrap.classList.remove('top10-centered');
   card.style.display='';
+
+  var btnPerf=document.getElementById('btnSetorPerf');
+  var btnKme=document.getElementById('btnSetorKme');
+  var metric=(STATE.setorMetric==='kme')?'kme':'perf';
+  if(btnPerf)btnPerf.classList.toggle('active',metric==='perf');
+  if(btnKme)btnKme.classList.toggle('active',metric==='kme');
+
   var EXCLUIR=['GARAG_BAHIA','GARAG_MG'];
   var rows=STATE.all.slice();
   if(STATE.scope!=='ALL')rows=rows.filter(function(r){return String(r.MES||'').toUpperCase()===STATE.scope});
-  var ss={};
+
+  var by={};
   rows.forEach(function(r){
     var s=String(r.SETOR||'').toUpperCase();
     if(!s||EXCLUIR.indexOf(s)>=0)return;
-    var o=ss[s]||(ss[s]={km:0,ev:0});
-    o.km+=+r.KM||0; o.ev+=+r.PONTUACAO||0;
+    if(!by[s])by[s]={km:0,ev:0};
+    by[s].km += Number(r.KM||0);
+    by[s].ev += Number(r.PONTOS||0);
   });
-  var setores=Object.keys(ss).sort();
-  var perfs=setores.map(function(s){return ss[s].km?parseFloat(calcPerf(ss[s].km,ss[s].ev).toFixed(2)):0});
-  var kmes=setores.map(function(s){return ss[s].ev?Math.round(ss[s].km/ss[s].ev*10)/10:0});
-  var lbls=setores.map(function(s){return SLABELS[s]||s});
-  if(typeof Chart==='undefined')return;
-  var perfColors=perfs.map(function(p){
-    if(p<0)return 'rgba(234,0,41,.78)';
-    if(p<50)return 'rgba(230,126,34,.82)';
-    if(p<90)return 'rgba(224,168,0,.82)';
-    return 'rgba(0,161,155,.82)';
+
+  var arr=Object.keys(by).map(function(s){
+    var km=by[s].km||0;
+    var ev=by[s].ev||0;
+    return {
+      setor:s,
+      label:setorLabel(s),
+      perf: calcPerf(km,ev),
+      kme: Math.round(kmPorEvento(km,ev)*10)/10
+    };
+  }).filter(function(x){
+    return metric==='perf' ? (x.perf!=null && isFinite(x.perf)) : (x.kme!=null && isFinite(x.kme) && x.kme>0);
   });
-  var minPerf=Math.min.apply(null,perfs.concat([0]));
-  var yMin=minPerf<0?Math.floor(minPerf/10)*10:0;
+
+  arr.sort(function(a,b){
+    var av=metric==='perf'?(a.perf==null?-Infinity:a.perf):(a.kme||0);
+    var bv=metric==='perf'?(b.perf==null?-Infinity:b.perf):(b.kme||0);
+    return bv-av;
+  });
+
+  var labels=arr.map(function(x){return x.label});
+  var values=arr.map(function(x){return metric==='perf'?Math.round(x.perf*10)/10:x.kme});
+
+  safeText('setorCardPeriod',periodLabelCompact());
+  safeText('setorTitle', metric==='perf' ? 'Comparativo por setor · Performance' : 'Comparativo por setor · KM por evento');
+  safeText('setorCardSub', metric==='perf'
+    ? 'Gráfico horizontal de performance por setor no período. Clique nas flags para alternar.'
+    : 'Gráfico horizontal de quilômetros por evento por setor no período. Clique nas flags para alternar.'
+  );
+
+  var perfColors=arr.map(function(x){
+    var p=x.perf;
+    if(p==null)return 'rgba(159,217,214,.55)';
+    if(p<0)return 'rgba(255,85,114,.85)';
+    if(p<50)return 'rgba(255,139,34,.85)';
+    if(p<90)return 'rgba(255,210,31,.85)';
+    return 'rgba(16,207,201,.78)';
+  });
+  var perfBorders=arr.map(function(x){
+    var p=x.perf;
+    if(p==null)return 'rgba(159,217,214,.9)';
+    if(p<0)return 'rgba(255,85,114,1)';
+    if(p<50)return 'rgba(255,139,34,1)';
+    if(p<90)return 'rgba(255,210,31,1)';
+    return 'rgba(16,207,201,1)';
+  });
+
+  var bg = metric==='perf' ? perfColors : values.map(function(_,i){
+    return i===0 ? 'rgba(16,207,201,.85)' : 'rgba(16,207,201,.62)';
+  });
+  var border = metric==='perf' ? perfBorders : values.map(function(_,i){
+    return i===0 ? 'rgba(16,207,201,1)' : 'rgba(16,207,201,.88)';
+  });
+
+  var box=card.querySelector('.cbox');
+  if(box)box.style.height=Math.max(300, arr.length*46 + 90)+'px';
+
   CH['cSetor']=new Chart(el,{
     type:'bar',
-    data:{labels:lbls,datasets:[
-      {label:'Performance %',data:perfs,backgroundColor:perfColors,borderRadius:4,yAxisID:'y'},
-      {label:'KM/Evento',data:kmes,backgroundColor:'rgba(16,207,201,.55)',borderRadius:4,yAxisID:'y1'}
-    ]},
-    options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}}},
+    data:{labels:labels,datasets:[{
+      label: metric==='perf'?'Performance %':'KM/Evento',
+      data: values,
+      backgroundColor: bg,
+      borderColor: border,
+      borderWidth:1.2,
+      borderRadius:7,
+      borderSkipped:false,
+      barThickness:20,
+      maxBarThickness:22
+    }]},
+    options:{
+      indexAxis:'y',
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          label:function(c){
+            return metric==='perf'
+              ? 'Performance: '+fmtDec(c.raw,1)+'%'
+              : 'KM/Evento: '+fmtDec(c.raw,1);
+          }
+        }}
+      },
       scales:{
-        x:{grid:{display:false},ticks:{font:{size:10},maxRotation:35,minRotation:25}},
-        y:{title:{display:true,text:'performance %'},min:yMin,max:100,ticks:{stepSize:10},grid:{color:'#eef4f3'}},
-        y1:{position:'right',title:{display:true,text:'km/evento'},min:0,beginAtZero:true,grid:{drawOnChartArea:false}}
-      }}
+        y:{
+          grid:{display:false},
+          ticks:{font:{size:11}}
+        },
+        x: metric==='perf'
+          ? {
+              min:0,
+              max:100,
+              title:{display:true,text:'performance %'},
+              ticks:{stepSize:10},
+              grid:{color:'#eef4f3'}
+            }
+          : {
+              beginAtZero:true,
+              title:{display:true,text:'km/evento'},
+              grid:{color:'#eef4f3'}
+            }
+      }
+    }
   });
 }
 function render(){
@@ -1667,11 +1816,11 @@ function render(){
   var pmin=perfVals.length?Math.max(0,Math.floor(Math.min.apply(null,perfVals)-1)):0;
   var pmax=perfVals.length?Math.min(100,Math.ceil(Math.max.apply(null,perfVals)+1)):100;
   sc2(CH,'cTrend',{data:{labels:M,datasets:[
-    {type:'bar',label:'Eventos',data:full.monthly.map(function(m){return m.ev}),backgroundColor:full.monthly.map(function(m){return(sc!=='ALL'&&m.m!==sc)?'#cdeeec':'#10CFC9'}),borderRadius:5,yAxisID:'y',order:2},
-    {type:'line',label:'Performance %',data:perfs,borderColor:'#EA0029',backgroundColor:'#EA0029',pointRadius:0,pointHoverRadius:0,tension:.3,borderWidth:2.5,yAxisID:'y1',order:1,clip:false},
-    {type:'line',label:'Leitura performance',data:perfs,borderColor:'transparent',backgroundColor:'#EA0029',pointBackgroundColor:'#EA0029',pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:6,pointHoverRadius:8,pointHitRadius:24,showLine:false,yAxisID:'y1',order:0,clip:false}
+    {type:'bar',label:'Eventos',data:full.monthly.map(function(m){return m.ev}),backgroundColor:full.monthly.map(function(m){return (m.m===sc)?'#EA0029':'#f4c7d1'}),borderColor:full.monthly.map(function(m){return (m.m===sc)?'#EA0029':'#ef9daf'}),borderWidth:1,borderRadius:5,yAxisID:'y',order:2},
+    {type:'line',label:'Performance %',data:perfs,borderColor:'#00A19B',backgroundColor:'#00A19B',pointBackgroundColor:full.monthly.map(function(m){return (m.m===sc)?'#00A19B':'#7fd6d2'}),pointBorderColor:'#ffffff',pointBorderWidth:2,pointRadius:full.monthly.map(function(m){return (m.m===sc)?5:4}),pointHoverRadius:7,tension:.3,borderWidth:2.5,yAxisID:'y1',order:1,clip:false},
+    {type:'line',label:'Leitura performance',data:perfs,borderColor:'transparent',backgroundColor:'transparent',pointBackgroundColor:full.monthly.map(function(m){return (m.m===sc)?'#00A19B':'#7fd6d2'}),pointBorderColor:'#ffffff',pointBorderWidth:2,pointRadius:full.monthly.map(function(m){return (m.m===sc)?7:5}),pointHoverRadius:8,pointHitRadius:24,showLine:false,yAxisID:'y1',order:0,clip:false}
   ]},options:{maintainAspectRatio:false,interaction:{mode:'nearest',intersect:true},plugins:{legend:{position:'bottom',labels:{filter:function(item){return item.text!=='Leitura performance'},boxWidth:10,font:{size:11}}}},scales:{y:{title:{display:true,text:'eventos'},grid:{color:'#eef4f3'}},y1:{position:'right',min:pmin,max:pmax,title:{display:true,text:'perf %'},grid:{drawOnChartArea:false}}}}});
-  sc2(CH,'cKme',{type:'line',data:{labels:M,datasets:[{label:'KM por evento',data:full.monthly.map(function(m){return m.kme}),borderColor:'#00A19B',backgroundColor:'rgba(0,161,155,.12)',fill:true,tension:.35,borderWidth:2.5,pointRadius:full.monthly.map(function(m){return(sc!=='ALL'&&m.m===sc)?7:4}),pointBackgroundColor:full.monthly.map(function(m){return(sc==='ALL'||m.m===sc)?'#00A19B':'#9fd9d6'})}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false,grid:{color:'#eef4f3'}}}}});
+  sc2(CH,'cKme',{type:'line',data:{labels:M,datasets:[{label:'KM por evento',data:full.monthly.map(function(m){return m.kme}),borderColor:'#00A19B',backgroundColor:'rgba(0,161,155,.14)',fill:true,tension:.35,borderWidth:2.5,pointRadius:full.monthly.map(function(m){return(sc!=='ALL'&&m.m===sc)?7:4}),pointBackgroundColor:full.monthly.map(function(m){return(sc==='ALL'||m.m===sc)?'#EA0029':'#f28ca1'}),pointBorderColor:'#ffffff',pointBorderWidth:2,pointHoverRadius:8}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false,grid:{color:'#eef4f3'}}}}});
   safeText('t10wTitle','10 motoristas com menor performance');
   safeText('t10bTitle','10 motoristas com melhor performance');
   safeText('t10wSub','Considerando mínimo 250 km rodados em '+periodLabelShort()+'.');
@@ -1891,6 +2040,14 @@ function bindEvents(){
   document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');var el=document.getElementById(b.dataset.t);if(el)el.classList.add('active');if(b.dataset.t==='mot')setMotView('resumo');if(STATE.D){var pa=calcPerf(STATE.D.totKm,STATE.D.totEv)||0;setHeroForTab(STATE.D,pa)}window.scrollTo({top:0,behavior:'smooth'})})});
   document.getElementById('sectorSel').addEventListener('change',function(){STATE.setor=this.value;STATE.selEvent=null;applySetor()});
   document.getElementById('monthSel').addEventListener('change',function(){STATE.scope=this.value;buildRender()});
+  document.querySelectorAll('#setorMetricToggle .view-flag').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      STATE.setorMetric=btn.dataset.metric||'perf';
+      document.querySelectorAll('#setorMetricToggle .view-flag').forEach(function(b){b.classList.remove('active')});
+      btn.classList.add('active');
+      renderSetorChart(STATE.full);
+    });
+  });
   ['q'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',renderTable)});
   // toggle resumo/detalhado
   document.querySelectorAll('.perf-btn[data-view]').forEach(function(btn){
