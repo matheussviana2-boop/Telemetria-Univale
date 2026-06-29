@@ -727,6 +727,32 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
   .fuel-wave{inset:8px 0 -6px 0 !important;}
 }
 
+
+
+/* ===== AJUSTE V5: movimento real do líquido via JS ===== */
+.fuel-wave{
+  position:absolute !important;
+  inset:8px 0 -6px 0 !important;
+  overflow:hidden !important;
+  isolation:isolate !important;
+}
+.fuel-img,
+.fuel-img-back{
+  animation:none !important;
+  transition:none !important;
+  width:220% !important;
+  min-height:112% !important;
+  height:auto !important;
+  left:-12% !important;
+  bottom:0 !important;
+  object-fit:contain !important;
+  object-position:left bottom !important;
+  transform-origin:center bottom !important;
+  will-change:transform !important;
+}
+.fuel-img{opacity:1 !important; z-index:2 !important;}
+.fuel-img-back{opacity:.26 !important; z-index:1 !important;}
+
 </style>
 </head>
 <body>
@@ -1482,5 +1508,48 @@ function bindEvents(){
 // fuel animation via CSS
 document.addEventListener('DOMContentLoaded',loadSheet);
 </script>
+
+<script>
+(function(){
+  function initFuelMotion(){
+    var waves = Array.from(document.querySelectorAll('.fuel-wave')).map(function(el, idx){
+      return {
+        el: el,
+        front: el.querySelector('.fuel-img'),
+        back: el.querySelector('.fuel-img-back'),
+        phase: idx * 1.37,
+        phase2: idx * 1.91 + 0.8
+      };
+    }).filter(function(w){ return w.front && w.back; });
+
+    if(!waves.length) return;
+
+    function tick(ms){
+      var t = ms / 1000;
+      waves.forEach(function(w, i){
+        var frontX = Math.sin(t * 0.32 + w.phase) * 26;
+        var frontY = Math.sin(t * 0.92 + w.phase2) * 3.5;
+        var frontScaleY = 1 + Math.sin(t * 0.70 + w.phase) * 0.015;
+
+        var backX = Math.sin(t * 0.24 + w.phase2) * 18;
+        var backY = Math.sin(t * 0.74 + w.phase) * 4.5;
+        var backScaleY = 1 + Math.sin(t * 0.58 + w.phase2) * 0.02;
+
+        w.front.style.transform = 'translate3d(' + frontX + 'px,' + frontY + 'px,0) scaleY(' + frontScaleY + ')';
+        w.back.style.transform = 'translate3d(' + backX + 'px,' + backY + 'px,0) scaleY(' + backScaleY + ')';
+      });
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initFuelMotion);
+  }else{
+    initFuelMotion();
+  }
+})();
+</script>
+
 </body>
 </html>
