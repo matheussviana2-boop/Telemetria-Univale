@@ -877,6 +877,39 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
   }
 }
 
+
+
+/* ===== AJUSTE V9: ondas reais no topo do líquido ===== */
+.fuel-wave{
+  position:absolute !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:0 !important;
+  top:auto !important;
+  height:100% !important;
+  overflow:hidden !important;
+  border-radius:0 0 18px 18px !important;
+  isolation:isolate !important;
+}
+.fuel-img,
+.fuel-img-back{
+  position:absolute !important;
+  top:0 !important;
+  left:0 !important;
+  bottom:auto !important;
+  max-width:none !important;
+  min-height:0 !important;
+  height:100% !important;
+  object-fit:cover !important;
+  object-position:center top !important;
+  transform-origin:center center !important;
+  animation:none !important;
+  transition:none !important;
+  will-change:transform, clip-path, width !important;
+}
+.fuel-img{opacity:1 !important; z-index:2 !important;}
+.fuel-img-back{opacity:.22 !important; z-index:1 !important; filter:blur(.25px) brightness(.98) !important;}
+
 </style>
 </head>
 <body>
@@ -1639,47 +1672,67 @@ document.addEventListener('DOMContentLoaded',loadSheet);
 
 
 
+
+
+
 <script>
 (function(){
-  function initFuelMotionFinal(){
+  function initFuelWaveMotion(){
     var waves = Array.from(document.querySelectorAll('.fuel-wave')).map(function(el, idx){
       return {
         el: el,
         front: el.querySelector('.fuel-img'),
         back: el.querySelector('.fuel-img-back'),
-        phase: idx * 1.13,
-        phase2: idx * 1.57 + 0.8
+        phase: idx * 0.9,
+        phase2: idx * 1.3 + 1.1
       };
     }).filter(function(w){ return w.front && w.back; });
 
     if(!waves.length) return;
 
+    function makeWaveClip(base, amp, phase, phase2, t, points){
+      var arr = ['0% 100%', '0% ' + (base + Math.sin(t + phase) * amp).toFixed(2) + '%'];
+      for(var i=1; i<points; i++){
+        var x = (i * 100 / (points - 1));
+        var s1 = Math.sin((i / (points - 1)) * Math.PI * 2.0 + t * 1.10 + phase);
+        var s2 = Math.sin((i / (points - 1)) * Math.PI * 4.0 + t * 0.70 + phase2) * 0.45;
+        var y = base + (s1 + s2) * amp;
+        arr.push(x.toFixed(2) + '% ' + y.toFixed(2) + '%');
+      }
+      arr.push('100% 100%');
+      return 'polygon(' + arr.join(',') + ')';
+    }
+
     function place(img, box, widthFactor, xOffset, yOffset, scaleY){
       var bw = box.clientWidth || 1;
       var bh = box.clientHeight || 1;
       var imgW = bw * widthFactor;
-      var baseX = -(imgW - bw) / 2;   // centraliza para aparecer de borda a borda
+      var baseX = -(imgW - bw) / 2;
       img.style.setProperty('width', imgW.toFixed(2) + 'px', 'important');
       img.style.setProperty('height', bh.toFixed(2) + 'px', 'important');
-      img.style.setProperty('transform',
-        'translate3d(' + (baseX + xOffset).toFixed(2) + 'px,' + yOffset.toFixed(2) + 'px,0) scaleY(' + scaleY.toFixed(4) + ')',
-        'important'
-      );
+      img.style.setProperty('transform', 'translate3d(' + (baseX + xOffset).toFixed(2) + 'px,' + yOffset.toFixed(2) + 'px,0) scaleY(' + scaleY.toFixed(4) + ')', 'important');
     }
 
     function tick(ms){
       var t = ms / 1000;
-      waves.forEach(function(w, idx){
-        var frontX = Math.sin(t * 0.42 + w.phase) * 18;
-        var frontY = Math.sin(t * 1.08 + w.phase2) * 2.6;
-        var frontScaleY = 1 + Math.sin(t * 0.72 + w.phase) * 0.025;
-
-        var backX = Math.sin(t * 0.28 + w.phase2) * 13;
-        var backY = Math.sin(t * 0.82 + w.phase) * 3.0 + 1.2;
-        var backScaleY = 1 + Math.sin(t * 0.58 + w.phase2) * 0.03;
+      waves.forEach(function(w){
+        var frontX = Math.sin(t * 0.45 + w.phase) * 14;
+        var frontY = Math.sin(t * 0.95 + w.phase2) * 1.6;
+        var frontScaleY = 1 + Math.sin(t * 0.58 + w.phase) * 0.020;
+        var backX = Math.sin(t * 0.30 + w.phase2) * 10;
+        var backY = Math.sin(t * 0.75 + w.phase) * 1.9 + 1.0;
+        var backScaleY = 1 + Math.sin(t * 0.50 + w.phase2) * 0.024;
 
         place(w.back, w.el, 1.95, backX, backY, backScaleY);
         place(w.front, w.el, 1.75, frontX, frontY, frontScaleY);
+
+        var frontClip = makeWaveClip(42 + Math.sin(t * 0.23 + w.phase) * 1.5, 11, w.phase, w.phase2, t * 1.0, 15);
+        var backClip  = makeWaveClip(45 + Math.sin(t * 0.19 + w.phase2) * 1.2, 9, w.phase2, w.phase, t * 0.82, 15);
+
+        w.front.style.setProperty('clip-path', frontClip, 'important');
+        w.front.style.setProperty('-webkit-clip-path', frontClip, 'important');
+        w.back.style.setProperty('clip-path', backClip, 'important');
+        w.back.style.setProperty('-webkit-clip-path', backClip, 'important');
       });
       requestAnimationFrame(tick);
     }
@@ -1688,9 +1741,9 @@ document.addEventListener('DOMContentLoaded',loadSheet);
   }
 
   if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', initFuelMotionFinal);
+    document.addEventListener('DOMContentLoaded', initFuelWaveMotion);
   } else {
-    initFuelMotionFinal();
+    initFuelWaveMotion();
   }
 })();
 </script>
