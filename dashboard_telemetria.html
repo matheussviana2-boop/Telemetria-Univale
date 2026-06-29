@@ -1001,6 +1001,65 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
    pa >= 90 => perf-good
 */
 
+
+
+/* ===== AJUSTE V11: centraliza Top 10 quando há apenas 1 setor selecionado ===== */
+.g2eq.top10-centered{
+  grid-template-columns:minmax(420px, 640px) !important;
+  justify-content:center !important;
+}
+.g2eq.top10-centered > .card:first-child{
+  width:100% !important;
+}
+.g2eq.top10-centered #setorCard{
+  display:none !important;
+}
+@media(max-width:900px){
+  .g2eq.top10-centered{
+    grid-template-columns:1fr !important;
+  }
+}
+
+
+
+/* ===== AJUSTE V12: variação mensal também na tela Motoristas ===== */
+#mot .hero-stat-delta,
+.hero-stat-delta{
+  min-height:16px !important;
+}
+.hero-side-stat .hero-stat-delta{
+  margin-top:4px !important;
+  font-size:10.5px !important;
+  letter-spacing:.01em !important;
+}
+.hero-main-stat .hero-stat-delta{
+  font-size:11px !important;
+}
+
+
+
+/* ===== AJUSTE V13: performance >= 90 mantém cor padrão do dashboard =====
+   Verde aprovado agora usa o mesmo padrão visual do KM Total.
+   Só muda para amarelo, laranja ou vermelho quando a performance cair.
+*/
+.hero-main-stat.perf-good{
+  --card-accent-rgb:79,246,230 !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(79,246,230,.10), transparent 34%),
+    linear-gradient(180deg,rgba(7,42,43,.92),rgba(4,26,28,.86)) !important;
+  border-color:rgba(79,246,230,.55) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.03),
+    0 0 24px rgba(79,246,230,.08) !important;
+}
+.hero-main-stat.perf-good .hero-stat-label,
+.hero-main-stat.perf-good .hero-ico{
+  color:rgb(79,246,230) !important;
+}
+.hero-main-stat.perf-good .hero-ico{
+  border-color:rgba(79,246,230,.48) !important;
+}
+
 </style>
 </head>
 <body>
@@ -1354,6 +1413,15 @@ function setHeroForTab(D,pa){
     document.getElementById('heroSide2Value').className='hero-stat-value text';
     document.getElementById('heroSide2Sub').textContent=worstEvt?fmt(worstEvt[1])+' ocorrências':'';
     if(side2Card)side2Card.classList.add('worst-card');
+    if(prevCtx){
+      var prevPerfMot=calcPerf(prevCtx.totKm,prevCtx.totEv)||0;
+      var prevBestQtd=bestEvt?(prevCtx.evTot[bestEvt[0]]||0):null;
+      var prevWorstQtd=worstEvt?(prevCtx.evTot[worstEvt[0]]||0):null;
+
+      setDelta('heroMainDelta',pctVar(pa,prevPerfMot),prevLabel,false);
+      setDelta('heroSide1Delta',pctVar(bestEvt?bestEvt[1]:null,prevBestQtd),prevLabel,true);
+      setDelta('heroSide2Delta',pctVar(worstEvt?worstEvt[1]:null,prevWorstQtd),prevLabel,true);
+    }
   }else if(tab==='diag'){
     tset.textContent='DIAGNÓSTICO';
     ttl.innerHTML='Leitura Diagnóstica';
@@ -1450,7 +1518,13 @@ function renderSetorChart(full){
   var el=document.getElementById('cSetor');
   var card=document.getElementById('setorCard');
   if(!el||!card)return;
-  if(STATE.setor!=='ALL'){card.style.display='none';return;}
+  var wrap=card.parentElement;
+  if(STATE.setor!=='ALL'){
+    if(wrap)wrap.classList.add('top10-centered');
+    card.style.display='none';
+    return;
+  }
+  if(wrap)wrap.classList.remove('top10-centered');
   card.style.display='';
   var EXCLUIR=['GARAG_BAHIA','GARAG_MG'];
   var rows=STATE.all.slice();
