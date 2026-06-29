@@ -1577,6 +1577,20 @@ header .msel optgroup,
   stroke-width:1.85 !important;
 }
 
+
+
+/* ===== AJUSTE V7: rodapé com mais contraste ===== */
+footer{
+  color:#ffffff !important;
+  font-weight:700 !important;
+  letter-spacing:.01em !important;
+  opacity:1 !important;
+}
+footer .wrap{
+  color:#ffffff !important;
+  text-shadow:0 1px 8px rgba(0,0,0,.35);
+}
+
 </style>
 </head>
 <body>
@@ -1753,7 +1767,7 @@ header .msel optgroup,
     </section>
 
   </div></main>
-  <footer><div class="wrap">Univale Transportes · Telemetria Operacional · Dados atualizados mensalmente</div></footer>
+  <footer><div class="wrap">Univale Transportes - Telemetria Operacional - CSC</div></footer>
 </div>
 <script>
 var SHEET_URL='https://docs.google.com/spreadsheets/d/11jw5uFKuKcOVE5Jxgf1MsCyOXZPYXra1/export?format=xlsx';
@@ -2413,11 +2427,7 @@ function renderDiag(){
         '<div class="month-card bad"><div class="month-card-title">Motoristas com maior piora</div><div class="month-list">'+driverRows(drv.down,'bad')+'</div></div>'+
       '</div>'+
 
-      '<div class="month-note">'+
-        '<span class="diag-pill">🚨 Pior evento: '+(cur.evRank[0]?esc(cur.evRank[0][0]):'—')+'</span>'+
-        '<span class="diag-pill">🏁 '+fmt(cur.motN)+' motoristas</span>'+
-        '<span class="diag-pill">🛣️ '+fmt(cur.totKm)+' km</span>'+
-      '</div>'+
+
     '</div>';
 }
 var TBL={D:null,sortK:'activePerf',sortDir:-1};
