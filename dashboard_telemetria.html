@@ -1060,6 +1060,77 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
   border-color:rgba(79,246,230,.48) !important;
 }
 
+
+
+/* ===== AJUSTE V14: dropdowns Setor/Período com fundo no padrão do dashboard ===== */
+header .msel,
+.hero-top-filters .msel{
+  -webkit-appearance:none !important;
+  -moz-appearance:none !important;
+  appearance:none !important;
+  background:
+    linear-gradient(180deg, rgba(5,44,46,.96), rgba(3,28,31,.94)) !important;
+  color:#ecfffd !important;
+  border:1px solid rgba(129,245,236,.26) !important;
+  border-radius:999px !important;
+  padding:8px 38px 8px 14px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 8px 18px rgba(0,28,30,.16) !important;
+  cursor:pointer;
+}
+
+/* seta mais visível e alinhada com o tema */
+.hero-top-filters .msel{
+  background-image:
+    linear-gradient(180deg, rgba(5,44,46,.96), rgba(3,28,31,.94)),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23dffefd' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat:no-repeat,no-repeat;
+  background-position:0 0, calc(100% - 14px) 50%;
+  background-size:100% 100%, 14px 14px;
+}
+
+header .msel:hover,
+.hero-top-filters .msel:hover{
+  border-color:rgba(129,245,236,.42) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 0 0 1px rgba(129,245,236,.08),
+    0 10px 22px rgba(0,32,34,.22) !important;
+}
+
+header .msel:focus,
+.hero-top-filters .msel:focus{
+  outline:none !important;
+  border-color:rgba(79,246,230,.58) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 0 0 3px rgba(16,207,201,.14),
+    0 12px 24px rgba(0,34,34,.24) !important;
+}
+
+/* fundo da lista aberta */
+header .msel option,
+.hero-top-filters .msel option{
+  background:#0b5558 !important;
+  color:#f3fffe !important;
+}
+
+/* item selecionado na lista */
+header .msel option:checked,
+.hero-top-filters .msel option:checked{
+  background:#0ea7a2 !important;
+  color:#05292b !important;
+  font-weight:700;
+}
+
+/* fallback para alguns navegadores */
+header .msel optgroup,
+.hero-top-filters .msel optgroup{
+  background:#0b5558 !important;
+  color:#f3fffe !important;
+}
+
 </style>
 </head>
 <body>
