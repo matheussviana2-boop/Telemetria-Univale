@@ -61,7 +61,7 @@ header h1{font-size:40px;line-height:1.02;font-weight:800;color:#fff;margin-bott
 .hero-stat-label{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(138,236,228,.78)}
 .hero-stat-value{font-family:var(--mono);font-size:34px;line-height:1;font-weight:700;color:#fff}
 .hero-stat-value.small{font-size:30px}
-.hero-spark{height:16px;margin-top:4px;position:relative;overflow:hidden;border-radius:4px;width:100%}
+.hero-spark{height:52px;margin-top:6px;position:relative;overflow:hidden;border-radius:0 0 16px 16px;width:100%}
 .hero-spark canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
 #loading,#error{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;text-align:center}
 .spinner{width:40px;height:40px;border:3px solid var(--line);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite}
@@ -259,7 +259,7 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 .hero-side-stat .hero-stat-top{margin-bottom:4px;justify-content:center}
 .hero-side-stat .hero-stat-sub{font-size:11px;color:rgba(226,250,248,.82)}
 .hero-stat-delta{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;font-size:11px;font-weight:700;line-height:1.2;text-align:center}.hero-stat-delta .ico{font-size:12px;line-height:1}.hero-stat-delta.good{color:#7cf3d9}.hero-stat-delta.bad{color:#ff9bad}.hero-stat-delta.neutral{color:rgba(226,250,248,.72)}.hero-side-stat .hero-stat-sub-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}.hero-main-stat .hero-stat-delta{margin-top:2px}.hero-side-stat.worst-card .hero-stat-delta.good{color:#9cf7d3}.hero-side-stat.worst-card .hero-stat-delta.bad{color:#ffb0bf}.hero-main-stat.perf-warn .hero-stat-delta.good,.hero-main-stat.perf-warn .hero-stat-delta.neutral{color:#ffe9a8}.hero-main-stat.perf-alert .hero-stat-delta.good,.hero-main-stat.perf-alert .hero-stat-delta.neutral{color:#ffdcbc}.hero-main-stat.perf-bad .hero-stat-delta.good,.hero-main-stat.perf-bad .hero-stat-delta.neutral{color:#ffd4db}
-.hero-side-stat .hero-spark{margin-top:2px}
+.hero-side-stat .hero-spark{margin-top:4px}
 /* linha vertical animada */
 @keyframes lineFlow{0%{background-position:0 100%}100%{background-position:0 0}}
 .hero-shell::before{background:linear-gradient(180deg,rgba(18,245,231,.04),rgba(18,245,231,.9) 40%,rgba(18,245,231,.9) 60%,rgba(18,245,231,.04));background-size:100% 300%;animation:lineFlow 3s ease-in-out infinite}.hero-shell::after{content:"";position:absolute;inset:-1px;border-radius:30px;padding:1px;background:linear-gradient(135deg,rgba(61,240,221,.28),rgba(61,240,221,.04) 28%,rgba(61,240,221,.02) 72%,rgba(61,240,221,.16));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.9}
@@ -1017,84 +1017,133 @@ function bindEvents(){
   });
   setMotView(STATE.motView||'resumo');
 }
-// ── SPARK ANIMATION ──
+// ── LIQUID FUEL WAVE ANIMATION ──
 (function(){
-  var sparks=[];
-  function initSpark(canvas){
+  var waves=[];
+  function initWave(canvas){
     var w=canvas.parentElement.offsetWidth||200;
-    var h=canvas.parentElement.offsetHeight||32;
-    canvas.width=w; canvas.height=h;
-    var pts=12;
-    var ys=[];
-    for(var i=0;i<pts;i++) ys.push(h*(.35+Math.random()*.3));
-    return {canvas:canvas,ctx:canvas.getContext('2d'),pts:pts,ys:ys,vs:ys.map(function(){return(Math.random()-.5)*.22}),t:0,w:w,h:h};
+    var h=canvas.parentElement.offsetHeight||52;
+    canvas.width=w*2; canvas.height=h*2;
+    canvas.style.width=w+'px'; canvas.style.height=h+'px';
+    var ctx=canvas.getContext('2d');
+    ctx.scale(2,2);
+
+    // detect card type for color
+    var isRed=canvas.closest('.worst-card')||canvas.closest('.perf-bad');
+    var isWarn=canvas.closest('.perf-warn');
+    var isAlert=canvas.closest('.perf-alert');
+
+    var color, colorDark, colorLight;
+    if(isRed){
+      color='rgba(220,30,60,'; colorDark='rgba(140,0,20,'; colorLight='rgba(255,120,145,';
+    } else if(isWarn){
+      color='rgba(200,150,0,'; colorDark='rgba(130,90,0,'; colorLight='rgba(255,220,80,';
+    } else if(isAlert){
+      color='rgba(200,100,20,'; colorDark='rgba(140,60,0,'; colorLight='rgba(255,160,80,';
+    } else {
+      // golden fuel color like the image
+      color='rgba(180,130,0,'; colorDark='rgba(100,70,0,'; colorLight='rgba(240,200,60,';
+    }
+
+    return {
+      canvas:canvas, ctx:ctx, w:w, h:h,
+      color:color, colorDark:colorDark, colorLight:colorLight,
+      t:0,
+      wave1:{amp:5, freq:0.022, speed:0.012, phase:0},
+      wave2:{amp:3.5, freq:0.035, speed:0.019, phase:2.1},
+      wave3:{amp:2.5, freq:0.05,  speed:0.028, phase:4.3},
+      bubbles: Array.from({length:6}, function(_,i){
+        return {x:Math.random()*200, y:Math.random()*20+8, r:Math.random()*2+1, speed:Math.random()*0.15+0.05, t:Math.random()*Math.PI*2};
+      }),
+      fillLevel: 0.38 // how high the liquid sits (0=bottom, 1=top)
+    };
   }
-  function drawSpark(s){
-    var ctx=s.ctx,w=s.w,h=s.h;
+
+  function drawWave(s){
+    var ctx=s.ctx, w=s.w, h=s.h;
     ctx.clearRect(0,0,w,h);
-    // linha base sutil
-    ctx.beginPath(); ctx.strokeStyle='rgba(104,255,240,.18)'; ctx.lineWidth=1;
-    ctx.moveTo(0,h*.7); ctx.lineTo(w,h*.7); ctx.stroke();
-    s.t+=.0032;
-    for(var i=0;i<s.pts;i++){
-      s.ys[i]+=s.vs[i];
-      if(s.ys[i]<h*.1||s.ys[i]>h*.85) s.vs[i]*=-1;
-      s.vs[i]+=(Math.random()-.5)*.006;
-      s.vs[i]=Math.max(-.11,Math.min(.11,s.vs[i]));
-    }
+
+    s.t += 0.016;
+    s.wave1.phase += s.wave1.speed;
+    s.wave2.phase += s.wave2.speed;
+    s.wave3.phase += s.wave3.speed;
+
+    var baseY = h * (1 - s.fillLevel);
+
+    // Build wave path
     ctx.beginPath();
-    var worst=s.canvas.closest('.worst-card'), perfBad=s.canvas.closest('.perf-bad'), perfWarn=s.canvas.closest('.perf-warn'), perfAlert=s.canvas.closest('.perf-alert');
-    var base='104,255,240', glow='61,240,221';
-    if(worst||perfBad){base='255,122,145'; glow='234,0,41';}
-    else if(perfWarn){base='255,221,102'; glow='224,168,0';}
-    else if(perfAlert){base='255,179,102'; glow='230,126,34';}
-    var grd=ctx.createLinearGradient(0,0,w,0);
-    grd.addColorStop(0,'rgba('+base+',0)');
-    grd.addColorStop(.2,'rgba('+glow+',.92)');
-    grd.addColorStop(.5,'rgba('+base+',1)');
-    grd.addColorStop(.8,'rgba('+glow+',.92)');
-    grd.addColorStop(1,'rgba('+base+',0)');
-    ctx.strokeStyle=grd; ctx.lineWidth=1.9;
-    ctx.shadowColor='rgba('+glow+',.8)'; ctx.shadowBlur=8;
-    var pts=[];
-    for(var i=0;i<s.pts;i++){pts.push({x:i/(s.pts-1)*w,y:s.ys[i]});}
-    ctx.moveTo(pts[0].x,pts[0].y);
-    for(var i=0;i<pts.length-1;i++){
-      var xc=(pts[i].x+pts[i+1].x)/2;
-      var yc=(pts[i].y+pts[i+1].y)/2;
-      ctx.quadraticCurveTo(pts[i].x,pts[i].y,xc,yc);
+    ctx.moveTo(0, h);
+    for(var x=0; x<=w; x++){
+      var y = baseY
+        + Math.sin(x * s.wave1.freq + s.wave1.phase) * s.wave1.amp
+        + Math.sin(x * s.wave2.freq + s.wave2.phase) * s.wave2.amp
+        + Math.sin(x * s.wave3.freq + s.wave3.phase) * s.wave3.amp;
+      if(x===0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     }
-    var lp=pts[pts.length-1];
-    ctx.quadraticCurveTo(lp.x,lp.y,lp.x,lp.y);
-    ctx.stroke(); ctx.shadowBlur=0;
-    var numDots=3;
-    for(var d=0;d<numDots;d++){
-      var prog=(s.t*.075+d/numDots)%1;
-      var xi=prog*(s.pts-1);
-      var i0=Math.floor(xi),i1=Math.min(i0+1,s.pts-1);
-      var frac=xi-i0;
-      var px=prog*w;
-      var py=s.ys[i0]*(1-frac)+s.ys[i1]*frac;
-      var alpha=Math.sin(prog*Math.PI)*(.7+.3*Math.sin(s.t*3+d));
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+
+    // liquid gradient fill
+    var grd = ctx.createLinearGradient(0, baseY-10, 0, h);
+    grd.addColorStop(0,   s.colorLight+'0.85)');
+    grd.addColorStop(0.2, s.color+'0.82)');
+    grd.addColorStop(0.55, s.colorDark+'0.88)');
+    grd.addColorStop(1,   s.colorDark+'0.95)');
+    ctx.fillStyle = grd;
+    ctx.fill();
+
+    // shimmer highlight on top of wave
+    ctx.beginPath();
+    for(var x=0; x<=w; x++){
+      var y = baseY
+        + Math.sin(x * s.wave1.freq + s.wave1.phase) * s.wave1.amp
+        + Math.sin(x * s.wave2.freq + s.wave2.phase) * s.wave2.amp
+        + Math.sin(x * s.wave3.freq + s.wave3.phase) * s.wave3.amp;
+      if(x===0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = s.colorLight+'0.7)';
+    ctx.lineWidth = 1.8;
+    ctx.shadowColor = s.colorLight+'0.9)';
+    ctx.shadowBlur = 6;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // bubbles
+    s.bubbles.forEach(function(b){
+      b.t += 0.03;
+      b.y -= b.speed;
+      b.x += Math.sin(b.t) * 0.3;
+      var surfY = baseY
+        + Math.sin(b.x * s.wave1.freq + s.wave1.phase) * s.wave1.amp
+        + Math.sin(b.x * s.wave2.freq + s.wave2.phase) * s.wave2.amp;
+      if(b.y < surfY - 2){
+        b.y = h - 2;
+        b.x = Math.random() * w;
+      }
+      var alpha = Math.max(0, Math.min(0.6, (b.y - surfY + 12) / 12));
       ctx.beginPath();
-      ctx.arc(px,py,2.5,0,Math.PI*2);
-      var dotRGB=(worst||perfBad)?'255,122,145':(perfWarn?'255,221,102':(perfAlert?'255,179,102':'104,255,240'));
-      var glowRGB=(worst||perfBad)?'234,0,41':(perfWarn?'224,168,0':(perfAlert?'230,126,34':'61,240,221'));
-      ctx.fillStyle='rgba('+dotRGB+','+alpha+')';
-      ctx.shadowColor='rgba('+glowRGB+',.9)'; ctx.shadowBlur=10;
-      ctx.fill(); ctx.shadowBlur=0;
-    }
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+      ctx.fillStyle = s.colorLight + alpha + ')';
+      ctx.shadowColor = s.colorLight+'0.8)';
+      ctx.shadowBlur = 4;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
   }
+
   function loop(){
-    sparks.forEach(drawSpark);
+    waves.forEach(drawWave);
     requestAnimationFrame(loop);
   }
   document.addEventListener('DOMContentLoaded',function(){
     setTimeout(function(){
       document.querySelectorAll('.spark-canvas').forEach(function(c){
-        sparks.push(initSpark(c));
+        waves.push(initWave(c));
       });
-      if(sparks.length) loop();
+      if(waves.length) loop();
     },600);
   });
 })();
