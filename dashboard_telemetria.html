@@ -1131,6 +1131,111 @@ header .msel optgroup,
   color:#f3fffe !important;
 }
 
+
+
+/* ===== AJUSTE RESUMO OPERACIONAL: visual mais objetivo ===== */
+.diag-summary-card .csub{
+  margin-bottom:14px;
+}
+.summary-sections{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:14px;
+}
+.summary-block{
+  border:1px solid var(--line);
+  background:#f8fcfc;
+  border-radius:12px;
+  padding:12px 13px;
+}
+.summary-block.full{
+  grid-column:1/-1;
+}
+.summary-block.good{
+  border-left:4px solid var(--teal);
+}
+.summary-block.bad{
+  border-left:4px solid var(--red);
+}
+.summary-block.neutral{
+  border-left:4px solid #9fd9d6;
+}
+.summary-title{
+  font-size:10.5px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+.summary-list{
+  display:grid;
+  gap:7px;
+}
+.summary-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  font-size:12.5px;
+  line-height:1.35;
+  color:var(--ink);
+}
+.summary-row span{
+  font-weight:700;
+}
+.summary-row small{
+  color:var(--muted);
+  font-weight:700;
+  white-space:nowrap;
+}
+.summary-row.good small{
+  color:var(--teal-d);
+}
+.summary-row.bad small{
+  color:var(--red);
+}
+.summary-row strong{
+  color:var(--teal-d);
+}
+.summary-row.bad strong{
+  color:var(--red);
+}
+.summary-change-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin:14px 0;
+}
+.summary-change{
+  background:#f7fbfb;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px;
+}
+.summary-change .label{
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--muted);
+}
+.summary-change .val{
+  font-family:var(--mono);
+  font-size:18px;
+  font-weight:800;
+  margin-top:4px;
+}
+.summary-change.good .val{color:var(--teal-d)}
+.summary-change.bad .val{color:var(--red)}
+.summary-change.neutral .val{color:var(--ink)}
+@media(max-width:900px){
+  .summary-sections,.summary-change-grid{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1193,7 +1298,7 @@ header .msel optgroup,
         <div class="hero-tabs">
           <button class="tab active" data-t="visao">Visão Geral</button>
           <button class="tab" data-t="mot">Motoristas</button>
-          <button class="tab" data-t="diag">Diagnóstico</button>
+          <button class="tab" data-t="diag">Resumo Operacional</button>
         </div>
       </div>
     </div>
@@ -1283,7 +1388,6 @@ header .msel optgroup,
 
       <!-- DETALHADO -->
       <div id="motDetalhado" style="display:none">
-        <div class="perf-note" id="perfHint">Performance padrão: calcula a relação entre eventos e quilometragem rodada no período selecionado.</div>
         <div class="controls mot-controls" style="margin-top:8px">
           <input type="search" id="q" placeholder="Buscar motorista...">
         </div>
@@ -1292,9 +1396,9 @@ header .msel optgroup,
       </div>
     </section>
 
-    <!-- DIAGNÓSTICO -->
+    <!-- RESUMO OPERACIONAL -->
     <section class="panel" id="diag">
-      <div class="stitle">Resumo consolidado</div>
+      <div class="stitle">Resumo operacional</div>
       <div class="diag-summary-grid" id="diagGrid"></div>
     </section>
 
@@ -1471,6 +1575,7 @@ function setHeroForTab(D,pa){
   }
   var prevM=prevMonthKey(), prevLabel=monthNameFromKey(prevM), prevCtx=prevModelForCurrentContext();
   setDelta('heroMainDelta',null,'',false); setDelta('heroSide1Delta',null,'',false); setDelta('heroSide2Delta',null,'',false);
+
   if(tab==='mot'){
     tset.textContent='MOTORISTAS';
     ttl.innerHTML='Desempenho dos Motoristas';
@@ -1494,17 +1599,34 @@ function setHeroForTab(D,pa){
       setDelta('heroSide2Delta',pctVar(worstEvt?worstEvt[1]:null,prevWorstQtd),prevLabel,true);
     }
   }else if(tab==='diag'){
-    tset.textContent='DIAGNÓSTICO';
-    ttl.innerHTML='Leitura Diagnóstica';
-    sub.textContent='Tendências consolidadas e pontos de atenção do período';
-    document.getElementById('heroSide1Label').textContent='Ponto de Atenção';
-    document.getElementById('heroSide1Value').textContent=worstEvt?worstEvt[0]:'Sem eventos';
+    tset.textContent='RESUMO';
+    ttl.innerHTML='Resumo Operacional';
+    sub.textContent='Destaques positivos, pontos de atenção e comparação do período';
+
+    var positiveEvt=null, negativeEvt=null;
+    if(prevCtx){
+      var changes=EV_COLS.map(function(e){
+        return {nome:e,cur:D.evTot[e]||0,prev:prevCtx.evTot[e]||0,delta:(D.evTot[e]||0)-(prevCtx.evTot[e]||0)};
+      }).filter(function(x){return x.cur>0||x.prev>0});
+      positiveEvt=changes.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta})[0]||null;
+      negativeEvt=changes.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta})[0]||null;
+    }
+
+    document.getElementById('heroSide1Label').textContent='Destaque Positivo';
+    document.getElementById('heroSide1Value').textContent=positiveEvt?positiveEvt.nome:(bestEvt?bestEvt[0]:'Sem eventos');
     document.getElementById('heroSide1Value').className='hero-stat-value text';
-    document.getElementById('heroSide1Sub').textContent=worstEvt?fmt(worstEvt[1])+' ocorrências':'';
-    document.getElementById('heroSide2Label').textContent='Setores';
-    document.getElementById('heroSide2Value').textContent=fmt(activeSectorCount());
-    document.getElementById('heroSide2Value').className='hero-stat-value';
-    document.getElementById('heroSide2Sub').textContent='setores visíveis';
+    document.getElementById('heroSide1Sub').textContent=positiveEvt?('queda de '+fmt(Math.abs(positiveEvt.delta))+' ocorrências'):(bestEvt?fmt(bestEvt[1])+' ocorrências':'');
+
+    document.getElementById('heroSide2Label').textContent='Ponto de Atenção';
+    document.getElementById('heroSide2Value').textContent=negativeEvt?negativeEvt.nome:(worstEvt?worstEvt[0]:'Sem eventos');
+    document.getElementById('heroSide2Value').className='hero-stat-value text';
+    document.getElementById('heroSide2Sub').textContent=negativeEvt?('alta de '+fmt(negativeEvt.delta)+' ocorrências'):(worstEvt?fmt(worstEvt[1])+' ocorrências':'');
+    if(side2Card)side2Card.classList.add('worst-card');
+
+    if(prevCtx){
+      var prevPerfDiag=calcPerf(prevCtx.totKm,prevCtx.totEv)||0;
+      setDelta('heroMainDelta',pctVar(pa,prevPerfDiag),prevLabel,false);
+    }
   }else{
     tset.textContent=STATE.setor==='ALL'?'TODOS OS SETORES':STATE.setor;
     ttl.innerHTML=STATE.setor==='ALL'?'Performance<br>Todos os Setores':'Performance<br>'+lbl;
@@ -1788,8 +1910,15 @@ function renderDiag(){
     arr.sort(function(a,b){return asc?(a.val-b.val):(b.val-a.val)});
     return arr.slice(0,limit||3);
   }
-  function formatEventVolumeList(arr){
-    return arr.length?arr.map(function(x){return '<strong>'+esc(x.nome)+'</strong> ('+fmt(x.val)+' ocorr.)'}).join(' · '):'Sem dados';
+  function eventRows(arr,kind){
+    return arr.length?arr.map(function(x){
+      return '<div class="summary-row '+(kind||'')+'"><span>'+esc(x.nome)+'</span><small>'+fmt(x.val)+' ocorr.</small></div>';
+    }).join(''):'<div class="summary-row"><span>Sem dados</span><small>—</small></div>';
+  }
+  function driverRows(arr,kind){
+    return arr.length?arr.map(function(d){
+      return '<div class="summary-row '+(kind||'')+'"><span>'+esc(d.nome)+'</span><small>'+fmtDec(drvPerf(d),2)+'%</small></div>';
+    }).join(''):'<div class="summary-row"><span>Sem dados</span><small>—</small></div>';
   }
   function compareEvents(curModel,prevModel){
     if(!curModel||!prevModel)return {better:[],worse:[]};
@@ -1802,8 +1931,10 @@ function renderDiag(){
       worse:arr.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,3)
     };
   }
-  function formatEventDeltaList(arr){
-    return arr.length?arr.map(function(x){return '<strong>'+esc(x.nome)+'</strong> ('+fmtSignedInt(x.delta)+' ocorr.)'}).join(' · '):'Sem variação relevante';
+  function eventDeltaRows(arr,kind){
+    return arr.length?arr.map(function(x){
+      return '<div class="summary-row '+(kind||'')+'"><span>'+esc(x.nome)+'</span><small>'+fmtSignedInt(x.delta)+' ocorr.</small></div>';
+    }).join(''):'<div class="summary-row"><span>Sem variação relevante</span><small>—</small></div>';
   }
   function compareDrivers(curModel,prevModel){
     if(!curModel||!prevModel)return {up:[],down:[]};
@@ -1823,8 +1954,16 @@ function renderDiag(){
       down:changes.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,3)
     };
   }
-  function formatDriverDeltaList(arr){
-    return arr.length?arr.map(function(x){return '<strong>'+esc(x.nome)+'</strong> ('+fmtSignedDec(x.delta,2)+' p.p.)'}).join(' · '):'Sem variação comparável';
+  function driverDeltaRows(arr,kind){
+    return arr.length?arr.map(function(x){
+      return '<div class="summary-row '+(kind||'')+'"><span>'+esc(x.nome)+'</span><small>'+fmtSignedDec(x.delta,2)+' p.p.</small></div>';
+    }).join(''):'<div class="summary-row"><span>Sem variação comparável</span><small>—</small></div>';
+  }
+  function changeClass(v,invert){
+    if(v==null)return 'neutral';
+    var good=invert? v<0 : v>0;
+    var bad=invert? v>0 : v<0;
+    return good?'good':bad?'bad':'neutral';
   }
 
   var fullPerf=calcPerf(full.totKm,full.totEv)||0;
@@ -1845,58 +1984,55 @@ function renderDiag(){
   var prevMonthModel=modelForMonth(prevMonthKey);
   var curPerf=calcPerf(curMonthModel.totKm,curMonthModel.totEv)||0;
   var curKme=kmPorEvento(curMonthModel.totKm,curMonthModel.totEv);
-  var perfDelta=prevMonthModel?curPerf-(calcPerf(prevMonthModel.totKm,prevMonthModel.totEv)||0):null;
+  var prevPerf=prevMonthModel?(calcPerf(prevMonthModel.totKm,prevMonthModel.totEv)||0):null;
+  var prevKme=prevMonthModel?kmPorEvento(prevMonthModel.totKm,prevMonthModel.totEv):null;
+  var perfDelta=prevMonthModel?curPerf-prevPerf:null;
   var evDelta=prevMonthModel?(curMonthModel.totEv-prevMonthModel.totEv):null;
-  var kmeDelta=prevMonthModel?(curKme-kmPorEvento(prevMonthModel.totKm,prevMonthModel.totEv)):null;
+  var kmeDelta=prevMonthModel?(curKme-prevKme):null;
   var eventCmp=compareEvents(curMonthModel,prevMonthModel);
   var driverCmp=compareDrivers(curMonthModel,prevMonthModel);
   var curLabel=curMonthKey?monthFull(curMonthKey):periodLabelCompact();
   var prevLabel=prevMonthKey?monthFull(prevMonthKey):'mês anterior';
 
-  var compareLine=prevMonthModel
-    ? '<div class="diag-line"><strong>Comparação com '+esc(prevLabel)+':</strong> performance '+fmtSignedDec(perfDelta,2)+' p.p. · eventos '+fmtSignedInt(evDelta)+' · km/evento '+fmtSignedDec(kmeDelta,1)+'.</div>'
-    : '<div class="diag-line"><strong>Comparação:</strong> não há mês anterior disponível para o filtro atual.</div>';
-
   document.getElementById('diagGrid').innerHTML=
     '<div class="diag-summary-card accent">'+
       '<div class="ctitle">Resumo geral</div>'+
-      '<div class="csub">Leitura agregada de todo o período disponível para o filtro atual.</div>'+
+      '<div class="csub">Agregado do período completo no filtro atual.</div>'+
       '<div class="diag-kpis">'+
         '<div class="diag-kpi"><div class="diag-kpi-label">Performance</div><div class="diag-kpi-val">'+fmtDec(fullPerf,2)+'%</div></div>'+
         '<div class="diag-kpi"><div class="diag-kpi-label">Eventos</div><div class="diag-kpi-val">'+fmt(full.totEv)+'</div></div>'+
         '<div class="diag-kpi"><div class="diag-kpi-label">KM/evento</div><div class="diag-kpi-val">'+fmtDec(fullKme,1)+'</div></div>'+
       '</div>'+
-      '<div class="diag-list">'+
-        '<div class="diag-line"><strong>Piores eventos no período:</strong> '+formatEventVolumeList(worstEvents)+'.</div>'+
-        '<div class="diag-line"><strong>Eventos com menor volume no período:</strong> '+formatEventVolumeList(bestEvents)+'.</div>'+
-        '<div class="diag-line"><strong>Melhores motoristas no período:</strong> '+driverNames(fullBW.best)+'.</div>'+
-        '<div class="diag-line"><strong>Piores motoristas no período:</strong> '+driverNames(fullBW.worst)+'.</div>'+
+      '<div class="summary-sections">'+
+        '<div class="summary-block bad"><div class="summary-title">Piores eventos</div><div class="summary-list">'+eventRows(worstEvents,'bad')+'</div></div>'+
+        '<div class="summary-block good"><div class="summary-title">Melhores eventos</div><div class="summary-list">'+eventRows(bestEvents,'good')+'</div></div>'+
+        '<div class="summary-block good"><div class="summary-title">Melhores motoristas</div><div class="summary-list">'+driverRows(fullBW.best,'good')+'</div></div>'+
+        '<div class="summary-block bad"><div class="summary-title">Piores motoristas</div><div class="summary-list">'+driverRows(fullBW.worst,'bad')+'</div></div>'+
       '</div>'+
       '<div class="diag-pill-row">'+
         '<span class="diag-pill">📅 '+periodRangeLabel()+'</span>'+
-        '<span class="diag-pill">🏁 '+fmt(full.motN)+' motoristas avaliados</span>'+
+        '<span class="diag-pill">🏁 '+fmt(full.motN)+' motoristas</span>'+
         '<span class="diag-pill">🛣️ '+fmt(full.totKm)+' km</span>'+
       '</div>'+
     '</div>'+
     '<div class="diag-summary-card warn">'+
       '<div class="ctitle">Resumo específico de '+esc(curLabel)+'</div>'+
-      '<div class="csub">Comparativo direto com '+esc(prevLabel)+'.</div>'+
-      '<div class="diag-kpis">'+
-        '<div class="diag-kpi"><div class="diag-kpi-label">Performance</div><div class="diag-kpi-val">'+fmtDec(curPerf,2)+'%</div></div>'+
-        '<div class="diag-kpi"><div class="diag-kpi-label">Eventos</div><div class="diag-kpi-val">'+fmt(curMonthModel.totEv)+'</div></div>'+
-        '<div class="diag-kpi"><div class="diag-kpi-label">KM/evento</div><div class="diag-kpi-val">'+fmtDec(curKme,1)+'</div></div>'+
+      '<div class="csub">Comparativo com '+esc(prevLabel)+'.</div>'+
+      '<div class="summary-change-grid">'+
+        '<div class="summary-change '+changeClass(perfDelta,false)+'"><div class="label">Performance</div><div class="val">'+(perfDelta==null?'—':fmtSignedDec(perfDelta,2)+' p.p.')+'</div></div>'+
+        '<div class="summary-change '+changeClass(evDelta,true)+'"><div class="label">Eventos</div><div class="val">'+(evDelta==null?'—':fmtSignedInt(evDelta))+'</div></div>'+
+        '<div class="summary-change '+changeClass(kmeDelta,false)+'"><div class="label">KM/evento</div><div class="val">'+(kmeDelta==null?'—':fmtSignedDec(kmeDelta,1))+'</div></div>'+
       '</div>'+
-      '<div class="diag-list">'+
-        compareLine+
-        '<div class="diag-line"><strong>Eventos que melhoraram:</strong> '+formatEventDeltaList(eventCmp.better)+'.</div>'+
-        '<div class="diag-line"><strong>Eventos que pioraram:</strong> '+formatEventDeltaList(eventCmp.worse)+'.</div>'+
-        '<div class="diag-line"><strong>Maiores altas de performance:</strong> '+formatDriverDeltaList(driverCmp.up)+'.</div>'+
-        '<div class="diag-line"><strong>Maiores quedas de performance:</strong> '+formatDriverDeltaList(driverCmp.down)+'.</div>'+
+      '<div class="summary-sections">'+
+        '<div class="summary-block good"><div class="summary-title">Eventos que melhoraram</div><div class="summary-list">'+eventDeltaRows(eventCmp.better,'good')+'</div></div>'+
+        '<div class="summary-block bad"><div class="summary-title">Eventos que pioraram</div><div class="summary-list">'+eventDeltaRows(eventCmp.worse,'bad')+'</div></div>'+
+        '<div class="summary-block good"><div class="summary-title">Maiores altas de performance</div><div class="summary-list">'+driverDeltaRows(driverCmp.up,'good')+'</div></div>'+
+        '<div class="summary-block bad"><div class="summary-title">Maiores quedas de performance</div><div class="summary-list">'+driverDeltaRows(driverCmp.down,'bad')+'</div></div>'+
       '</div>'+
       '<div class="diag-pill-row">'+
         '<span class="diag-pill">📅 '+esc(curLabel)+(prevMonthKey?' vs '+esc(prevLabel):'')+'</span>'+
         '<span class="diag-pill">🚨 Pior evento: '+(curMonthModel.evRank[0]?esc(curMonthModel.evRank[0][0]):'—')+'</span>'+
-        '<span class="diag-pill">🏁 '+fmt(curMonthModel.motN)+' motoristas avaliados</span>'+
+        '<span class="diag-pill">🏁 '+fmt(curMonthModel.motN)+' motoristas</span>'+
       '</div>'+
     '</div>';
 }
@@ -1905,9 +2041,7 @@ function renderMotEventCards(D){
   var ep=EV_COLS;
   document.getElementById('motEventCards').innerHTML=ep.map(function(e){return '<div class="mini-ev"><div class="mini-ev-name">'+evLabel(e).replace(/<br>/g,' ')+'</div><div class="mini-ev-val">'+fmt(D.evTot[e]||0)+'</div><div class="mini-ev-sub">eventos no período</div></div>'}).join('');
 }
-function updatePerfHint(){
-  document.getElementById('perfHint').textContent='Performance padrão: calcula a relação entre eventos e quilometragem rodada no período selecionado.';
-}
+function updatePerfHint(){var el=document.getElementById('perfHint'); if(el)el.textContent='';}
 function updatePerfButtons(){}
 function setupTable(D){
   TBL.D=D;TBL.sortK='activePerf';TBL.sortDir=-1;
