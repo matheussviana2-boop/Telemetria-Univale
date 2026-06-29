@@ -801,6 +801,19 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
   .hero-main-stat .hero-spark{flex-basis:72px !important;height:72px !important;}
 }
 
+
+
+/* ===== AJUSTE V7: correção definitiva do movimento ===== */
+/* Fallback: mostra a crista da onda imediatamente; o JS depois anima por cima com !important */
+.fuel-img,
+.fuel-img-back{
+  transform:translate3d(-18px,-40px,0) scaleY(1.01) !important;
+}
+.hero-main-stat .fuel-img,
+.hero-main-stat .fuel-img-back{
+  transform:translate3d(-24px,-48px,0) scaleY(1.01) !important;
+}
+
 </style>
 </head>
 <body>
@@ -1588,7 +1601,7 @@ document.addEventListener('DOMContentLoaded',loadSheet);
 
       img.style.width = renderedW + 'px';
       img.style.height = 'auto';
-      img.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + (baseY + wobbleY).toFixed(2) + 'px,0) scaleY(' + scaleY.toFixed(4) + ')';
+      img.style.setProperty('transform', 'translate3d(' + x.toFixed(2) + 'px,' + (baseY + wobbleY).toFixed(2) + 'px,0) scaleY(' + scaleY.toFixed(4) + ')', 'important');
     }
 
     function tick(ms){
