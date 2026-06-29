@@ -1480,6 +1480,67 @@ header .msel optgroup,
   height:112% !important;
 }
 
+
+
+/* ===== AJUSTE V3: Resumo Operacional mais horizontal ===== */
+#diag .diag-summary-card.month-only{
+  width:100% !important;
+  max-width:none !important;
+}
+#diag .diag-summary-grid{
+  width:100% !important;
+}
+.month-summary-head{
+  margin-bottom:12px !important;
+}
+.month-kpis{
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+}
+.month-insight-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  align-items:stretch !important;
+}
+.month-card{
+  min-height:230px;
+}
+.month-row{
+  grid-template-columns:1fr auto !important;
+  gap:10px !important;
+}
+.month-row .name{
+  font-size:12.4px;
+}
+.month-row .meta{
+  font-size:11.7px;
+}
+.month-row .submeta{
+  font-size:11px;
+}
+@media(max-width:1280px){
+  .month-insight-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+@media(max-width:900px){
+  .month-insight-grid,
+  .month-kpis{
+    grid-template-columns:1fr !important;
+  }
+}
+
+/* Sobe um pouco mais o combustível dentro dos cards do topo */
+.hero-stat .hero-spark{
+  flex-basis:72px !important;
+  height:72px !important;
+}
+.hero-main-stat .hero-spark{
+  flex-basis:78px !important;
+  height:78px !important;
+}
+.fuel-wave{
+  height:122% !important;
+}
+
 </style>
 </head>
 <body>
@@ -1700,12 +1761,12 @@ function evVal(r,e){
   return 0
 }
 function setorLabel(s){return s==='ALL'||!s?'Todos os Setores':(SLABELS[s]||s)}
-function currentSetorRows(){return STATE.setor&&STATE.setor!=='ALL'?STATE.raw.filter(function(r){return String(r.SETOR||'').toUpperCase()===STATE.setor}):STATE.raw.slice()}
+function currentSetorRows(){var excl=['GARAG_BAHIA','GARAG_MG'];return STATE.setor&&STATE.setor!=='ALL'?STATE.raw.filter(function(r){return String(r.SETOR||'').toUpperCase()===STATE.setor}):STATE.raw.filter(function(r){return excl.indexOf(String(r.SETOR||'').toUpperCase())<0})}
 function monthFull(m){return MESES_FULL[m]||m||''}
 function periodRangeLabel(){if(STATE.scope!=='ALL')return monthFull(STATE.scope); if(!STATE.months.length)return 'Sem período'; return STATE.months.length===1?monthFull(STATE.months[0]):monthFull(STATE.months[0])+' a '+monthFull(STATE.months[STATE.months.length-1])}
 function periodLabelShort(){return STATE.scope!=='ALL'?monthFull(STATE.scope):(STATE.months.length?STATE.months.map(monthFull).join(' · '):'Todos os meses')}
 function periodLabelCompact(){return STATE.scope!=='ALL'?monthFull(STATE.scope):'Todos os meses'}
-function activeSectorCount(){if(STATE.setor&&STATE.setor!=='ALL')return 1; var ss={}; STATE.raw.forEach(function(r){var s=String(r.SETOR||'').toUpperCase(); if(s)ss[s]=1}); return Object.keys(ss).length}
+function activeSectorCount(){if(STATE.setor&&STATE.setor!=='ALL')return 1; var excl=['GARAG_BAHIA','GARAG_MG']; var ss={}; STATE.raw.forEach(function(r){var s=String(r.SETOR||'').toUpperCase(); if(s&&excl.indexOf(s)<0)ss[s]=1}); return Object.keys(ss).length}
 function refreshHeader(){
   var lbl=setorLabel(STATE.setor);
   document.getElementById('hSetor').textContent=STATE.setor==='ALL'?'TODOS OS SETORES':STATE.setor;
@@ -1716,7 +1777,8 @@ function refreshHeader(){
 }
 function refreshMonths(){
   var ms={};STATE.months=[];
-  STATE.raw.forEach(function(r){var m=String(r.MES||'').toUpperCase();if(m&&!ms[m]){ms[m]=1;STATE.months.push(m)}});
+  var rows=(STATE.all&&STATE.all.length)?STATE.all:currentSetorRows();
+  rows.forEach(function(r){var m=String(r.MES||'').toUpperCase();if(m&&!ms[m]){ms[m]=1;STATE.months.push(m)}});
   STATE.months.sort(function(a,b){return MESES.indexOf(a)-MESES.indexOf(b)});
   if(STATE.scope!=='ALL'&&STATE.months.indexOf(STATE.scope)<0)STATE.scope='ALL';
 }
@@ -1848,9 +1910,15 @@ function setHeroForTab(D,pa){
     sub.textContent='Destaques positivos, pontos de atenção e comparação do período';
 
     var positiveEvt=null, negativeEvt=null;
+    function resumoEvtPctText(evt,tipo){
+      if(!evt||evt.pct==null||!isFinite(evt.pct))return 'sem base anterior';
+      var v=Math.abs(evt.pct);
+      return (tipo==='good'?'▼ ':'▲ ')+fmtDec(v,1)+'% vs '+prevLabel;
+    }
     if(prevCtx){
       var changes=EV_COLS.map(function(e){
-        return {nome:e,cur:D.evTot[e]||0,prev:prevCtx.evTot[e]||0,delta:(D.evTot[e]||0)-(prevCtx.evTot[e]||0)};
+        var cur=D.evTot[e]||0, prev=prevCtx.evTot[e]||0;
+        return {nome:e,cur:cur,prev:prev,delta:cur-prev,pct:pctVar(cur,prev)};
       }).filter(function(x){return x.cur>0||x.prev>0});
       positiveEvt=changes.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta})[0]||null;
       negativeEvt=changes.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta})[0]||null;
@@ -1859,12 +1927,12 @@ function setHeroForTab(D,pa){
     document.getElementById('heroSide1Label').textContent='Destaque Positivo';
     document.getElementById('heroSide1Value').textContent=positiveEvt?positiveEvt.nome:(bestEvt?bestEvt[0]:'Sem eventos');
     document.getElementById('heroSide1Value').className='hero-stat-value text';
-    document.getElementById('heroSide1Sub').textContent=positiveEvt?('queda de '+fmt(Math.abs(positiveEvt.delta))+' ocorrências'):(bestEvt?fmt(bestEvt[1])+' ocorrências':'');
+    document.getElementById('heroSide1Sub').textContent=positiveEvt?resumoEvtPctText(positiveEvt,'good'):(prevCtx?'sem variação positiva':'sem mês anterior');
 
     document.getElementById('heroSide2Label').textContent='Ponto de Atenção';
     document.getElementById('heroSide2Value').textContent=negativeEvt?negativeEvt.nome:(worstEvt?worstEvt[0]:'Sem eventos');
     document.getElementById('heroSide2Value').className='hero-stat-value text';
-    document.getElementById('heroSide2Sub').textContent=negativeEvt?('alta de '+fmt(negativeEvt.delta)+' ocorrências'):(worstEvt?fmt(worstEvt[1])+' ocorrências':'');
+    document.getElementById('heroSide2Sub').textContent=negativeEvt?resumoEvtPctText(negativeEvt,'bad'):(prevCtx?'sem piora no mês':'sem mês anterior');
     if(side2Card)side2Card.classList.add('worst-card');
 
     if(prevCtx){
@@ -2161,6 +2229,12 @@ function renderDiag(){
   function pctText(p){
     return p==null?'—':(p>0?'+':'')+fmtDec(p,1)+'%';
   }
+  function pctArrow(p){
+    if(p==null)return '—';
+    if(p>0)return '↑ +'+fmtDec(p,1)+'%';
+    if(p<0)return '↓ -'+fmtDec(Math.abs(p),1)+'%';
+    return '→ 0,0%';
+  }
   function trendClass(v,invert){
     if(v==null)return 'neutral';
     var good=invert ? v<0 : v>0;
@@ -2230,7 +2304,7 @@ function renderDiag(){
     return arr.map(function(x){
       return '<div class="month-row '+kind+'">'+
         '<div class="name">'+esc(x.nome)+'</div>'+
-        '<div class="meta">'+pctText(x.pct)+'</div>'+
+        '<div class="meta">'+pctArrow(x.pct)+'</div>'+
         '<div class="submeta">'+signedAbs(x.delta)+' ocorrências · atual: '+fmt(x.cur)+' · anterior: '+fmt(x.prev)+'</div>'+
       '</div>';
     }).join('');
@@ -2241,7 +2315,7 @@ function renderDiag(){
     return arr.map(function(x){
       return '<div class="month-row '+kind+'">'+
         '<div class="name">'+esc(x.nome)+'</div>'+
-        '<div class="meta">'+pctText(x.pct)+'</div>'+
+        '<div class="meta">'+pctArrow(x.pct)+'</div>'+
         '<div class="submeta">'+signedDec(x.delta,2)+' p.p. · atual: '+fmtDec(x.cur,2)+'% · anterior: '+fmtDec(x.prev,2)+'%</div>'+
       '</div>';
     }).join('');
@@ -2264,17 +2338,17 @@ function renderDiag(){
         '<div class="month-kpi">'+
           '<div class="month-kpi-label">Performance</div>'+
           '<div class="month-kpi-value">'+fmtDec(curPerf,2)+'%</div>'+
-          '<div class="month-kpi-delta '+trendClass(perfPct,false)+'">'+trendIcon(perfPct,false)+' '+pctText(perfPct)+' vs '+esc(prevLabel)+'</div>'+
+          '<div class="month-kpi-delta '+trendClass(perfPct,false)+'">'+pctArrow(perfPct)+' vs '+esc(prevLabel)+'</div>'+
         '</div>'+
         '<div class="month-kpi">'+
           '<div class="month-kpi-label">Eventos</div>'+
           '<div class="month-kpi-value">'+fmt(cur.totEv)+'</div>'+
-          '<div class="month-kpi-delta '+trendClass(evPct,true)+'">'+trendIcon(evPct,true)+' '+pctText(evPct)+' vs '+esc(prevLabel)+'</div>'+
+          '<div class="month-kpi-delta '+trendClass(evPct,true)+'">'+pctArrow(evPct)+' vs '+esc(prevLabel)+'</div>'+
         '</div>'+
         '<div class="month-kpi">'+
           '<div class="month-kpi-label">KM/evento</div>'+
           '<div class="month-kpi-value">'+fmtDec(curKme,1)+'</div>'+
-          '<div class="month-kpi-delta '+trendClass(kmePct,false)+'">'+trendIcon(kmePct,false)+' '+pctText(kmePct)+' vs '+esc(prevLabel)+'</div>'+
+          '<div class="month-kpi-delta '+trendClass(kmePct,false)+'">'+pctArrow(kmePct)+' vs '+esc(prevLabel)+'</div>'+
         '</div>'+
       '</div>'+
 
