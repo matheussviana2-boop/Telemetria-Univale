@@ -672,6 +672,61 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
   }
 }
 
+
+
+/* ===== AJUSTE V4: movimento visível + formato de ondas ===== */
+.hero-stat .hero-spark{
+  flex:0 0 64px !important;
+  height:64px !important;
+}
+.hero-main-stat .hero-spark{
+  flex-basis:72px !important;
+  height:72px !important;
+}
+.fuel-wave{
+  inset:8px 0 -6px 0 !important;
+  overflow:hidden !important;
+}
+.fuel-img,
+.fuel-img-back{
+  width:220% !important;
+  height:auto !important;
+  min-height:112% !important;
+  object-fit:contain !important;
+  object-position:left bottom !important;
+  will-change:transform !important;
+}
+.fuel-img{
+  opacity:1 !important;
+  z-index:2 !important;
+  animation:fuelWaveFront 18s ease-in-out infinite !important;
+}
+.fuel-img-back{
+  opacity:.30 !important;
+  z-index:1 !important;
+  animation:fuelWaveBack 28s ease-in-out infinite !important;
+}
+@keyframes fuelWaveFront{
+  0%   {transform:translateX(0%) translateY(5px) scaleY(1);} 
+  20%  {transform:translateX(-7%) translateY(1px) scaleY(1.02);} 
+  40%  {transform:translateX(-14%) translateY(6px) scaleY(.99);} 
+  60%  {transform:translateX(-21%) translateY(2px) scaleY(1.02);} 
+  80%  {transform:translateX(-28%) translateY(5px) scaleY(1);} 
+  100% {transform:translateX(-35%) translateY(3px) scaleY(1.01);} 
+}
+@keyframes fuelWaveBack{
+  0%   {transform:translateX(-4%) translateY(7px) scaleY(1.01);} 
+  25%  {transform:translateX(-11%) translateY(3px) scaleY(.99);} 
+  50%  {transform:translateX(-18%) translateY(8px) scaleY(1.02);} 
+  75%  {transform:translateX(-25%) translateY(4px) scaleY(1);} 
+  100% {transform:translateX(-32%) translateY(7px) scaleY(1.01);} 
+}
+@media(max-width:900px){
+  .hero-stat .hero-spark{flex-basis:60px !important;height:60px !important;}
+  .hero-main-stat .hero-spark{flex-basis:66px !important;height:66px !important;}
+  .fuel-wave{inset:8px 0 -6px 0 !important;}
+}
+
 </style>
 </head>
 <body>
