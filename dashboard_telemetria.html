@@ -1314,6 +1314,172 @@ header .msel optgroup,
   border-color:transparent !important;
 }
 
+
+
+/* ===== AJUSTE: Resumo Operacional somente do mês atual ===== */
+#diag .diag-summary-grid{
+  grid-template-columns:1fr !important;
+}
+#diag .diag-summary-card.month-only{
+  max-width:1120px;
+  margin:0 auto;
+  border-top:4px solid var(--teal);
+}
+.month-summary-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.month-summary-title{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.month-summary-title .ctitle{
+  font-size:18px;
+}
+.month-summary-title .csub{
+  margin-bottom:0;
+}
+.month-summary-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid var(--line);
+  background:#f6fbfb;
+  color:var(--muted);
+  border-radius:999px;
+  padding:7px 12px;
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.month-kpis{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin:16px 0 18px;
+}
+.month-kpi{
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,#f8fcfc,#f3fafa);
+  border-radius:13px;
+  padding:14px;
+  min-height:92px;
+}
+.month-kpi-label{
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+.month-kpi-value{
+  font-family:var(--mono);
+  font-size:25px;
+  font-weight:900;
+  color:var(--ink);
+  margin-top:6px;
+  line-height:1;
+}
+.month-kpi-delta{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-top:9px;
+  font-size:12px;
+  font-weight:900;
+}
+.month-kpi-delta.good{color:var(--teal-d)}
+.month-kpi-delta.bad{color:var(--red)}
+.month-kpi-delta.neutral{color:var(--muted)}
+.month-insight-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+  margin-top:12px;
+}
+.month-card{
+  border:1px solid var(--line);
+  background:#f8fcfc;
+  border-radius:13px;
+  padding:14px 15px;
+}
+.month-card.good{border-left:4px solid var(--teal)}
+.month-card.bad{border-left:4px solid var(--red)}
+.month-card-title{
+  font-size:10.5px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+.month-list{
+  display:grid;
+  gap:9px;
+}
+.month-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:14px;
+  align-items:start;
+  font-size:12.8px;
+  line-height:1.35;
+}
+.month-row .name{
+  font-weight:800;
+  color:var(--ink);
+}
+.month-row .meta{
+  font-family:var(--mono);
+  font-size:12px;
+  font-weight:900;
+  text-align:right;
+  white-space:nowrap;
+}
+.month-row.good .meta{color:var(--teal-d)}
+.month-row.bad .meta{color:var(--red)}
+.month-row .submeta{
+  grid-column:1/-1;
+  font-size:11.5px;
+  color:var(--muted);
+  margin-top:-5px;
+}
+.month-empty{
+  color:var(--muted);
+  font-size:12.5px;
+  font-weight:700;
+}
+.month-note{
+  margin-top:14px;
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+}
+@media(max-width:900px){
+  .month-kpis,.month-insight-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+/* Aumenta um pouco o líquido dentro dos cards hero, mantendo moldura e conteúdo */
+.hero-stat .hero-spark{
+  flex-basis:64px !important;
+  height:64px !important;
+}
+.hero-main-stat .hero-spark{
+  flex-basis:70px !important;
+  height:70px !important;
+}
+.fuel-wave{
+  height:112% !important;
+}
+
 </style>
 </head>
 <body>
@@ -1974,143 +2140,155 @@ function renderDiag(){
   var D=STATE.D,full=STATE.full,sc=STATE.scope;
   if(!D||!full)return;
 
-  function fmtSignedInt(n){return (n>0?'+':'')+Math.round(n).toLocaleString('pt-BR')}
-  function fmtSignedDec(n,d){return (n>0?'+':'')+Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
-  function monthKeysWithData(model){return model.monthly.filter(function(m){return (m.km||0)>0||(m.ev||0)>0}).map(function(m){return m.m})}
+  function monthKeysWithData(model){
+    return model.monthly.filter(function(m){return (m.km||0)>0||(m.ev||0)>0}).map(function(m){return m.m});
+  }
   function modelForMonth(monthKey){
     if(!monthKey)return null;
     var rows=STATE.all.filter(function(r){return String(r.MES||'').toUpperCase()===monthKey});
     return rows.length?buildModel(rows):null;
   }
-  function eventVolumeList(model,asc,limit){
-    var arr=EV_COLS.map(function(e){return {nome:e,val:(model.evTot[e]||0)}})
-      .filter(function(x){return x.val>0});
-    arr.sort(function(a,b){return asc?(a.val-b.val):(b.val-a.val)});
-    return arr.slice(0,limit||3);
+  function signedPct(curr,prev){
+    if(prev==null||prev===0)return null;
+    return ((curr-prev)/Math.abs(prev))*100;
   }
-  function eventRows(arr,kind){
-    return arr.length?arr.map(function(x){
-      return '<div class="summary-row '+(kind||'')+'"><span>'+esc(x.nome)+'</span><small>'+fmt(x.val)+' ocorr.</small></div>';
-    }).join(''):'<div class="summary-row"><span>Sem dados</span><small>—</small></div>';
+  function signedAbs(n){
+    return (n>0?'+':'')+fmt(n);
   }
-  function driverRows(arr,kind){
-    return arr.length?arr.map(function(d){
-      return '<div class="summary-row '+(kind||'')+'"><span>'+esc(d.nome)+'</span><small>'+fmtDec(drvPerf(d),2)+'%</small></div>';
-    }).join(''):'<div class="summary-row"><span>Sem dados</span><small>—</small></div>';
+  function signedDec(n,d){
+    return (n>0?'+':'')+fmtDec(n,d);
   }
-  function compareEvents(curModel,prevModel){
-    if(!curModel||!prevModel)return {better:[],worse:[]};
-    var arr=EV_COLS.map(function(e){
-      var cur=curModel.evTot[e]||0, prev=prevModel.evTot[e]||0;
-      return {nome:e,cur:cur,prev:prev,delta:cur-prev};
-    }).filter(function(x){return x.cur>0||x.prev>0});
-    return {
-      better:arr.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,3),
-      worse:arr.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,3)
-    };
+  function pctText(p){
+    return p==null?'—':(p>0?'+':'')+fmtDec(p,1)+'%';
   }
-  function eventDeltaRows(arr,kind){
-    return arr.length?arr.map(function(x){
-      return '<div class="summary-row '+(kind||'')+'"><span>'+esc(x.nome)+'</span><small>'+fmtSignedInt(x.delta)+' ocorr.</small></div>';
-    }).join(''):'<div class="summary-row"><span>Sem variação relevante</span><small>—</small></div>';
-  }
-  function compareDrivers(curModel,prevModel){
-    if(!curModel||!prevModel)return {up:[],down:[]};
-    var pm={}, cm={};
-    prevModel.drivers.forEach(function(d){pm[d.nome]=d});
-    curModel.drivers.forEach(function(d){cm[d.nome]=d});
-    var changes=[];
-    Object.keys(cm).forEach(function(nome){
-      var c=cm[nome], p=pm[nome];
-      if(!p)return;
-      if(c.perfStd==null||p.perfStd==null)return;
-      if((c.km||0)<=0||(p.km||0)<=0)return;
-      changes.push({nome:nome,delta:(c.perfStd-p.perfStd),cur:c.perfStd,prev:p.perfStd});
-    });
-    return {
-      up:changes.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,3),
-      down:changes.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,3)
-    };
-  }
-  function driverDeltaRows(arr,kind){
-    return arr.length?arr.map(function(x){
-      return '<div class="summary-row '+(kind||'')+'"><span>'+esc(x.nome)+'</span><small>'+fmtSignedDec(x.delta,2)+' p.p.</small></div>';
-    }).join(''):'<div class="summary-row"><span>Sem variação comparável</span><small>—</small></div>';
-  }
-  function changeClass(v,invert){
+  function trendClass(v,invert){
     if(v==null)return 'neutral';
-    var good=invert? v<0 : v>0;
-    var bad=invert? v>0 : v<0;
+    var good=invert ? v<0 : v>0;
+    var bad=invert ? v>0 : v<0;
     return good?'good':bad?'bad':'neutral';
   }
-
-  var fullPerf=calcPerf(full.totKm,full.totEv)||0;
-  var fullKme=kmPorEvento(full.totKm,full.totEv);
-  var fullBW=bestWorstDrivers(full,3);
-  var worstEvents=eventVolumeList(full,false,3);
-  var bestEvents=eventVolumeList(full,true,3);
-
-  var availMonths=monthKeysWithData(full);
-  var curMonthKey=(sc!=='ALL'&&availMonths.indexOf(sc)>=0)?sc:(availMonths[availMonths.length-1]||null);
-  var prevMonthKey=null;
-  if(curMonthKey){
-    var idx=availMonths.indexOf(curMonthKey);
-    if(idx>0)prevMonthKey=availMonths[idx-1];
+  function trendIcon(v,invert){
+    if(v==null||v===0)return '→';
+    var good=invert ? v<0 : v>0;
+    return good?'▲':'▼';
   }
 
-  var curMonthModel=modelForMonth(curMonthKey) || D;
-  var prevMonthModel=modelForMonth(prevMonthKey);
-  var curPerf=calcPerf(curMonthModel.totKm,curMonthModel.totEv)||0;
-  var curKme=kmPorEvento(curMonthModel.totKm,curMonthModel.totEv);
-  var prevPerf=prevMonthModel?(calcPerf(prevMonthModel.totKm,prevMonthModel.totEv)||0):null;
-  var prevKme=prevMonthModel?kmPorEvento(prevMonthModel.totKm,prevMonthModel.totEv):null;
-  var perfDelta=prevMonthModel?curPerf-prevPerf:null;
-  var evDelta=prevMonthModel?(curMonthModel.totEv-prevMonthModel.totEv):null;
-  var kmeDelta=prevMonthModel?(curKme-prevKme):null;
-  var eventCmp=compareEvents(curMonthModel,prevMonthModel);
-  var driverCmp=compareDrivers(curMonthModel,prevMonthModel);
+  var months=monthKeysWithData(full);
+  var curMonthKey=(sc!=='ALL'&&months.indexOf(sc)>=0)?sc:(months[months.length-1]||null);
+  var prevMonthKey=null;
+  if(curMonthKey){
+    var idx=months.indexOf(curMonthKey);
+    if(idx>0)prevMonthKey=months[idx-1];
+  }
+
+  var cur=modelForMonth(curMonthKey)||D;
+  var prev=modelForMonth(prevMonthKey);
   var curLabel=curMonthKey?monthFull(curMonthKey):periodLabelCompact();
   var prevLabel=prevMonthKey?monthFull(prevMonthKey):'mês anterior';
 
+  var curPerf=calcPerf(cur.totKm,cur.totEv)||0;
+  var prevPerf=prev?(calcPerf(prev.totKm,prev.totEv)||0):null;
+  var curKme=kmPorEvento(cur.totKm,cur.totEv);
+  var prevKme=prev?kmPorEvento(prev.totKm,prev.totEv):null;
+
+  var perfPct=signedPct(curPerf,prevPerf);
+  var evPct=prev?signedPct(cur.totEv,prev.totEv):null;
+  var kmePct=prev?signedPct(curKme,prevKme):null;
+
+  function eventChanges(){
+    if(!prev)return {better:[],worse:[]};
+    var arr=EV_COLS.map(function(e){
+      var c=cur.evTot[e]||0, p=prev.evTot[e]||0;
+      return {nome:e,cur:c,prev:p,delta:c-p,pct:signedPct(c,p)};
+    }).filter(function(x){return x.cur>0||x.prev>0});
+    return {
+      better:arr.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,4),
+      worse:arr.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,4)
+    };
+  }
+
+  function driverChanges(){
+    if(!prev)return {up:[],down:[]};
+    var pm={}, cm={}, out=[];
+    prev.drivers.forEach(function(d){pm[d.nome]=d});
+    cur.drivers.forEach(function(d){cm[d.nome]=d});
+    Object.keys(cm).forEach(function(nome){
+      var c=cm[nome], p=pm[nome];
+      if(!p||c.perfStd==null||p.perfStd==null)return;
+      if((c.km||0)<=0||(p.km||0)<=0)return;
+      var delta=c.perfStd-p.perfStd;
+      out.push({nome:nome,cur:c.perfStd,prev:p.perfStd,delta:delta,pct:signedPct(c.perfStd,p.perfStd)});
+    });
+    return {
+      up:out.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,4),
+      down:out.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,4)
+    };
+  }
+
+  function eventRows(arr,kind){
+    if(!arr.length)return '<div class="month-empty">Sem variação relevante no comparativo.</div>';
+    return arr.map(function(x){
+      return '<div class="month-row '+kind+'">'+
+        '<div class="name">'+esc(x.nome)+'</div>'+
+        '<div class="meta">'+pctText(x.pct)+'</div>'+
+        '<div class="submeta">'+signedAbs(x.delta)+' ocorrências · atual: '+fmt(x.cur)+' · anterior: '+fmt(x.prev)+'</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  function driverRows(arr,kind){
+    if(!arr.length)return '<div class="month-empty">Sem variação comparável no mês.</div>';
+    return arr.map(function(x){
+      return '<div class="month-row '+kind+'">'+
+        '<div class="name">'+esc(x.nome)+'</div>'+
+        '<div class="meta">'+pctText(x.pct)+'</div>'+
+        '<div class="submeta">'+signedDec(x.delta,2)+' p.p. · atual: '+fmtDec(x.cur,2)+'% · anterior: '+fmtDec(x.prev,2)+'%</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  var ev=eventChanges();
+  var drv=driverChanges();
+
   document.getElementById('diagGrid').innerHTML=
-    '<div class="diag-summary-card accent">'+
-      '<div class="ctitle">Resumo geral</div>'+
-      '<div class="csub">Agregado do período completo no filtro atual.</div>'+
-      '<div class="diag-kpis">'+
-        '<div class="diag-kpi"><div class="diag-kpi-label">Performance</div><div class="diag-kpi-val">'+fmtDec(fullPerf,2)+'%</div></div>'+
-        '<div class="diag-kpi"><div class="diag-kpi-label">Eventos</div><div class="diag-kpi-val">'+fmt(full.totEv)+'</div></div>'+
-        '<div class="diag-kpi"><div class="diag-kpi-label">KM/evento</div><div class="diag-kpi-val">'+fmtDec(fullKme,1)+'</div></div>'+
+    '<div class="diag-summary-card month-only">'+
+      '<div class="month-summary-head">'+
+        '<div class="month-summary-title">'+
+          '<div class="ctitle">Resumo operacional de '+esc(curLabel)+'</div>'+
+          '<div class="csub">'+(prev?'Comparativo direto com '+esc(prevLabel)+'.':'Sem mês anterior disponível para comparação.')+'</div>'+
+        '</div>'+
+        '<div class="month-summary-badge">📅 '+esc(curLabel)+(prev?' vs '+esc(prevLabel):'')+'</div>'+
       '</div>'+
-      '<div class="summary-sections">'+
-        '<div class="summary-block bad"><div class="summary-title">Piores eventos</div><div class="summary-list">'+eventRows(worstEvents,'bad')+'</div></div>'+
-        '<div class="summary-block good"><div class="summary-title">Melhores eventos</div><div class="summary-list">'+eventRows(bestEvents,'good')+'</div></div>'+
-        '<div class="summary-block good"><div class="summary-title">Melhores motoristas</div><div class="summary-list">'+driverRows(fullBW.best,'good')+'</div></div>'+
-        '<div class="summary-block bad"><div class="summary-title">Piores motoristas</div><div class="summary-list">'+driverRows(fullBW.worst,'bad')+'</div></div>'+
+
+      '<div class="month-kpis">'+
+        '<div class="month-kpi">'+
+          '<div class="month-kpi-label">Performance</div>'+
+          '<div class="month-kpi-value">'+fmtDec(curPerf,2)+'%</div>'+
+          '<div class="month-kpi-delta '+trendClass(perfPct,false)+'">'+trendIcon(perfPct,false)+' '+pctText(perfPct)+' vs '+esc(prevLabel)+'</div>'+
+        '</div>'+
+        '<div class="month-kpi">'+
+          '<div class="month-kpi-label">Eventos</div>'+
+          '<div class="month-kpi-value">'+fmt(cur.totEv)+'</div>'+
+          '<div class="month-kpi-delta '+trendClass(evPct,true)+'">'+trendIcon(evPct,true)+' '+pctText(evPct)+' vs '+esc(prevLabel)+'</div>'+
+        '</div>'+
+        '<div class="month-kpi">'+
+          '<div class="month-kpi-label">KM/evento</div>'+
+          '<div class="month-kpi-value">'+fmtDec(curKme,1)+'</div>'+
+          '<div class="month-kpi-delta '+trendClass(kmePct,false)+'">'+trendIcon(kmePct,false)+' '+pctText(kmePct)+' vs '+esc(prevLabel)+'</div>'+
+        '</div>'+
       '</div>'+
-      '<div class="diag-pill-row">'+
-        '<span class="diag-pill">📅 '+periodRangeLabel()+'</span>'+
-        '<span class="diag-pill">🏁 '+fmt(full.motN)+' motoristas</span>'+
-        '<span class="diag-pill">🛣️ '+fmt(full.totKm)+' km</span>'+
+
+      '<div class="month-insight-grid">'+
+        '<div class="month-card good"><div class="month-card-title">Eventos que melhoraram</div><div class="month-list">'+eventRows(ev.better,'good')+'</div></div>'+
+        '<div class="month-card bad"><div class="month-card-title">Eventos que pioraram</div><div class="month-list">'+eventRows(ev.worse,'bad')+'</div></div>'+
+        '<div class="month-card good"><div class="month-card-title">Motoristas com maior melhora</div><div class="month-list">'+driverRows(drv.up,'good')+'</div></div>'+
+        '<div class="month-card bad"><div class="month-card-title">Motoristas com maior piora</div><div class="month-list">'+driverRows(drv.down,'bad')+'</div></div>'+
       '</div>'+
-    '</div>'+
-    '<div class="diag-summary-card warn">'+
-      '<div class="ctitle">Resumo específico de '+esc(curLabel)+'</div>'+
-      '<div class="csub">Comparativo com '+esc(prevLabel)+'.</div>'+
-      '<div class="summary-change-grid">'+
-        '<div class="summary-change '+changeClass(perfDelta,false)+'"><div class="label">Performance</div><div class="val">'+(perfDelta==null?'—':fmtSignedDec(perfDelta,2)+' p.p.')+'</div></div>'+
-        '<div class="summary-change '+changeClass(evDelta,true)+'"><div class="label">Eventos</div><div class="val">'+(evDelta==null?'—':fmtSignedInt(evDelta))+'</div></div>'+
-        '<div class="summary-change '+changeClass(kmeDelta,false)+'"><div class="label">KM/evento</div><div class="val">'+(kmeDelta==null?'—':fmtSignedDec(kmeDelta,1))+'</div></div>'+
-      '</div>'+
-      '<div class="summary-sections">'+
-        '<div class="summary-block good"><div class="summary-title">Eventos que melhoraram</div><div class="summary-list">'+eventDeltaRows(eventCmp.better,'good')+'</div></div>'+
-        '<div class="summary-block bad"><div class="summary-title">Eventos que pioraram</div><div class="summary-list">'+eventDeltaRows(eventCmp.worse,'bad')+'</div></div>'+
-        '<div class="summary-block good"><div class="summary-title">Maiores altas de performance</div><div class="summary-list">'+driverDeltaRows(driverCmp.up,'good')+'</div></div>'+
-        '<div class="summary-block bad"><div class="summary-title">Maiores quedas de performance</div><div class="summary-list">'+driverDeltaRows(driverCmp.down,'bad')+'</div></div>'+
-      '</div>'+
-      '<div class="diag-pill-row">'+
-        '<span class="diag-pill">📅 '+esc(curLabel)+(prevMonthKey?' vs '+esc(prevLabel):'')+'</span>'+
-        '<span class="diag-pill">🚨 Pior evento: '+(curMonthModel.evRank[0]?esc(curMonthModel.evRank[0][0]):'—')+'</span>'+
-        '<span class="diag-pill">🏁 '+fmt(curMonthModel.motN)+' motoristas</span>'+
+
+      '<div class="month-note">'+
+        '<span class="diag-pill">🚨 Pior evento: '+(cur.evRank[0]?esc(cur.evRank[0][0]):'—')+'</span>'+
+        '<span class="diag-pill">🏁 '+fmt(cur.motN)+' motoristas</span>'+
+        '<span class="diag-pill">🛣️ '+fmt(cur.totKm)+' km</span>'+
       '</div>'+
     '</div>';
 }
