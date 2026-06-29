@@ -1591,6 +1591,28 @@ footer .wrap{
   text-shadow:0 1px 8px rgba(0,0,0,.35);
 }
 
+
+
+/* ===== LINK POR SETOR: filtro travado quando vem ?setor=... ===== */
+.hero-top-filters .msel.locked-filter,
+header .msel.locked-filter{
+  opacity:1 !important;
+  cursor:not-allowed !important;
+  border-color:rgba(79,246,230,.55) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 0 0 2px rgba(79,246,230,.08),
+    0 8px 20px rgba(0,30,30,.20) !important;
+}
+.hero-top-filters .msel.locked-filter{
+  background-image:
+    linear-gradient(180deg, rgba(5,44,46,.96), rgba(3,28,31,.94)),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237cf3d9' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='11' width='14' height='10' rx='2'/><path d='M8 11V8a4 4 0 0 1 8 0v3'/></svg>") !important;
+  background-repeat:no-repeat,no-repeat !important;
+  background-position:0 0, calc(100% - 14px) 50% !important;
+  background-size:100% 100%, 14px 14px !important;
+}
+
 </style>
 </head>
 <body>
@@ -1857,7 +1879,7 @@ function rClass(r){return r>=0.08?'r-hi':r>=0.04?'r-md':'r-lo'}
 function dFor(n){return DIAG[n]||{eixo:'Manutenção',cor:'ic-teal-l',icon:'·',mede:'Evento registrado pela telemetria.',acao:'Acompanhar e orientar conforme o caso.'}}
 function eBadge(e){return e==='Segurança'?'b-seg':e==='Economia'?'b-eco':'b-man'}
 function fCode(url){if(!url)return null;var m=String(url).match(/detailsProcessInstanceID=(\d+)/i);return m?m[1]:(String(url).match(/(\d+)\D*$/)||[null,null])[1]}
-function getSetor(){if(SETOR_FIXO)return SETOR_FIXO;var p=new URLSearchParams(window.location.search);return(p.get('setor')||'').toUpperCase()}
+function getSetor(){if(SETOR_FIXO)return SETOR_FIXO;var p=new URLSearchParams(window.location.search);return(p.get('setor')||p.get('s')||'').trim().toUpperCase()}
 function showErr(msg){document.getElementById('loading').style.display='none';document.getElementById('error').style.display='flex';document.getElementById('errMsg').innerHTML=msg}
 function loadSheet(){
   fetch(SHEET_URL)
@@ -1872,6 +1894,7 @@ function init(wb){
   STATE.raw=rows;
   var qs=getSetor();
   STATE.setor=qs||'ALL';
+  STATE.lockedSetor=!!(qs&&qs!=='ALL');
   populateSectorSel();
   applySetor();
   document.getElementById('loading').style.display='none';
@@ -2469,6 +2492,20 @@ function populateSectorSel(){
   var sel=document.getElementById('sectorSel');if(!sel)return;
   var ss={};STATE.raw.forEach(function(r){var s=String(r.SETOR||'').toUpperCase();if(s)ss[s]=1});
   var setores=Object.keys(ss).sort();
+
+  if(STATE.lockedSetor){
+    var setor=STATE.setor||'ALL';
+    sel.innerHTML='<option value="'+setor+'">'+setorLabel(setor)+'</option>';
+    sel.value=setor;
+    sel.disabled=true;
+    sel.classList.add('locked-filter');
+    sel.title='Setor fixo definido pelo link. Para trocar, altere a URL.';
+    return;
+  }
+
+  sel.disabled=false;
+  sel.classList.remove('locked-filter');
+  sel.title='';
   sel.innerHTML='<option value="ALL">Todos</option>'+setores.map(function(s){return'<option value="'+s+'">'+setorLabel(s)+'</option>'}).join('');
   sel.value=STATE.setor||'ALL';
 }
@@ -2489,7 +2526,7 @@ function setMotView(view){
 }
 function bindEvents(){
   document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');var el=document.getElementById(b.dataset.t);if(el)el.classList.add('active');if(b.dataset.t==='mot')setMotView('resumo');if(STATE.D){var pa=calcPerf(STATE.D.totKm,STATE.D.totEv)||0;setHeroForTab(STATE.D,pa)}window.scrollTo({top:0,behavior:'smooth'})})});
-  document.getElementById('sectorSel').addEventListener('change',function(){STATE.setor=this.value;STATE.selEvent=null;applySetor()});
+  document.getElementById('sectorSel').addEventListener('change',function(){if(STATE.lockedSetor){this.value=STATE.setor;return;}STATE.setor=this.value;STATE.selEvent=null;applySetor()});
   document.getElementById('monthSel').addEventListener('change',function(){STATE.scope=this.value;buildRender()});
   ['q'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',renderTable)});
   // toggle resumo/detalhado
