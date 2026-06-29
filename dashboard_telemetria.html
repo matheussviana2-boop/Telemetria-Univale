@@ -753,6 +753,54 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
 .fuel-img{opacity:1 !important; z-index:2 !important;}
 .fuel-img-back{opacity:.26 !important; z-index:1 !important;}
 
+
+
+/* ===== AJUSTE V6: posicionamento real da crista da onda + movimento visível ===== */
+.hero-stat .hero-spark{
+  flex:0 0 70px !important;
+  height:70px !important;
+}
+.hero-main-stat .hero-spark{
+  flex-basis:78px !important;
+  height:78px !important;
+}
+.fuel-wave{
+  position:absolute !important;
+  inset:0 0 -4px 0 !important;
+  overflow:hidden !important;
+  border-radius:0 0 18px 18px !important;
+  isolation:isolate !important;
+}
+.fuel-img,
+.fuel-img-back{
+  position:absolute !important;
+  top:0 !important;
+  bottom:auto !important;
+  left:0 !important;
+  width:245% !important;
+  height:auto !important;
+  max-width:none !important;
+  min-height:0 !important;
+  object-fit:contain !important;
+  object-position:left top !important;
+  animation:none !important;
+  transition:none !important;
+  transform-origin:left top !important;
+  will-change:transform !important;
+}
+.fuel-img{
+  opacity:1 !important;
+  z-index:2 !important;
+}
+.fuel-img-back{
+  opacity:.34 !important;
+  z-index:1 !important;
+}
+@media(max-width:900px){
+  .hero-stat .hero-spark{flex-basis:66px !important;height:66px !important;}
+  .hero-main-stat .hero-spark{flex-basis:72px !important;height:72px !important;}
+}
+
 </style>
 </head>
 <body>
@@ -1509,6 +1557,9 @@ function bindEvents(){
 document.addEventListener('DOMContentLoaded',loadSheet);
 </script>
 
+
+
+
 <script>
 (function(){
   function initFuelMotion(){
@@ -1517,29 +1568,53 @@ document.addEventListener('DOMContentLoaded',loadSheet);
         el: el,
         front: el.querySelector('.fuel-img'),
         back: el.querySelector('.fuel-img-back'),
-        phase: idx * 1.37,
-        phase2: idx * 1.91 + 0.8
+        phase: idx * 1.31,
+        phase2: idx * 1.77 + 0.9
       };
     }).filter(function(w){ return w.front && w.back; });
 
     if(!waves.length) return;
 
+    var IMAGE_W = 2048;
+    var IMAGE_H = 682;
+    var WAVE_Y = 253; // ponto real da crista na imagem do combustível enviada
+    var WAVE_RATIO = WAVE_Y / IMAGE_H;
+
+    function positionLayer(img, waveBox, x, wobbleY, scaleY, targetY){
+      var boxW = waveBox.clientWidth || 1;
+      var renderedW = boxW * 2.45;
+      var renderedH = renderedW * (IMAGE_H / IMAGE_W);
+      var baseY = targetY - (renderedH * WAVE_RATIO);
+
+      img.style.width = renderedW + 'px';
+      img.style.height = 'auto';
+      img.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + (baseY + wobbleY).toFixed(2) + 'px,0) scaleY(' + scaleY.toFixed(4) + ')';
+    }
+
     function tick(ms){
       var t = ms / 1000;
-      waves.forEach(function(w, i){
-        var frontX = Math.sin(t * 0.32 + w.phase) * 26;
-        var frontY = Math.sin(t * 0.92 + w.phase2) * 3.5;
-        var frontScaleY = 1 + Math.sin(t * 0.70 + w.phase) * 0.015;
 
-        var backX = Math.sin(t * 0.24 + w.phase2) * 18;
-        var backY = Math.sin(t * 0.74 + w.phase) * 4.5;
-        var backScaleY = 1 + Math.sin(t * 0.58 + w.phase2) * 0.02;
+      waves.forEach(function(w){
+        var h = w.el.clientHeight || 70;
+        var targetY = Math.max(12, h * 0.24);
 
-        w.front.style.transform = 'translate3d(' + frontX + 'px,' + frontY + 'px,0) scaleY(' + frontScaleY + ')';
-        w.back.style.transform = 'translate3d(' + backX + 'px,' + backY + 'px,0) scaleY(' + backScaleY + ')';
+        var maxShift = Math.max(34, (w.el.clientWidth || 260) * 0.18);
+
+        var frontX = -maxShift * 0.55 + Math.sin(t * 0.55 + w.phase) * (maxShift * 0.45);
+        var frontY = Math.sin(t * 1.15 + w.phase2) * 5.2;
+        var frontScaleY = 1 + Math.sin(t * 0.86 + w.phase) * 0.018;
+
+        var backX = -maxShift * 0.72 + Math.sin(t * 0.38 + w.phase2) * (maxShift * 0.40);
+        var backY = Math.sin(t * 0.88 + w.phase) * 6.6;
+        var backScaleY = 1 + Math.sin(t * 0.68 + w.phase2) * 0.026;
+
+        positionLayer(w.back, w.el, backX, backY, backScaleY, targetY + 4);
+        positionLayer(w.front, w.el, frontX, frontY, frontScaleY, targetY);
       });
+
       requestAnimationFrame(tick);
     }
+
     requestAnimationFrame(tick);
   }
 
