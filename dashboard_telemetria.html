@@ -638,6 +638,40 @@ footer{border-top:1px solid var(--line);padding:20px 0;font-size:12px;color:var(
   .hero-stat,.hero-main-stat,#heroSide2Card{min-height:200px !important;}
 }
 
+
+
+/* ===== AJUSTE V3: líquido mais baixo e animação mais lenta ===== */
+.hero-stat .hero-spark{
+  flex:0 0 56px !important;
+  height:56px !important;
+}
+.hero-main-stat .hero-spark{
+  flex-basis:62px !important;
+  height:62px !important;
+}
+.fuel-wave{
+  inset:16px 0 -8px 0 !important;
+}
+.fuel-img{
+  animation:fuelMoveExact 42s linear infinite !important;
+}
+.fuel-img-back{
+  animation:fuelMoveExactBack 78s linear infinite reverse !important;
+}
+@media(max-width:900px){
+  .hero-stat .hero-spark{
+    flex-basis:52px !important;
+    height:52px !important;
+  }
+  .hero-main-stat .hero-spark{
+    flex-basis:58px !important;
+    height:58px !important;
+  }
+  .fuel-wave{
+    inset:14px 0 -8px 0 !important;
+  }
+}
+
 </style>
 </head>
 <body>
