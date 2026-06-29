@@ -1131,6 +1131,68 @@ header .msel optgroup,
   color:#f3fffe !important;
 }
 
+
+
+/* ===== AJUSTE V15: comparativo por setor horizontal com toggle ===== */
+.view-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px;
+  border-radius:999px;
+  background:linear-gradient(180deg,rgba(7,56,58,.72),rgba(4,34,36,.64));
+  border:1px solid rgba(136,236,229,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+}
+.view-flag{
+  border:0;
+  background:transparent;
+  color:#6d8e8b;
+  font:600 11px/1 var(--sans);
+  padding:8px 12px;
+  border-radius:999px;
+  cursor:pointer;
+  transition:.18s ease;
+}
+.view-flag:hover{
+  color:#dffefd;
+}
+.view-flag.active{
+  color:#063436;
+  background:linear-gradient(180deg,#64f4ea,#1fd9d0);
+  box-shadow:0 6px 16px rgba(20,220,211,.18), inset 0 1px 0 rgba(255,255,255,.25);
+}
+#setorCard .card-topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+#setorCard .card-head-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+#setorCard .cbox{
+  min-height:360px;
+}
+@media(max-width:900px){
+  #setorCard .card-head-left{
+    width:100%;
+    justify-content:space-between;
+  }
+  .view-toggle{
+    width:100%;
+    justify-content:stretch;
+  }
+  .view-flag{
+    flex:1 1 0;
+    text-align:center;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1221,9 +1283,9 @@ header .msel optgroup,
           <div id="top5devCard"></div>
         </div>
         <div class="card" id="setorCard">
-          <div class="card-topbar"><div class="ctitle" id="setorCardTitle">Comparativo por setor</div><div class="period-badge" id="setorCardPeriod">Todos os meses</div></div>
-          <div class="csub" id="setorCardSub">Performance e eficiência de cada setor no período.</div>
-          <div class="cbox" style="height:320px"><canvas id="cSetor"></canvas></div>
+          <div class="card-topbar"><div class="ctitle" id="setorCardTitle">Comparativo por setor</div></div><div class="view-toggle" id="setorMetricToggle" role="tablist" aria-label="Alternar métrica do comparativo por setor"><button type="button" class="view-flag active" id="btnSetorPerf" data-metric="perf">Performance</button><button type="button" class="view-flag" id="btnSetorKme" data-metric="kme">KM/Evento</button></div><div class="period-badge" id="setorCardPeriod">Todos os meses</div></div>
+          <div class="csub" id="setorCardSub">Clique nas flags para alternar entre performance e KM por evento.</div>
+          <div class="cbox" style="height:360px"><canvas id="cSetor"></canvas></div>
         </div>
       </div>
 
@@ -1294,7 +1356,7 @@ header .msel optgroup,
 
     <!-- DIAGNÓSTICO -->
     <section class="panel" id="diag">
-      <div class="stitle">Diagnóstico consolidado</div>
+      <div class="stitle">Resumo consolidado</div>
       <div class="diag-summary-grid" id="diagGrid"></div>
     </section>
 
@@ -1335,7 +1397,7 @@ var DIAG={
   "Excesso RPM Parado":{eixo:"Manutenção",cor:"ic-teal-l",icon:"◉",mede:"Aceleração do motor com o veículo parado.",acao:"Motores modernos não precisam ser aquecidos acelerando parado."}
 };
 var SLABELS={'FRET_BAHIA':'Fretamento Bahia','CENIBRA':'Fretamento Cenibra','LINHAS':'Linhas','MUSA':'Musa','TURIM':'Turim Rodoviário','GARAG_BAHIA':'Garagistas Bahia','GARAG_MG':'Garagistas MG','CIPALAM':'Cipalam','BEMISA':'Fretamento Bemisa'};
-var STATE={raw:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,selEvent:null,selEvent2:null,motView:'resumo'};
+var STATE={raw:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,selEvent:null,selEvent2:null,motView:'resumo',setorMetric:'perf'};
 var CH={};
 function fmt(n){return Math.round(n).toLocaleString('pt-BR')}
 function fmtDec(n,d){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
@@ -1597,41 +1659,128 @@ function renderSetorChart(full){
   }
   if(wrap)wrap.classList.remove('top10-centered');
   card.style.display='';
+
+  var btnPerf=document.getElementById('btnSetorPerf');
+  var btnKme=document.getElementById('btnSetorKme');
+  var metric=(STATE.setorMetric==='kme')?'kme':'perf';
+  if(btnPerf)btnPerf.classList.toggle('active',metric==='perf');
+  if(btnKme)btnKme.classList.toggle('active',metric==='kme');
+
   var EXCLUIR=['GARAG_BAHIA','GARAG_MG'];
   var rows=STATE.all.slice();
   if(STATE.scope!=='ALL')rows=rows.filter(function(r){return String(r.MES||'').toUpperCase()===STATE.scope});
-  var ss={};
+
+  var by={};
   rows.forEach(function(r){
     var s=String(r.SETOR||'').toUpperCase();
     if(!s||EXCLUIR.indexOf(s)>=0)return;
-    var o=ss[s]||(ss[s]={km:0,ev:0});
-    o.km+=+r.KM||0; o.ev+=+r.PONTUACAO||0;
+    if(!by[s])by[s]={km:0,ev:0};
+    by[s].km += Number(r.KM||0);
+    by[s].ev += Number(r.PONTOS||0);
   });
-  var setores=Object.keys(ss).sort();
-  var perfs=setores.map(function(s){return ss[s].km?parseFloat(calcPerf(ss[s].km,ss[s].ev).toFixed(2)):0});
-  var kmes=setores.map(function(s){return ss[s].ev?Math.round(ss[s].km/ss[s].ev*10)/10:0});
-  var lbls=setores.map(function(s){return SLABELS[s]||s});
-  if(typeof Chart==='undefined')return;
-  var perfColors=perfs.map(function(p){
-    if(p<0)return 'rgba(234,0,41,.78)';
-    if(p<50)return 'rgba(230,126,34,.82)';
-    if(p<90)return 'rgba(224,168,0,.82)';
-    return 'rgba(0,161,155,.82)';
+
+  var arr=Object.keys(by).map(function(s){
+    var km=by[s].km||0;
+    var ev=by[s].ev||0;
+    return {
+      setor:s,
+      label:setorLabel(s),
+      perf: calcPerf(km,ev),
+      kme: Math.round(kmPorEvento(km,ev)*10)/10
+    };
+  }).filter(function(x){
+    return metric==='perf' ? (x.perf!=null && isFinite(x.perf)) : (x.kme!=null && isFinite(x.kme) && x.kme>0);
   });
-  var minPerf=Math.min.apply(null,perfs.concat([0]));
-  var yMin=minPerf<0?Math.floor(minPerf/10)*10:0;
+
+  arr.sort(function(a,b){
+    var av=metric==='perf'?(a.perf==null?-Infinity:a.perf):(a.kme||0);
+    var bv=metric==='perf'?(b.perf==null?-Infinity:b.perf):(b.kme||0);
+    return bv-av;
+  });
+
+  var labels=arr.map(function(x){return x.label});
+  var values=arr.map(function(x){return metric==='perf'?Math.round(x.perf*10)/10:x.kme});
+
+  safeText('setorCardPeriod',periodLabelCompact());
+  safeText('setorTitle', metric==='perf' ? 'Comparativo por setor · Performance' : 'Comparativo por setor · KM por evento');
+  safeText('setorCardSub', metric==='perf'
+    ? 'Gráfico horizontal de performance por setor no período. Clique nas flags para alternar.'
+    : 'Gráfico horizontal de quilômetros por evento por setor no período. Clique nas flags para alternar.'
+  );
+
+  var perfColors=arr.map(function(x){
+    var p=x.perf;
+    if(p==null)return 'rgba(159,217,214,.55)';
+    if(p<0)return 'rgba(255,85,114,.85)';
+    if(p<50)return 'rgba(255,139,34,.85)';
+    if(p<90)return 'rgba(255,210,31,.85)';
+    return 'rgba(16,207,201,.78)';
+  });
+  var perfBorders=arr.map(function(x){
+    var p=x.perf;
+    if(p==null)return 'rgba(159,217,214,.9)';
+    if(p<0)return 'rgba(255,85,114,1)';
+    if(p<50)return 'rgba(255,139,34,1)';
+    if(p<90)return 'rgba(255,210,31,1)';
+    return 'rgba(16,207,201,1)';
+  });
+
+  var bg = metric==='perf' ? perfColors : values.map(function(_,i){
+    return i===0 ? 'rgba(16,207,201,.85)' : 'rgba(16,207,201,.62)';
+  });
+  var border = metric==='perf' ? perfBorders : values.map(function(_,i){
+    return i===0 ? 'rgba(16,207,201,1)' : 'rgba(16,207,201,.88)';
+  });
+
+  var box=card.querySelector('.cbox');
+  if(box)box.style.height=Math.max(300, arr.length*46 + 90)+'px';
+
   CH['cSetor']=new Chart(el,{
     type:'bar',
-    data:{labels:lbls,datasets:[
-      {label:'Performance %',data:perfs,backgroundColor:perfColors,borderRadius:4,yAxisID:'y'},
-      {label:'KM/Evento',data:kmes,backgroundColor:'rgba(16,207,201,.55)',borderRadius:4,yAxisID:'y1'}
-    ]},
-    options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}}},
+    data:{labels:labels,datasets:[{
+      label: metric==='perf'?'Performance %':'KM/Evento',
+      data: values,
+      backgroundColor: bg,
+      borderColor: border,
+      borderWidth:1.2,
+      borderRadius:7,
+      borderSkipped:false,
+      barThickness:20,
+      maxBarThickness:22
+    }]},
+    options:{
+      indexAxis:'y',
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          label:function(c){
+            return metric==='perf'
+              ? 'Performance: '+fmtDec(c.raw,1)+'%'
+              : 'KM/Evento: '+fmtDec(c.raw,1);
+          }
+        }}
+      },
       scales:{
-        x:{grid:{display:false},ticks:{font:{size:10},maxRotation:35,minRotation:25}},
-        y:{title:{display:true,text:'performance %'},min:yMin,max:100,ticks:{stepSize:10},grid:{color:'#eef4f3'}},
-        y1:{position:'right',title:{display:true,text:'km/evento'},min:0,beginAtZero:true,grid:{drawOnChartArea:false}}
-      }}
+        y:{
+          grid:{display:false},
+          ticks:{font:{size:11}}
+        },
+        x: metric==='perf'
+          ? {
+              min:0,
+              max:100,
+              title:{display:true,text:'performance %'},
+              ticks:{stepSize:10},
+              grid:{color:'#eef4f3'}
+            }
+          : {
+              beginAtZero:true,
+              title:{display:true,text:'km/evento'},
+              grid:{color:'#eef4f3'}
+            }
+      }
+    }
   });
 }
 function render(){
@@ -1668,10 +1817,10 @@ function render(){
   var pmax=perfVals.length?Math.min(100,Math.ceil(Math.max.apply(null,perfVals)+1)):100;
   sc2(CH,'cTrend',{data:{labels:M,datasets:[
     {type:'bar',label:'Eventos',data:full.monthly.map(function(m){return m.ev}),backgroundColor:full.monthly.map(function(m){return(sc!=='ALL'&&m.m!==sc)?'#cdeeec':'#10CFC9'}),borderRadius:5,yAxisID:'y',order:2},
-    {type:'line',label:'Performance %',data:perfs,borderColor:'#EA0029',backgroundColor:'#EA0029',pointRadius:0,pointHoverRadius:0,tension:.3,borderWidth:2.5,yAxisID:'y1',order:1,clip:false},
-    {type:'line',label:'Leitura performance',data:perfs,borderColor:'transparent',backgroundColor:'#EA0029',pointBackgroundColor:'#EA0029',pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:6,pointHoverRadius:8,pointHitRadius:24,showLine:false,yAxisID:'y1',order:0,clip:false}
-  ]},options:{maintainAspectRatio:false,interaction:{mode:'nearest',intersect:true},plugins:{legend:{position:'bottom',labels:{filter:function(item){return item.text!=='Leitura performance'},boxWidth:10,font:{size:11}}}},scales:{y:{title:{display:true,text:'eventos'},grid:{color:'#eef4f3'}},y1:{position:'right',min:pmin,max:pmax,title:{display:true,text:'perf %'},grid:{drawOnChartArea:false}}}}});
-  sc2(CH,'cKme',{type:'line',data:{labels:M,datasets:[{label:'KM por evento',data:full.monthly.map(function(m){return m.kme}),borderColor:'#00A19B',backgroundColor:'rgba(0,161,155,.12)',fill:true,tension:.35,borderWidth:2.5,pointRadius:full.monthly.map(function(m){return(sc!=='ALL'&&m.m===sc)?7:4}),pointBackgroundColor:full.monthly.map(function(m){return(sc==='ALL'||m.m===sc)?'#00A19B':'#9fd9d6'})}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false,grid:{color:'#eef4f3'}}}}});
+    {type:'line',label:'Performance %',data:perfs,borderColor:'#00A19B',backgroundColor:'#00A19B',pointRadius:0,pointHoverRadius:0,tension:.3,borderWidth:2.5,yAxisID:'y1',order:1,clip:false},
+    {type:'line',label:'Leitura performance',data:perfs,borderColor:'transparent',backgroundColor:'#EA0029',pointBackgroundColor:'#00A19B',pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:6,pointHoverRadius:8,pointHitRadius:24,showLine:false,yAxisID:'y1',order:0,clip:false}
+  ]},options:{maintainAspectRatio:false,interaction:{mode:'nearest',intersect:true},plugins:{legend:{position:'bottom',labels:{filter:function(item){return item.text!=='Leitura performance'},boxWidth:10,font:{size:11}}},tooltip:{filter:function(ctx){return ctx.dataset.label!=='Leitura performance';}}},scales:{y:{title:{display:true,text:'eventos'},grid:{color:'#eef4f3'}},y1:{position:'right',min:pmin,max:pmax,title:{display:true,text:'perf %'},grid:{drawOnChartArea:false}}}}});
+  sc2(CH,'cKme',{type:'line',data:{labels:M,datasets:[{label:'KM por evento',data:full.monthly.map(function(m){return m.kme}),borderColor:'#00A19B',backgroundColor:'rgba(0,161,155,.12)',fill:true,tension:.35,borderWidth:2.5,pointRadius:full.monthly.map(function(m){return(sc!=='ALL'&&m.m===sc)?7:4}),pointBackgroundColor:full.monthly.map(function(m){return(sc==='ALL'||m.m===sc)?'#EA0029':'#f28ca1'})}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false,grid:{color:'#eef4f3'}}}}});
   safeText('t10wTitle','10 motoristas com menor performance');
   safeText('t10bTitle','10 motoristas com melhor performance');
   safeText('t10wSub','Considerando mínimo 250 km rodados em '+periodLabelShort()+'.');
@@ -1773,58 +1922,129 @@ function driverNames(arr){
 function renderDiag(){
   var D=STATE.D,full=STATE.full,sc=STATE.scope;
   if(!D||!full)return;
-  var cur=bestWorstDrivers(D,3);
-  var topEvent=D.evRank[0];
-  var topEvent2=D.evRank[1];
-  var kmEvent=kmPorEvento(D.totKm,D.totEv);
-  var perfCur=calcPerf(D.totKm,D.totEv)||0;
 
-  var months=full.monthly.filter(function(m){return m.km>0||m.ev>0});
-  var first=months[0]||{m:'Sem dados',km:0,ev:0,perf:0,kme:0};
-  var last=months[months.length-1]||first;
-  var evDelta=first.ev?((last.ev-first.ev)/first.ev*100):0;
-  var perfDelta=(last.perf||0)-(first.perf||0);
-  var kmeDelta=first.kme?((last.kme-first.kme)/first.kme*100):0;
-  var evolBest=full.monthly.slice().sort(function(a,b){return (b.kme||0)-(a.kme||0)})[0]||last;
-  var evolWorst=full.monthly.slice().filter(function(m){return m.ev>0}).sort(function(a,b){return (a.kme||0)-(b.kme||0)})[0]||last;
+  function fmtSignedInt(n){return (n>0?'+':'')+Math.round(n).toLocaleString('pt-BR')}
+  function fmtSignedDec(n,d){return (n>0?'+':'')+Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
+  function monthKeysWithData(model){return model.monthly.filter(function(m){return (m.km||0)>0||(m.ev||0)>0}).map(function(m){return m.m})}
+  function modelForMonth(monthKey){
+    if(!monthKey)return null;
+    var rows=STATE.all.filter(function(r){return String(r.MES||'').toUpperCase()===monthKey});
+    return rows.length?buildModel(rows):null;
+  }
+  function eventVolumeList(model,asc,limit){
+    var arr=EV_COLS.map(function(e){return {nome:e,val:(model.evTot[e]||0)}})
+      .filter(function(x){return x.val>0});
+    arr.sort(function(a,b){return asc?(a.val-b.val):(b.val-a.val)});
+    return arr.slice(0,limit||3);
+  }
+  function formatEventVolumeList(arr){
+    return arr.length?arr.map(function(x){return '<strong>'+esc(x.nome)+'</strong> ('+fmt(x.val)+' ocorr.)'}).join(' · '):'Sem dados';
+  }
+  function compareEvents(curModel,prevModel){
+    if(!curModel||!prevModel)return {better:[],worse:[]};
+    var arr=EV_COLS.map(function(e){
+      var cur=curModel.evTot[e]||0, prev=prevModel.evTot[e]||0;
+      return {nome:e,cur:cur,prev:prev,delta:cur-prev};
+    }).filter(function(x){return x.cur>0||x.prev>0});
+    return {
+      better:arr.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,3),
+      worse:arr.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,3)
+    };
+  }
+  function formatEventDeltaList(arr){
+    return arr.length?arr.map(function(x){return '<strong>'+esc(x.nome)+'</strong> ('+fmtSignedInt(x.delta)+' ocorr.)'}).join(' · '):'Sem variação relevante';
+  }
+  function compareDrivers(curModel,prevModel){
+    if(!curModel||!prevModel)return {up:[],down:[]};
+    var pm={}, cm={};
+    prevModel.drivers.forEach(function(d){pm[d.nome]=d});
+    curModel.drivers.forEach(function(d){cm[d.nome]=d});
+    var changes=[];
+    Object.keys(cm).forEach(function(nome){
+      var c=cm[nome], p=pm[nome];
+      if(!p)return;
+      if(c.perfStd==null||p.perfStd==null)return;
+      if((c.km||0)<=0||(p.km||0)<=0)return;
+      changes.push({nome:nome,delta:(c.perfStd-p.perfStd),cur:c.perfStd,prev:p.perfStd});
+    });
+    return {
+      up:changes.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,3),
+      down:changes.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,3)
+    };
+  }
+  function formatDriverDeltaList(arr){
+    return arr.length?arr.map(function(x){return '<strong>'+esc(x.nome)+'</strong> ('+fmtSignedDec(x.delta,2)+' p.p.)'}).join(' · '):'Sem variação comparável';
+  }
+
+  var fullPerf=calcPerf(full.totKm,full.totEv)||0;
+  var fullKme=kmPorEvento(full.totKm,full.totEv);
   var fullBW=bestWorstDrivers(full,3);
-  var statusEv=evDelta<=0?'queda':'alta';
-  var statusPerf=perfDelta>=0?'melhora':'queda';
+  var worstEvents=eventVolumeList(full,false,3);
+  var bestEvents=eventVolumeList(full,true,3);
+
+  var availMonths=monthKeysWithData(full);
+  var curMonthKey=(sc!=='ALL'&&availMonths.indexOf(sc)>=0)?sc:(availMonths[availMonths.length-1]||null);
+  var prevMonthKey=null;
+  if(curMonthKey){
+    var idx=availMonths.indexOf(curMonthKey);
+    if(idx>0)prevMonthKey=availMonths[idx-1];
+  }
+  var curMonthModel=modelForMonth(curMonthKey) || D;
+  var prevMonthModel=modelForMonth(prevMonthKey);
+  var curPerf=calcPerf(curMonthModel.totKm,curMonthModel.totEv)||0;
+  var curKme=kmPorEvento(curMonthModel.totKm,curMonthModel.totEv);
+  var perfDelta=prevMonthModel?curPerf-(calcPerf(prevMonthModel.totKm,prevMonthModel.totEv)||0):null;
+  var evDelta=prevMonthModel?(curMonthModel.totEv-prevMonthModel.totEv):null;
+  var kmeDelta=prevMonthModel?(curKme-kmPorEvento(prevMonthModel.totKm,prevMonthModel.totEv)):null;
+  var eventCmp=compareEvents(curMonthModel,prevMonthModel);
+  var driverCmp=compareDrivers(curMonthModel,prevMonthModel);
+  var curLabel=curMonthKey?monthFull(curMonthKey):periodLabelCompact();
+  var prevLabel=prevMonthKey?monthFull(prevMonthKey):'mês anterior';
+
+  var compareLine=prevMonthModel
+    ? '<div class="diag-line"><strong>Comparação com '+esc(prevLabel)+':</strong> performance '+fmtSignedDec(perfDelta,2)+' p.p. · eventos '+fmtSignedInt(evDelta)+' · km/evento '+fmtSignedDec(kmeDelta,1)+'.</div>'
+    : '<div class="diag-line"><strong>Comparação:</strong> não há mês anterior disponível para o filtro atual.</div>';
 
   document.getElementById('diagGrid').innerHTML=
     '<div class="diag-summary-card accent">'+
-      '<div class="ctitle">Diagnóstico evolutivo</div>'+
-      '<div class="csub">Comparativo do primeiro ao último mês disponível.</div>'+
+      '<div class="ctitle">Resumo geral</div>'+
+      '<div class="csub">Leitura agregada de todo o período disponível para o filtro atual.</div>'+
       '<div class="diag-kpis">'+
-        '<div class="diag-kpi"><div class="diag-kpi-label">Performance</div><div class="diag-kpi-val">'+fmtDec(first.perf||0,2)+'% → '+fmtDec(last.perf||0,2)+'%</div></div>'+
-        '<div class="diag-kpi"><div class="diag-kpi-label">Eventos</div><div class="diag-kpi-val">'+fmt(first.ev)+' → '+fmt(last.ev)+'</div></div>'+
-        '<div class="diag-kpi"><div class="diag-kpi-label">KM/evento</div><div class="diag-kpi-val">'+fmtDec(first.kme||0,1)+' → '+fmtDec(last.kme||0,1)+'</div></div>'+
+        '<div class="diag-kpi"><div class="diag-kpi-label">Performance</div><div class="diag-kpi-val">'+fmtDec(fullPerf,2)+'%</div></div>'+
+        '<div class="diag-kpi"><div class="diag-kpi-label">Eventos</div><div class="diag-kpi-val">'+fmt(full.totEv)+'</div></div>'+
+        '<div class="diag-kpi"><div class="diag-kpi-label">KM/evento</div><div class="diag-kpi-val">'+fmtDec(fullKme,1)+'</div></div>'+
       '</div>'+
       '<div class="diag-list">'+
-        '<div class="diag-line">No evolutivo, houve <strong>'+statusPerf+' de '+fmtDec(Math.abs(perfDelta),2)+' p.p.</strong> na performance e <strong>'+statusEv+' de '+fmtDec(Math.abs(evDelta),1)+'%</strong> no volume de eventos.</div>'+
-        '<div class="diag-line">Melhor mês operacional por eficiência: <strong>'+evolBest.m+'</strong>, com '+fmtDec(evolBest.kme||0,1)+' km/evento. Ponto de atenção: <strong>'+evolWorst.m+'</strong>, com '+fmtDec(evolWorst.kme||0,1)+' km/evento.</div>'+
-        '<div class="diag-line">No período completo, os destaques positivos são: <strong>'+driverNames(fullBW.best)+'</strong>.</div>'+
-        '<div class="diag-line">Piores desempenhos no evolutivo: <strong>'+driverNames(fullBW.worst)+'</strong>.</div>'+
+        '<div class="diag-line"><strong>Piores eventos no período:</strong> '+formatEventVolumeList(worstEvents)+'.</div>'+
+        '<div class="diag-line"><strong>Eventos com menor volume no período:</strong> '+formatEventVolumeList(bestEvents)+'.</div>'+
+        '<div class="diag-line"><strong>Melhores motoristas no período:</strong> '+driverNames(fullBW.best)+'.</div>'+
+        '<div class="diag-line"><strong>Piores motoristas no período:</strong> '+driverNames(fullBW.worst)+'.</div>'+
+      '</div>'+
+      '<div class="diag-pill-row">'+
+        '<span class="diag-pill">📅 '+periodRangeLabel()+'</span>'+
+        '<span class="diag-pill">🏁 '+fmt(full.motN)+' motoristas avaliados</span>'+
+        '<span class="diag-pill">🛣️ '+fmt(full.totKm)+' km</span>'+
       '</div>'+
     '</div>'+
     '<div class="diag-summary-card warn">'+
-      '<div class="ctitle">Diagnóstico específico '+(sc==='ALL'?'do período':'de '+sc)+'</div>'+
-      '<div class="csub">Leitura consolidada do filtro selecionado no topo.</div>'+
+      '<div class="ctitle">Resumo específico de '+esc(curLabel)+'</div>'+
+      '<div class="csub">Comparativo direto com '+esc(prevLabel)+'.</div>'+
       '<div class="diag-kpis">'+
-        '<div class="diag-kpi"><div class="diag-kpi-label">Performance</div><div class="diag-kpi-val">'+fmtDec(perfCur,2)+'%</div></div>'+
-        '<div class="diag-kpi"><div class="diag-kpi-label">Eventos</div><div class="diag-kpi-val">'+fmt(D.totEv)+'</div></div>'+
-        '<div class="diag-kpi"><div class="diag-kpi-label">KM/evento</div><div class="diag-kpi-val">'+fmtDec(kmEvent,1)+'</div></div>'+
+        '<div class="diag-kpi"><div class="diag-kpi-label">Performance</div><div class="diag-kpi-val">'+fmtDec(curPerf,2)+'%</div></div>'+
+        '<div class="diag-kpi"><div class="diag-kpi-label">Eventos</div><div class="diag-kpi-val">'+fmt(curMonthModel.totEv)+'</div></div>'+
+        '<div class="diag-kpi"><div class="diag-kpi-label">KM/evento</div><div class="diag-kpi-val">'+fmtDec(curKme,1)+'</div></div>'+
       '</div>'+
       '<div class="diag-list">'+
-        '<div class="diag-line">Principal ponto de atenção: <strong>'+(topEvent?topEvent[0]:'—')+'</strong>, com '+(topEvent?fmt(topEvent[1]):'0')+' ocorrências'+(topEvent2?'; segundo foco: <strong>'+topEvent2[0]+'</strong>, com '+fmt(topEvent2[1])+' ocorrências.':'.')+'</div>'+
-        '<div class="diag-line">Piores motoristas no filtro atual: <strong>'+driverNames(cur.worst)+'</strong>.</div>'+
-        '<div class="diag-line">Motoristas destaque no filtro atual: <strong>'+driverNames(cur.best)+'</strong>.</div>'+
-        '<div class="diag-line">Norte recomendado: priorizar orientação nos desvios com maior volume e acompanhar individualmente os motoristas com baixa performance, sem deixar de reconhecer os destaques positivos.</div>'+
+        compareLine+
+        '<div class="diag-line"><strong>Eventos que melhoraram:</strong> '+formatEventDeltaList(eventCmp.better)+'.</div>'+
+        '<div class="diag-line"><strong>Eventos que pioraram:</strong> '+formatEventDeltaList(eventCmp.worse)+'.</div>'+
+        '<div class="diag-line"><strong>Maiores altas de performance:</strong> '+formatDriverDeltaList(driverCmp.up)+'.</div>'+
+        '<div class="diag-line"><strong>Maiores quedas de performance:</strong> '+formatDriverDeltaList(driverCmp.down)+'.</div>'+
       '</div>'+
       '<div class="diag-pill-row">'+
-        '<span class="diag-pill">🚨 Atenção: '+(topEvent?topEvent[0]:'—')+'</span>'+
-        '<span class="diag-pill">🏁 '+fmt(D.motN)+' motoristas avaliados</span>'+
-        '<span class="diag-pill">🛣️ '+fmt(D.totKm)+' km</span>'+
+        '<span class="diag-pill">📅 '+esc(curLabel)+(prevMonthKey?' vs '+esc(prevLabel):'')+'</span>'+
+        '<span class="diag-pill">🚨 Pior evento: '+(curMonthModel.evRank[0]?esc(curMonthModel.evRank[0][0]):'—')+'</span>'+
+        '<span class="diag-pill">🏁 '+fmt(curMonthModel.motN)+' motoristas avaliados</span>'+
       '</div>'+
     '</div>';
 }
@@ -1891,6 +2111,14 @@ function bindEvents(){
   document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');var el=document.getElementById(b.dataset.t);if(el)el.classList.add('active');if(b.dataset.t==='mot')setMotView('resumo');if(STATE.D){var pa=calcPerf(STATE.D.totKm,STATE.D.totEv)||0;setHeroForTab(STATE.D,pa)}window.scrollTo({top:0,behavior:'smooth'})})});
   document.getElementById('sectorSel').addEventListener('change',function(){STATE.setor=this.value;STATE.selEvent=null;applySetor()});
   document.getElementById('monthSel').addEventListener('change',function(){STATE.scope=this.value;buildRender()});
+  document.querySelectorAll('#setorMetricToggle .view-flag').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      STATE.setorMetric=btn.dataset.metric||'perf';
+      document.querySelectorAll('#setorMetricToggle .view-flag').forEach(function(b){b.classList.remove('active')});
+      btn.classList.add('active');
+      renderSetorChart(STATE.full);
+    });
+  });
   ['q'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',renderTable)});
   // toggle resumo/detalhado
   document.querySelectorAll('.perf-btn[data-view]').forEach(function(btn){
