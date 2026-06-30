@@ -1756,8 +1756,8 @@ header .msel.locked-filter{
 .op-kpi-delta.neutral{color:var(--muted)}
 .op-columns{
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:12px;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
   align-items:stretch;
 }
 .op-col{
@@ -1775,7 +1775,7 @@ header .msel.locked-filter{
   align-items:center;
   gap:10px;
   min-height:46px;
-  padding:12px 15px;
+  padding:12px 12px;
   background:linear-gradient(180deg,#038b85,#007d78);
   color:#fff;
 }
@@ -1798,7 +1798,7 @@ header .msel.locked-filter{
   flex:0 0 22px;
 }
 .op-col-title{
-  font-size:11.2px;
+  font-size:10.4px;
   font-weight:900;
   letter-spacing:.06em;
   text-transform:uppercase;
@@ -1807,7 +1807,7 @@ header .msel.locked-filter{
 .op-list{
   display:grid;
   gap:0;
-  padding:13px 15px 54px;
+  padding:12px 12px 54px;
   flex:1;
 }
 .op-row{
@@ -1819,7 +1819,7 @@ header .msel.locked-filter{
 }
 .op-row:last-child{border-bottom:none}
 .op-name{
-  font-size:12.6px;
+  font-size:12px;
   font-weight:900;
   color:var(--ink);
   line-height:1.25;
@@ -1836,7 +1836,7 @@ header .msel.locked-filter{
 .op-submeta{
   grid-column:1/-1;
   margin-top:-2px;
-  font-size:11.4px;
+  font-size:11px;
   line-height:1.3;
   color:#587775;
   font-weight:600;
@@ -1878,10 +1878,15 @@ header .msel.locked-filter{
   stroke-linecap:round;
   stroke-linejoin:round;
 }
+@media(max-width:1250px){
+  .op-columns{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 @media(max-width:1100px){
   .op-kpi-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
   .op-kpi:nth-child(2){border-right:none}
   .op-kpi:nth-child(1),.op-kpi:nth-child(2){border-bottom:1px solid #d9eaea}
+}
+@media(max-width:760px){
   .op-columns{grid-template-columns:1fr}
 }
 @media(max-width:640px){
@@ -2670,8 +2675,8 @@ function renderDiag(){
       return {nome:e,cur:c,prev:p,delta:c-p,pct:signedPct(c,p)};
     }).filter(function(x){return x.cur>0||x.prev>0});
     return {
-      better:arr.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,3),
-      worse:arr.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,3)
+      better:arr.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,4),
+      worse:arr.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,4)
     };
   }
 
@@ -2688,8 +2693,8 @@ function renderDiag(){
       out.push({nome:nome,cur:c.perfStd,prev:p.perfStd,delta:delta,pct:signedPct(c.perfStd,p.perfStd)});
     });
     return {
-      up:out.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,2),
-      down:out.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,3)
+      up:out.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,4),
+      down:out.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,4)
     };
   }
 
@@ -2711,13 +2716,10 @@ function renderDiag(){
 
   var ev=eventChanges();
   var drv=driverChanges();
-  var positiveHtml='';
-  ev.better.slice(0,2).forEach(function(x){positiveHtml+=eventRow(x,'good')});
-  drv.up.slice(0,1).forEach(function(x){positiveHtml+=driverRow(x,'good',true)});
-  if(!positiveHtml)positiveHtml=emptyRow('Sem destaque positivo no comparativo.');
-
-  var worseHtml=ev.worse.map(function(x){return eventRow(x,'bad')}).join('')||emptyRow('Sem eventos em piora no comparativo.');
-  var alertHtml=drv.down.map(function(x){return driverRow(x,'bad')}).join('')||emptyRow('Sem motoristas em alerta no mês.');
+  var betterEventsHtml=ev.better.map(function(x){return eventRow(x,'good')}).join('')||emptyRow('Sem eventos com melhora no comparativo.');
+  var worseEventsHtml=ev.worse.map(function(x){return eventRow(x,'bad')}).join('')||emptyRow('Sem eventos em piora no comparativo.');
+  var driverUpHtml=drv.up.map(function(x){return driverRow(x,'good')}).join('')||emptyRow('Sem motoristas com melhora comparável.');
+  var driverDownHtml=drv.down.map(function(x){return driverRow(x,'bad')}).join('')||emptyRow('Sem motoristas com piora comparável.');
 
   document.getElementById('diagGrid').innerHTML=
     '<div class="op-resumo-card">'+
@@ -2749,10 +2751,11 @@ function renderDiag(){
         '</div>'+
       '</div>'+
 
-      '<div class="op-columns">'+
-        '<div class="op-col good"><div class="op-col-head"><span class="op-col-ico">↗</span><div class="op-col-title">Destaques positivos</div></div><div class="op-list">'+positiveHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div></div>'+
-        '<div class="op-col bad"><div class="op-col-head"><span class="op-col-ico">⌁</span><div class="op-col-title">Eventos que pioraram</div></div><div class="op-list">'+worseHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 4.2L2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/></svg></div></div>'+
-        '<div class="op-col alert"><div class="op-col-head"><span class="op-col-ico">♙</span><div class="op-col-title">Motoristas em alerta</div></div><div class="op-list">'+alertHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div></div>'+
+      '<div class="op-columns op-columns-4">'+
+        '<div class="op-col good"><div class="op-col-head"><span class="op-col-ico">↘</span><div class="op-col-title">Eventos que melhoraram</div></div><div class="op-list">'+betterEventsHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div></div>'+
+        '<div class="op-col bad"><div class="op-col-head"><span class="op-col-ico">↗</span><div class="op-col-title">Eventos que pioraram</div></div><div class="op-list">'+worseEventsHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 4.2L2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/></svg></div></div>'+
+        '<div class="op-col good"><div class="op-col-head"><span class="op-col-ico">♙</span><div class="op-col-title">Motoristas com maior variação de melhora</div></div><div class="op-list">'+driverUpHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div></div>'+
+        '<div class="op-col bad"><div class="op-col-head"><span class="op-col-ico">!</span><div class="op-col-title">Motoristas com pior variação de melhora</div></div><div class="op-list">'+driverDownHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 4.2L2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/></svg></div></div>'+
       '</div>'+
     '</div>';
 }
