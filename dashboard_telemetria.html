@@ -1613,6 +1613,285 @@ header .msel.locked-filter{
   background-size:100% 100%, 14px 14px !important;
 }
 
+
+/* ===== MODELO CARD BRANCO - RESUMO OPERACIONAL ESTILO GERENCIAL ===== */
+#diag .stitle{
+  margin-bottom:14px !important;
+  font-weight:800 !important;
+  color:#102927 !important;
+}
+#diag .diag-summary-grid{
+  display:block !important;
+  width:100% !important;
+}
+.op-resumo-card{
+  position:relative;
+  overflow:hidden;
+  width:100%;
+  border:1px solid var(--line);
+  border-top:4px solid var(--teal);
+  border-radius:14px;
+  background:linear-gradient(180deg,#ffffff 0%,#fbfefe 78%,#f7fbfb 100%);
+  box-shadow:0 1px 2px rgba(0,49,47,.04),0 10px 28px rgba(0,49,47,.08);
+  padding:22px 22px 30px;
+  isolation:isolate;
+}
+.op-resumo-card::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:118px;
+  opacity:.55;
+  z-index:0;
+  pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='1200' height='160' viewBox='0 0 1200 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke-linecap='round'%3E%3Cpath d='M0 104 C150 42 260 142 405 84 C550 26 676 142 820 88 C965 34 1055 88 1200 50' stroke='%2300A19B' stroke-opacity='.18'/%3E%3Cpath d='M0 118 C160 56 270 150 420 96 C565 44 688 154 832 100 C970 48 1070 104 1200 68' stroke='%2300A19B' stroke-opacity='.15'/%3E%3Cpath d='M0 132 C150 76 290 146 438 112 C586 78 706 154 852 118 C992 84 1080 126 1200 92' stroke='%23EA0029' stroke-opacity='.13'/%3E%3Cpath d='M0 144 C160 96 300 152 450 126 C600 100 728 154 866 132 C1000 110 1090 140 1200 114' stroke='%23EA0029' stroke-opacity='.10'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:center bottom;
+  background-size:100% 100%;
+}
+.op-resumo-card>*{position:relative;z-index:1}
+.op-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:18px;
+}
+.op-eyebrow{
+  font-size:12px;
+  font-weight:900;
+  color:var(--teal-d);
+  margin-bottom:4px;
+}
+.op-title{
+  font-size:20px;
+  line-height:1.16;
+  font-weight:900;
+  color:var(--ink);
+  margin-bottom:4px;
+}
+.op-subtitle{
+  font-size:12.5px;
+  color:var(--muted);
+  font-weight:600;
+}
+.op-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border:1px solid var(--line);
+  background:#f8fcfc;
+  color:#52706e;
+  border-radius:999px;
+  padding:7px 13px;
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.op-kpi-strip{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  border:1px solid #cfe4e3;
+  border-radius:14px;
+  background:rgba(255,255,255,.82);
+  overflow:hidden;
+  box-shadow:0 6px 18px rgba(0,49,47,.04);
+  margin-bottom:14px;
+}
+.op-kpi{
+  min-height:88px;
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:14px 16px;
+  border-right:1px solid #d9eaea;
+}
+.op-kpi:last-child{border-right:none}
+.op-kpi-icon{
+  width:48px;
+  height:48px;
+  flex:0 0 48px;
+  border:1.7px solid var(--teal-d);
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  color:var(--teal-d);
+  background:linear-gradient(180deg,#ffffff,#f0fbfa);
+}
+.op-kpi-icon svg{
+  width:26px;
+  height:26px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.op-kpi-label{
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.08em;
+  color:#557572;
+  text-transform:uppercase;
+  line-height:1.15;
+}
+.op-kpi-value{
+  font-family:var(--mono);
+  font-size:25px;
+  line-height:1;
+  font-weight:900;
+  color:var(--ink);
+  margin-top:5px;
+}
+.op-kpi-delta{
+  font-size:11.5px;
+  font-weight:900;
+  margin-top:5px;
+}
+.op-kpi-delta.good{color:var(--teal-d)}
+.op-kpi-delta.bad{color:var(--red)}
+.op-kpi-delta.neutral{color:var(--muted)}
+.op-columns{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  align-items:stretch;
+}
+.op-col{
+  min-height:255px;
+  border:1px solid #d5e8e7;
+  border-radius:13px;
+  background:rgba(255,255,255,.86);
+  overflow:hidden;
+  box-shadow:0 5px 16px rgba(0,49,47,.045);
+  display:flex;
+  flex-direction:column;
+}
+.op-col-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:46px;
+  padding:12px 15px;
+  background:linear-gradient(180deg,#038b85,#007d78);
+  color:#fff;
+}
+.op-col.bad .op-col-head,
+.op-col.alert .op-col-head{
+  background:linear-gradient(180deg,#b3001b,#850014);
+}
+.op-col.alert .op-col-head{
+  background:linear-gradient(180deg,#073d3d,#042929);
+}
+.op-col-ico{
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.45);
+  font-size:13px;
+  line-height:1;
+  flex:0 0 22px;
+}
+.op-col-title{
+  font-size:11.2px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  line-height:1.15;
+}
+.op-list{
+  display:grid;
+  gap:0;
+  padding:13px 15px 54px;
+  flex:1;
+}
+.op-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  padding:8px 0 9px;
+  border-bottom:1px solid rgba(213,232,231,.74);
+}
+.op-row:last-child{border-bottom:none}
+.op-name{
+  font-size:12.6px;
+  font-weight:900;
+  color:var(--ink);
+  line-height:1.25;
+}
+.op-meta{
+  font-family:var(--mono);
+  font-size:12px;
+  font-weight:900;
+  text-align:right;
+  white-space:nowrap;
+}
+.op-row.good .op-meta{color:var(--teal-d)}
+.op-row.bad .op-meta{color:var(--red)}
+.op-submeta{
+  grid-column:1/-1;
+  margin-top:-2px;
+  font-size:11.4px;
+  line-height:1.3;
+  color:#587775;
+  font-weight:600;
+}
+.op-empty{
+  padding:10px 0;
+  font-size:12.5px;
+  color:var(--muted);
+  font-weight:800;
+}
+.op-col-mark{
+  position:absolute;
+  left:50%;
+  bottom:16px;
+  transform:translateX(-50%);
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:rgba(0,161,155,.09);
+  border:1px solid rgba(0,161,155,.18);
+  color:var(--teal-d);
+  box-shadow:0 8px 18px rgba(0,49,47,.06);
+}
+.op-col.bad .op-col-mark,
+.op-col.alert .op-col-mark{
+  background:rgba(234,0,41,.08);
+  border-color:rgba(234,0,41,.18);
+  color:var(--red);
+}
+.op-col{position:relative}
+.op-col-mark svg{
+  width:26px;
+  height:26px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+@media(max-width:1100px){
+  .op-kpi-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .op-kpi:nth-child(2){border-right:none}
+  .op-kpi:nth-child(1),.op-kpi:nth-child(2){border-bottom:1px solid #d9eaea}
+  .op-columns{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .op-resumo-card{padding:18px 14px 28px}
+  .op-head{flex-direction:column}
+  .op-kpi-strip{grid-template-columns:1fr}
+  .op-kpi{border-right:none;border-bottom:1px solid #d9eaea}
+  .op-kpi:last-child{border-bottom:none}
+}
+
 </style>
 </head>
 <body>
@@ -2348,15 +2627,8 @@ function renderDiag(){
     if(prev==null||prev===0)return null;
     return ((curr-prev)/Math.abs(prev))*100;
   }
-  function signedAbs(n){
-    return (n>0?'+':'')+fmt(n);
-  }
-  function signedDec(n,d){
-    return (n>0?'+':'')+fmtDec(n,d);
-  }
-  function pctText(p){
-    return p==null?'—':(p>0?'+':'')+fmtDec(p,1)+'%';
-  }
+  function signedAbs(n){return (n>0?'+':'')+fmt(n)}
+  function signedDec(n,d){return (n>0?'+':'')+fmtDec(n,d)}
   function pctArrow(p){
     if(p==null)return '—';
     if(p>0)return '↑ +'+fmtDec(p,1)+'%';
@@ -2368,11 +2640,6 @@ function renderDiag(){
     var good=invert ? v<0 : v>0;
     var bad=invert ? v>0 : v<0;
     return good?'good':bad?'bad':'neutral';
-  }
-  function trendIcon(v,invert){
-    if(v==null||v===0)return '→';
-    var good=invert ? v<0 : v>0;
-    return good?'▲':'▼';
   }
 
   var months=monthKeysWithData(full);
@@ -2392,7 +2659,6 @@ function renderDiag(){
   var prevPerf=prev?(calcPerf(prev.totKm,prev.totEv)||0):null;
   var curKme=kmPorEvento(cur.totKm,cur.totEv);
   var prevKme=prev?kmPorEvento(prev.totKm,prev.totEv):null;
-
   var perfPct=signedPct(curPerf,prevPerf);
   var evPct=prev?signedPct(cur.totEv,prev.totEv):null;
   var kmePct=prev?signedPct(curKme,prevKme):null;
@@ -2404,8 +2670,8 @@ function renderDiag(){
       return {nome:e,cur:c,prev:p,delta:c-p,pct:signedPct(c,p)};
     }).filter(function(x){return x.cur>0||x.prev>0});
     return {
-      better:arr.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,4),
-      worse:arr.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,4)
+      better:arr.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,3),
+      worse:arr.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,3)
     };
   }
 
@@ -2422,72 +2688,72 @@ function renderDiag(){
       out.push({nome:nome,cur:c.perfStd,prev:p.perfStd,delta:delta,pct:signedPct(c.perfStd,p.perfStd)});
     });
     return {
-      up:out.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,4),
-      down:out.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,4)
+      up:out.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,2),
+      down:out.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,3)
     };
   }
 
-  function eventRows(arr,kind){
-    if(!arr.length)return '<div class="month-empty">Sem variação relevante no comparativo.</div>';
-    return arr.map(function(x){
-      return '<div class="month-row '+kind+'">'+
-        '<div class="name">'+esc(x.nome)+'</div>'+
-        '<div class="meta">'+pctArrow(x.pct)+'</div>'+
-        '<div class="submeta">'+signedAbs(x.delta)+' ocorrências · atual: '+fmt(x.cur)+' · anterior: '+fmt(x.prev)+'</div>'+
-      '</div>';
-    }).join('');
+  function eventRow(x,kind){
+    return '<div class="op-row '+kind+'">'+
+      '<div class="op-name">'+esc(x.nome)+'</div>'+
+      '<div class="op-meta">'+pctArrow(x.pct)+'</div>'+
+      '<div class="op-submeta">'+signedAbs(x.delta)+' ocorrências</div>'+
+    '</div>';
   }
-
-  function driverRows(arr,kind){
-    if(!arr.length)return '<div class="month-empty">Sem variação comparável no mês.</div>';
-    return arr.map(function(x){
-      return '<div class="month-row '+kind+'">'+
-        '<div class="name">'+esc(x.nome)+'</div>'+
-        '<div class="meta">'+pctArrow(x.pct)+'</div>'+
-        '<div class="submeta">'+signedDec(x.delta,2)+' p.p. · atual: '+fmtDec(x.cur,2)+'% · anterior: '+fmtDec(x.prev,2)+'%</div>'+
-      '</div>';
-    }).join('');
+  function driverRow(x,kind,compact){
+    return '<div class="op-row '+kind+'">'+
+      '<div class="op-name">'+esc(x.nome)+'</div>'+
+      '<div class="op-meta">'+pctArrow(x.pct)+'</div>'+
+      '<div class="op-submeta">'+signedDec(x.delta,2)+' p.p. · atual: '+fmtDec(x.cur,2)+'%</div>'+
+    '</div>';
   }
+  function emptyRow(txt){return '<div class="op-empty">'+esc(txt)+'</div>'}
 
   var ev=eventChanges();
   var drv=driverChanges();
+  var positiveHtml='';
+  ev.better.slice(0,2).forEach(function(x){positiveHtml+=eventRow(x,'good')});
+  drv.up.slice(0,1).forEach(function(x){positiveHtml+=driverRow(x,'good',true)});
+  if(!positiveHtml)positiveHtml=emptyRow('Sem destaque positivo no comparativo.');
+
+  var worseHtml=ev.worse.map(function(x){return eventRow(x,'bad')}).join('')||emptyRow('Sem eventos em piora no comparativo.');
+  var alertHtml=drv.down.map(function(x){return driverRow(x,'bad')}).join('')||emptyRow('Sem motoristas em alerta no mês.');
 
   document.getElementById('diagGrid').innerHTML=
-    '<div class="diag-summary-card month-only">'+
-      '<div class="month-summary-head">'+
-        '<div class="month-summary-title">'+
-          '<div class="ctitle">Resumo operacional de '+esc(curLabel)+'</div>'+
-          '<div class="csub">'+(prev?'Comparativo direto com '+esc(prevLabel)+'.':'Sem mês anterior disponível para comparação.')+'</div>'+
+    '<div class="op-resumo-card">'+
+      '<div class="op-head">'+
+        '<div>'+
+          '<div class="op-eyebrow">Resumo operacional</div>'+
+          '<div class="op-title">Resumo operacional de '+esc(curLabel)+'</div>'+
+          '<div class="op-subtitle">'+(prev?'Comparativo direto com '+esc(prevLabel)+'.':'Sem mês anterior disponível para comparação.')+'</div>'+
         '</div>'+
-        '<div class="month-summary-badge">📅 '+esc(curLabel)+(prev?' vs '+esc(prevLabel):'')+'</div>'+
+        '<div class="op-badge">▣ '+esc(curLabel)+(prev?' vs '+esc(prevLabel):'')+'</div>'+
       '</div>'+
 
-      '<div class="month-kpis">'+
-        '<div class="month-kpi">'+
-          '<div class="month-kpi-label">Performance</div>'+
-          '<div class="month-kpi-value">'+fmtDec(curPerf,2)+'%</div>'+
-          '<div class="month-kpi-delta '+trendClass(perfPct,false)+'">'+pctArrow(perfPct)+' vs '+esc(prevLabel)+'</div>'+
+      '<div class="op-kpi-strip">'+
+        '<div class="op-kpi">'+
+          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 16l4-4 3 3 5-7"/><path d="M18 8h-4"/><path d="M18 8v4"/></svg></span>'+
+          '<div><div class="op-kpi-label">Performance</div><div class="op-kpi-value">'+fmtDec(curPerf,2)+'%</div><div class="op-kpi-delta '+trendClass(perfPct,false)+'">'+pctArrow(perfPct)+' vs '+esc(prevLabel)+'</div></div>'+
         '</div>'+
-        '<div class="month-kpi">'+
-          '<div class="month-kpi-label">Eventos</div>'+
-          '<div class="month-kpi-value">'+fmt(cur.totEv)+'</div>'+
-          '<div class="month-kpi-delta '+trendClass(evPct,true)+'">'+pctArrow(evPct)+' vs '+esc(prevLabel)+'</div>'+
+        '<div class="op-kpi">'+
+          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3v4"/><path d="M16 3v4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16"/><path d="M9 14h.01"/><path d="M13 14h.01"/><path d="M17 14h.01"/></svg></span>'+
+          '<div><div class="op-kpi-label">Eventos</div><div class="op-kpi-value">'+fmt(cur.totEv)+'</div><div class="op-kpi-delta '+trendClass(evPct,true)+'">'+pctArrow(evPct)+' vs '+esc(prevLabel)+'</div></div>'+
         '</div>'+
-        '<div class="month-kpi">'+
-          '<div class="month-kpi-label">KM/evento</div>'+
-          '<div class="month-kpi-value">'+fmtDec(curKme,1)+'</div>'+
-          '<div class="month-kpi-delta '+trendClass(kmePct,false)+'">'+pctArrow(kmePct)+' vs '+esc(prevLabel)+'</div>'+
+        '<div class="op-kpi">'+
+          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 20l4-16"/><path d="M14 4l4 16"/><path d="M12 4v16"/><path d="M8.5 12h7"/><path d="M7.2 17h9.6"/></svg></span>'+
+          '<div><div class="op-kpi-label">KM/evento</div><div class="op-kpi-value">'+fmtDec(curKme,1)+'</div><div class="op-kpi-delta '+trendClass(kmePct,false)+'">'+pctArrow(kmePct)+' vs '+esc(prevLabel)+'</div></div>'+
+        '</div>'+
+        '<div class="op-kpi">'+
+          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></span>'+
+          '<div><div class="op-kpi-label">Motoristas ativos</div><div class="op-kpi-value">'+fmt(cur.motN)+'</div><div class="op-kpi-delta neutral">No período</div></div>'+
         '</div>'+
       '</div>'+
 
-      '<div class="month-insight-grid">'+
-        '<div class="month-card good"><div class="month-card-title">Eventos que melhoraram</div><div class="month-list">'+eventRows(ev.better,'good')+'</div></div>'+
-        '<div class="month-card bad"><div class="month-card-title">Eventos que pioraram</div><div class="month-list">'+eventRows(ev.worse,'bad')+'</div></div>'+
-        '<div class="month-card good"><div class="month-card-title">Motoristas com maior melhora</div><div class="month-list">'+driverRows(drv.up,'good')+'</div></div>'+
-        '<div class="month-card bad"><div class="month-card-title">Motoristas com maior piora</div><div class="month-list">'+driverRows(drv.down,'bad')+'</div></div>'+
+      '<div class="op-columns">'+
+        '<div class="op-col good"><div class="op-col-head"><span class="op-col-ico">↗</span><div class="op-col-title">Destaques positivos</div></div><div class="op-list">'+positiveHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div></div>'+
+        '<div class="op-col bad"><div class="op-col-head"><span class="op-col-ico">⌁</span><div class="op-col-title">Eventos que pioraram</div></div><div class="op-list">'+worseHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 4.2L2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/></svg></div></div>'+
+        '<div class="op-col alert"><div class="op-col-head"><span class="op-col-ico">♙</span><div class="op-col-title">Motoristas em alerta</div></div><div class="op-list">'+alertHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div></div>'+
       '</div>'+
-
-
     '</div>';
 }
 var TBL={D:null,sortK:'activePerf',sortDir:-1};
