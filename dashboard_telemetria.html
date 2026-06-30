@@ -2675,8 +2675,8 @@ function renderDiag(){
       return {nome:e,cur:c,prev:p,delta:c-p,pct:signedPct(c,p)};
     }).filter(function(x){return x.cur>0||x.prev>0});
     return {
-      better:arr.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,4),
-      worse:arr.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,4)
+      better:arr.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,3),
+      worse:arr.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,3)
     };
   }
 
@@ -2732,30 +2732,11 @@ function renderDiag(){
         '<div class="op-badge">▣ '+esc(curLabel)+(prev?' vs '+esc(prevLabel):'')+'</div>'+
       '</div>'+
 
-      '<div class="op-kpi-strip">'+
-        '<div class="op-kpi">'+
-          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 16l4-4 3 3 5-7"/><path d="M18 8h-4"/><path d="M18 8v4"/></svg></span>'+
-          '<div><div class="op-kpi-label">Performance</div><div class="op-kpi-value">'+fmtDec(curPerf,2)+'%</div><div class="op-kpi-delta '+trendClass(perfPct,false)+'">'+pctArrow(perfPct)+' vs '+esc(prevLabel)+'</div></div>'+
-        '</div>'+
-        '<div class="op-kpi">'+
-          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3v4"/><path d="M16 3v4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16"/><path d="M9 14h.01"/><path d="M13 14h.01"/><path d="M17 14h.01"/></svg></span>'+
-          '<div><div class="op-kpi-label">Eventos</div><div class="op-kpi-value">'+fmt(cur.totEv)+'</div><div class="op-kpi-delta '+trendClass(evPct,true)+'">'+pctArrow(evPct)+' vs '+esc(prevLabel)+'</div></div>'+
-        '</div>'+
-        '<div class="op-kpi">'+
-          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 20l4-16"/><path d="M14 4l4 16"/><path d="M12 4v16"/><path d="M8.5 12h7"/><path d="M7.2 17h9.6"/></svg></span>'+
-          '<div><div class="op-kpi-label">KM/evento</div><div class="op-kpi-value">'+fmtDec(curKme,1)+'</div><div class="op-kpi-delta '+trendClass(kmePct,false)+'">'+pctArrow(kmePct)+' vs '+esc(prevLabel)+'</div></div>'+
-        '</div>'+
-        '<div class="op-kpi">'+
-          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></span>'+
-          '<div><div class="op-kpi-label">Motoristas ativos</div><div class="op-kpi-value">'+fmt(cur.motN)+'</div><div class="op-kpi-delta neutral">No período</div></div>'+
-        '</div>'+
-      '</div>'+
-
       '<div class="op-columns op-columns-4">'+
         '<div class="op-col good"><div class="op-col-head"><span class="op-col-ico">↘</span><div class="op-col-title">Eventos que melhoraram</div></div><div class="op-list">'+betterEventsHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div></div>'+
         '<div class="op-col bad"><div class="op-col-head"><span class="op-col-ico">↗</span><div class="op-col-title">Eventos que pioraram</div></div><div class="op-list">'+worseEventsHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 4.2L2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/></svg></div></div>'+
-        '<div class="op-col good"><div class="op-col-head"><span class="op-col-ico">♙</span><div class="op-col-title">Motoristas com maior variação de melhora</div></div><div class="op-list">'+driverUpHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div></div>'+
-        '<div class="op-col bad"><div class="op-col-head"><span class="op-col-ico">!</span><div class="op-col-title">Motoristas com pior variação de melhora</div></div><div class="op-list">'+driverDownHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 4.2L2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/></svg></div></div>'+
+        '<div class="op-col good"><div class="op-col-head"><span class="op-col-ico">♙</span><div class="op-col-title">Motorista com maior variação positiva</div></div><div class="op-list">'+driverUpHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div></div>'+
+        '<div class="op-col bad"><div class="op-col-head"><span class="op-col-ico">!</span><div class="op-col-title">Motorista com maior variação negativa</div></div><div class="op-list">'+driverDownHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 4.2L2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/></svg></div></div>'+
       '</div>'+
     '</div>';
 }
