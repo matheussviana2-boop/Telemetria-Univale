@@ -1712,8 +1712,8 @@ header .msel.locked-filter{
           <div id="top5devCard"></div>
         </div>
         <div class="card" id="setorCard">
-          <div class="card-topbar"><div class="ctitle" id="setorCardTitle">Comparativo por setor</div><div class="period-badge" id="setorCardPeriod">Todos os meses</div></div>
-          <div class="csub" id="setorCardSub">Performance e eficiência de cada setor no período.</div>
+          <div class="card-topbar"><div class="ctitle" id="setorCardTitle">Ranking de performance por setor</div><div class="period-badge" id="setorCardPeriod">Todos os meses</div></div>
+          <div class="csub" id="setorCardSub">Setores ordenados pela performance no período.</div>
           <div class="cbox" style="height:320px"><canvas id="cSetor"></canvas></div>
         </div>
       </div>
@@ -2132,11 +2132,16 @@ function renderSetorChart(full){
     var o=ss[s]||(ss[s]={km:0,ev:0});
     o.km+=+r.KM||0; o.ev+=+r.PONTUACAO||0;
   });
-  var setores=Object.keys(ss).sort();
-  var perfs=setores.map(function(s){return ss[s].km?parseFloat(calcPerf(ss[s].km,ss[s].ev).toFixed(2)):0});
-  var kmes=setores.map(function(s){return ss[s].ev?Math.round(ss[s].km/ss[s].ev*10)/10:0});
-  var lbls=setores.map(function(s){return SLABELS[s]||s});
-  if(typeof Chart==='undefined')return;
+  var items=Object.keys(ss).map(function(s){
+    var km=ss[s].km||0;
+    var ev=ss[s].ev||0;
+    var perf=km?parseFloat(calcPerf(km,ev).toFixed(2)):0;
+    var kme=ev?Math.round(km/ev*10)/10:0;
+    return {setor:s,label:SLABELS[s]||s,perf:perf,kme:kme,km:km,ev:ev};
+  }).sort(function(a,b){return b.perf-a.perf || b.kme-a.kme || a.label.localeCompare(b.label)});
+  if(!items.length||typeof Chart==='undefined')return;
+  var lbls=items.map(function(i){return i.label});
+  var perfs=items.map(function(i){return i.perf});
   var perfColors=perfs.map(function(p){
     if(p<0)return 'rgba(234,0,41,.78)';
     if(p<50)return 'rgba(230,126,34,.82)';
@@ -2144,19 +2149,51 @@ function renderSetorChart(full){
     return 'rgba(0,161,155,.82)';
   });
   var minPerf=Math.min.apply(null,perfs.concat([0]));
-  var yMin=minPerf<0?Math.floor(minPerf/10)*10:0;
+  var xMin=minPerf<0?Math.floor(minPerf/10)*10:0;
   CH['cSetor']=new Chart(el,{
     type:'bar',
     data:{labels:lbls,datasets:[
-      {label:'Performance %',data:perfs,backgroundColor:perfColors,borderRadius:4,yAxisID:'y'},
-      {label:'KM/Evento',data:kmes,backgroundColor:'rgba(16,207,201,.55)',borderRadius:4,yAxisID:'y1'}
+      {label:'Performance',data:perfs,backgroundColor:perfColors,borderRadius:8,borderSkipped:false,barThickness:18,maxBarThickness:22}
     ]},
-    options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}}},
+    options:{
+      indexAxis:'y',
+      maintainAspectRatio:false,
+      layout:{padding:{right:10}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          label:function(ctx){var r=items[ctx.dataIndex];return 'Performance: '+fmtDec(r.perf,1)+'%';},
+          afterLabel:function(ctx){var r=items[ctx.dataIndex];return 'KM/Evento: '+fmtDec(r.kme,1);}
+        }}
+      },
       scales:{
-        x:{grid:{display:false},ticks:{font:{size:10},maxRotation:35,minRotation:25}},
-        y:{title:{display:true,text:'performance %'},min:yMin,max:100,ticks:{stepSize:10},grid:{color:'#eef4f3'}},
-        y1:{position:'right',title:{display:true,text:'km/evento'},min:0,beginAtZero:true,grid:{drawOnChartArea:false}}
-      }}
+        x:{title:{display:true,text:'Performance %'},min:xMin,max:100,ticks:{stepSize:10,callback:function(v){return v+'%'}},grid:{color:'#eef4f3'}},
+        y:{grid:{display:false},ticks:{font:{size:11,weight:'600'},color:'#5b7a78'}}
+      }
+    },
+    plugins:[{
+      id:'setorPerfValueLabels',
+      afterDatasetsDraw:function(chart){
+        var ctx=chart.ctx, meta=chart.getDatasetMeta(0), area=chart.chartArea;
+        ctx.save();
+        ctx.font='700 11px Inter, sans-serif';
+        ctx.textBaseline='middle';
+        meta.data.forEach(function(bar,i){
+          var v=chart.data.datasets[0].data[i];
+          var txt=fmtDec(v,1).replace(',0','').replace('.0','')+'%';
+          if(bar.x>area.right-46){
+            ctx.fillStyle='#fff';
+            ctx.textAlign='right';
+            ctx.fillText(txt,bar.x-8,bar.y);
+          }else{
+            ctx.fillStyle='#0b1f1e';
+            ctx.textAlign='left';
+            ctx.fillText(txt,bar.x+8,bar.y);
+          }
+        });
+        ctx.restore();
+      }
+    }]
   });
 }
 function render(){
