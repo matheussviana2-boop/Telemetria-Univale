@@ -3917,6 +3917,12 @@ header h1{
   grid-template-columns:repeat(3,minmax(0,1fr)) !important;
   gap:18px !important;
 }</style>
+
+<style id="cc-op4">
+.op-columns.op-columns-4{display:grid !important;grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:14px !important;}
+@media(max-width:1100px){.op-columns.op-columns-4{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}}
+@media(max-width:640px){.op-columns.op-columns-4{grid-template-columns:1fr !important;}}
+</style>
 </head>
 <body>
 <header>
@@ -4719,7 +4725,7 @@ function renderDiag(){
       out.push({nome:nome,cur:c.perfStd,prev:p.perfStd,delta:delta,pct:signedPct(c.perfStd,p.perfStd)});
     });
     return {
-      up:out.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,2),
+      up:out.filter(function(x){return x.delta>0}).sort(function(a,b){return b.delta-a.delta}).slice(0,3),
       down:out.filter(function(x){return x.delta<0}).sort(function(a,b){return a.delta-b.delta}).slice(0,3)
     };
   }
@@ -4742,13 +4748,10 @@ function renderDiag(){
 
   var ev=eventChanges();
   var drv=driverChanges();
-  var positiveHtml='';
-  ev.better.slice(0,2).forEach(function(x){positiveHtml+=eventRow(x,'good')});
-  drv.up.slice(0,1).forEach(function(x){positiveHtml+=driverRow(x,'good',true)});
-  if(!positiveHtml)positiveHtml=emptyRow('Sem destaque positivo no comparativo.');
-
-  var worseHtml=ev.worse.map(function(x){return eventRow(x,'bad')}).join('')||emptyRow('Sem eventos em piora no comparativo.');
-  var alertHtml=drv.down.map(function(x){return driverRow(x,'bad')}).join('')||emptyRow('Sem motoristas em alerta no mês.');
+  var evBestHtml=ev.better.slice(0,3).map(function(x){return eventRow(x,'good')}).join('')||emptyRow('Sem eventos em melhora no comparativo.');
+  var evWorseHtml=ev.worse.slice(0,3).map(function(x){return eventRow(x,'bad')}).join('')||emptyRow('Sem eventos em piora no comparativo.');
+  var drvUpHtml=drv.up.slice(0,3).map(function(x){return driverRow(x,'good',true)}).join('')||emptyRow('Sem motoristas em melhora no comparativo.');
+  var drvDownHtml=drv.down.slice(0,3).map(function(x){return driverRow(x,'bad')}).join('')||emptyRow('Sem motoristas em alerta no mês.');
 
   document.getElementById('diagGrid').innerHTML=
     '<div class="op-resumo-card">'+
@@ -4780,10 +4783,11 @@ function renderDiag(){
         '</div>'+
       '</div>'+
 
-      '<div class="op-columns">'+
-        '<div class="op-col good"><div class="op-col-head"><span class="op-col-ico">↗</span><div class="op-col-title">Destaques positivos</div></div><div class="op-list">'+positiveHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div></div>'+
-        '<div class="op-col bad"><div class="op-col-head"><span class="op-col-ico">⌁</span><div class="op-col-title">Eventos que pioraram</div></div><div class="op-list">'+worseHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 4.2L2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/></svg></div></div>'+
-        '<div class="op-col alert"><div class="op-col-head"><span class="op-col-ico">♙</span><div class="op-col-title">Motoristas em alerta</div></div><div class="op-list">'+alertHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div></div>'+
+      '<div class="op-columns op-columns-4">'+
+        '<div class="op-col good"><div class="op-col-head"><span class="op-col-ico">↗</span><div class="op-col-title">Eventos que melhoraram</div></div><div class="op-list">'+evBestHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div></div>'+
+        '<div class="op-col bad"><div class="op-col-head"><span class="op-col-ico">⌁</span><div class="op-col-title">Eventos que pioraram</div></div><div class="op-list">'+evWorseHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 4.2L2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/></svg></div></div>'+
+        '<div class="op-col good"><div class="op-col-head"><span class="op-col-ico">▲</span><div class="op-col-title">Motoristas em evolução</div></div><div class="op-list">'+drvUpHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></div></div>'+
+        '<div class="op-col alert"><div class="op-col-head"><span class="op-col-ico">♙</span><div class="op-col-title">Motoristas em alerta</div></div><div class="op-list">'+drvDownHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div></div>'+
       '</div>'+
     '</div>';
 }
@@ -5132,6 +5136,21 @@ document.addEventListener('DOMContentLoaded',loadSheet);
       span.innerHTML = svg;
       el.appendChild(span);
     });
+  }
+  apply();
+  new MutationObserver(apply).observe(document.body,{subtree:true,childList:true});
+})();
+</script>
+
+<script>
+(function(){
+  // KM Total: estrada em perspectiva
+  var road = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21 L10 3"/><path d="M20 21 L14 3"/><path d="M12 6 v2"/><path d="M12 11 v2"/><path d="M12 16 v2.5"/></svg>';
+  // Performance: conta-giros refinado (arco + agulha + marcas + centro)
+  var gauge = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16 A8 8 0 0 1 20 16"/><path d="M6.2 11.5 l1.2 .8"/><path d="M12 8.5 v1.3"/><path d="M17.8 11.5 l-1.2 .8"/><path d="M12 16 L16 11.2"/><circle cx="12" cy="16" r="1.3" fill="currentColor" stroke="none"/></svg>';
+  function apply(){
+    document.querySelectorAll('#heroSide1Card .hero-ico').forEach(function(el){el.innerHTML=road;});
+    document.querySelectorAll('.hero-main-stat .hero-ico').forEach(function(el){el.innerHTML=gauge;});
   }
   apply();
   new MutationObserver(apply).observe(document.body,{subtree:true,childList:true});
