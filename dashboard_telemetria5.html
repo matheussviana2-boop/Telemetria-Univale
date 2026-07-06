@@ -3618,6 +3618,111 @@ header h1{
   .hero-stat .dynamic-line-zone .dyn-line-wave,.hero-main-stat .dynamic-line-zone .dyn-line-wave{width:360% !important;bottom:-28px !important;}
   .hero-dashboard .hero-mini-stat .mini-dyn-line-img{width:232% !important;bottom:-40px !important;}
 }
+
+
+/* ===== AJUSTE FINAL HERO: linhas discretas como os cards inferiores ===== */
+.hero-stat .tech-lines,
+.hero-main-stat .tech-lines,
+.hero-stat .dynamic-line-zone,
+.hero-main-stat .dynamic-line-zone{
+  display:none !important;
+}
+
+.hero-stat .hero-spark,
+.hero-main-stat .hero-spark{
+  position:absolute !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:10px !important;
+  width:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  border-radius:0 0 18px 18px !important;
+  background:none !important;
+  mask-image:none !important;
+  -webkit-mask-image:none !important;
+  z-index:2 !important;
+  pointer-events:none !important;
+}
+.hero-stat .hero-spark{height:26px !important;flex-basis:26px !important;}
+.hero-main-stat .hero-spark{height:30px !important;flex-basis:30px !important;bottom:10px !important;}
+
+.hero-stat .fuel-wave,
+.hero-main-stat .fuel-wave{
+  display:block !important;
+  position:absolute !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:0 !important;
+  top:auto !important;
+  height:100% !important;
+  width:100% !important;
+  overflow:hidden !important;
+  border-radius:0 0 18px 18px !important;
+  background:none !important;
+  opacity:1 !important;
+}
+.hero-stat .fuel-wave::before,
+.hero-main-stat .fuel-wave::before{display:none !important;content:none !important;}
+
+.hero-stat .fuel-img,
+.hero-stat .fuel-img-back,
+.hero-main-stat .fuel-img,
+.hero-main-stat .fuel-img-back{
+  display:block !important;
+  position:absolute !important;
+  left:-8% !important;
+  top:2px !important;
+  bottom:auto !important;
+  width:132% !important;
+  height:22px !important;
+  max-width:none !important;
+  min-height:0 !important;
+  object-fit:cover !important;
+  object-position:left top !important;
+  will-change:transform !important;
+  transform:none !important;
+  clip-path:none !important;
+  -webkit-clip-path:none !important;
+  mix-blend-mode:screen !important;
+}
+.hero-main-stat .fuel-img,
+.hero-main-stat .fuel-img-back{height:26px !important;}
+.hero-stat .fuel-img,
+.hero-main-stat .fuel-img{
+  opacity:.92 !important;
+  filter:brightness(1.06) saturate(1.08) !important;
+  animation:heroWaveFloat 14s ease-in-out infinite alternate !important;
+}
+.hero-stat .fuel-img-back,
+.hero-main-stat .fuel-img-back{
+  opacity:.24 !important;
+  filter:brightness(.92) saturate(1.10) blur(.15px) !important;
+  animation:heroWaveFloatBack 18s ease-in-out infinite alternate !important;
+}
+
+.hero-card-content{padding-bottom:14px !important;}
+
+@keyframes heroWaveFloat{
+  0%{transform:translateX(0)}
+  50%{transform:translateX(-5%)}
+  100%{transform:translateX(-10%)}
+}
+@keyframes heroWaveFloatBack{
+  0%{transform:translateX(-2%)}
+  50%{transform:translateX(-7%)}
+  100%{transform:translateX(-12%)}
+}
+
+@media(max-width:900px){
+  .hero-stat .hero-spark{height:24px !important;flex-basis:24px !important;bottom:8px !important;}
+  .hero-main-stat .hero-spark{height:28px !important;flex-basis:28px !important;bottom:8px !important;}
+  .hero-stat .fuel-img,
+  .hero-stat .fuel-img-back{height:20px !important;}
+  .hero-main-stat .fuel-img,
+  .hero-main-stat .fuel-img-back{height:24px !important;}
+}
 </style>
 
 <style id="cc-final-overrides">
@@ -3954,6 +4059,49 @@ header h1{
   filter:saturate(1.15) brightness(1.35) !important;
 }
 </style>
+
+<style id="frota-and-line-overrides">
+/* Linhas dos cards principais reduzidas pela metade */
+.hero-stat .dynamic-line-zone,
+.hero-main-stat .dynamic-line-zone{
+  height:56px !important;
+  bottom:0 !important;
+  background-image:none !important;
+}
+.hero-main-stat .dynamic-line-zone{height:60px !important;}
+.hero-card-content,
+.hero-main-stat .hero-card-content{padding-bottom:16px !important;}
+.hero-stat .dynamic-line-zone::before,
+.hero-main-stat .dynamic-line-zone::before{
+  height:200% !important;
+  bottom:-78% !important;
+}
+.hero-stat .dynamic-line-zone::after,
+.hero-main-stat .dynamic-line-zone::after{
+  height:200% !important;
+  bottom:-86% !important;
+}
+@media(max-width:900px){
+  .hero-stat .dynamic-line-zone,.hero-main-stat .dynamic-line-zone{height:48px !important;}
+  .hero-card-content,.hero-main-stat .hero-card-content{padding-bottom:12px !important;}
+}
+
+/* Aba Frotas */
+#frota .twrap{border-width:3px;overflow-x:auto}
+#fleetTbl{min-width:0;width:100%;table-layout:fixed;font-size:11.5px}
+#fleetTbl thead th{white-space:normal;line-height:1.15;text-align:center;padding:8px 6px;vertical-align:middle;letter-spacing:.035em;cursor:default}
+#fleetTbl tbody td{padding:8px 6px;text-align:center;vertical-align:middle;line-height:1.25}
+#fleetTbl th:nth-child(1),#fleetTbl td:nth-child(1){width:40px}
+#fleetTbl th:nth-child(2),#fleetTbl td:nth-child(2){width:150px;text-align:left}
+#fleetTbl th:nth-child(3),#fleetTbl td:nth-child(3){width:110px}
+#fleetTbl th:nth-child(4),#fleetTbl td:nth-child(4){width:72px}
+#fleetTbl th:nth-child(5),#fleetTbl td:nth-child(5){width:76px}
+#fleetTbl .evth{width:84px;min-width:76px;overflow-wrap:anywhere}
+#fleetTbl .nmcell{white-space:normal;overflow-wrap:anywhere;font-size:12.5px;line-height:1.35}
+.frota-ready-note{border:1px dashed var(--line);border-radius:12px;background:#f8fbfb;color:var(--muted);padding:18px;text-align:center;font-size:13px;line-height:1.45}
+.frota-ready-note strong{display:block;color:var(--ink);font-size:14px;margin-bottom:4px}
+</style>
+
 </head>
 <body>
 <header>
@@ -4031,6 +4179,7 @@ header h1{
         <div class="hero-tabs">
           <button class="tab active" data-t="visao">Visão Geral</button>
           <button class="tab" data-t="mot">Motoristas</button>
+          <button class="tab" data-t="frota">Frotas</button>
           <button class="tab" data-t="diag">Resumo Operacional</button>
         </div>
       </div>
@@ -4126,6 +4275,69 @@ header h1{
         </div>
         <div class="cnt" id="cnt"></div>
         <div class="twrap"><table id="tbl"><thead><tr id="tblHead"></tr></thead><tbody id="tbody"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- FROTAS -->
+    <section class="panel" id="frota">
+      <!-- toggle Resumo / Detalhado -->
+      <div style="display:flex;align-items:center;justify-content:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:12px">
+        <div class="perf-toggle" role="tablist" aria-label="Alternar visão da frota">
+          <button type="button" class="perf-btn active" id="btnFrotaResumo" data-frota-view="resumo">Resumo</button>
+          <button type="button" class="perf-btn" id="btnFrotaDetalhado" data-frota-view="detalhado">Detalhado</button>
+        </div>
+        <div class="period-badge">Base da frota prevista a partir de junho</div>
+      </div>
+
+      <!-- RESUMO FROTA -->
+      <div id="frotaResumo">
+        <div class="mot-mini-grid" id="frotaEventCards"></div>
+
+        <!-- Top 5 por evento -->
+        <div class="g2eq mb18" id="frotaTop5Section">
+          <div class="card" id="cardFleetRank">
+            <div class="card-topbar"><div class="ctitle">Eventos por tipo · Frota</div><div class="period-badge" id="fleetEvTypePeriod">Todos os meses</div></div>
+            <div class="csub">Selecione um desvio para ver o top 5 piores carros.</div>
+            <div class="cbox" id="fleetRankBox"><canvas id="cFleetRank"></canvas></div>
+          </div>
+          <div class="card" id="fleetTop5Card">
+            <div class="ctitle" id="fleetTop5Titulo">Top 5 piores carros por evento</div>
+            <div class="csub" id="fleetTop5Sub">Selecione um desvio ao lado.</div>
+            <div class="top5panel top5empty" id="fleetTop5List">
+              <div class="top5hint">Front-end pronto</div>
+              <div>Assim que a base da frota possuir carro, km e eventos, este ranking será preenchido automaticamente.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top 10 piores carros -->
+        <div class="card mb18">
+          <div class="card-topbar">
+            <div><div class="ctitle" id="fleetT10wTitle">10 carros com menor performance</div><div class="csub" id="fleetT10wSub">Considerando mínimo de 250 km rodados no período.</div></div>
+          </div>
+          <div class="twrap" style="box-shadow:none;border:1px solid var(--line)">
+            <table><thead><tr><th>#</th><th>Carro</th><th>Performance</th><th>KM</th><th>Eventos</th><th>Desvio principal</th></tr></thead><tbody id="fleetTop10w"></tbody></table>
+          </div>
+        </div>
+
+        <!-- Top 10 melhores carros -->
+        <div class="card mb18">
+          <div class="card-topbar">
+            <div><div class="ctitle" id="fleetT10bTitle">10 carros com melhor performance</div><div class="csub" id="fleetT10bSub">Considerando mínimo de 250 km rodados no período.</div></div>
+          </div>
+          <div class="twrap" style="box-shadow:none;border:1px solid var(--line)">
+            <table><thead><tr><th>#</th><th>Carro</th><th>Performance</th><th>KM</th><th>Eventos</th><th>Desvio principal</th></tr></thead><tbody id="fleetTop10b"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETALHADO FROTA -->
+      <div id="frotaDetalhado" style="display:none">
+        <div class="controls mot-controls" style="margin-top:8px">
+          <input type="search" id="qFleet" placeholder="Buscar carro, frota, prefixo ou placa...">
+        </div>
+        <div class="cnt" id="fleetCnt"></div>
+        <div class="twrap"><table id="fleetTbl"><thead><tr id="fleetTblHead"></tr></thead><tbody id="fleetTbody"></tbody></table></div>
       </div>
     </section>
 
@@ -4907,6 +5119,257 @@ function bindEvents(){
 // fuel animation via CSS
 document.addEventListener('DOMContentLoaded',loadSheet);
 </script>
+
+<script id="frota-front-script">
+(function(){
+  var FLEET_MIN_MONTH = 'JUN';
+  var FLEET_SHEETS = ['DADOS_FROTA','FROTA','DADOS_VEICULOS','DADOS_VEÍCULOS','VEICULOS','VEÍCULOS'];
+  var FLEET_NAME_COLS = ['FROTA','CARRO','CARROS','VEICULO','VEÍCULO','PREFIXO','PREFIXO VEICULO','PREFIXO VEÍCULO','PLACA','Nº CARRO','NRO CARRO','NUMERO CARRO','NÚMERO CARRO','CODIGO VEICULO','CÓDIGO VEÍCULO','ONIBUS','ÔNIBUS'];
+  var FLEET_KM_COLS = ['KM','KM RODADO','KM RODADOS','KM TOTAL','QUILOMETRAGEM'];
+  var FLEET_POINTS_COLS = ['PONTUACAO','PONTUAÇÃO','EVENTOS','TOTAL EVENTOS','PONTOS','QTD EVENTOS','QTDE EVENTOS'];
+  var MONTH_MAP = {JAN:'JAN',JANEIRO:'JAN',FEV:'FEV',FEVEREIRO:'FEV',MAR:'MAR',MARCO:'MAR',MARÇO:'MAR',ABR:'ABR',ABRIL:'ABR',MAI:'MAI',MAIO:'MAI',JUN:'JUN',JUNHO:'JUN',JUL:'JUL',JULHO:'JUL',AGO:'AGO',AGOSTO:'AGO',SET:'SET',SETEMBRO:'SET',OUT:'OUT',OUTUBRO:'OUT',NOV:'NOV',NOVEMBRO:'NOV',DEZ:'DEZ',DEZEMBRO:'DEZ'};
+
+  function nk(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+  function monthKey(v){var k=nk(v); return MONTH_MAP[k] || MONTH_MAP[k.slice(0,3)] || k.slice(0,3);}
+  function num(v){if(typeof v==='number')return v; var s=String(v==null?'':v).trim(); if(!s)return 0; s=s.replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''); return parseFloat(s)||0;}
+  function firstVal(r,names){
+    for(var i=0;i<names.length;i++){if(r[names[i]]!=null&&r[names[i]]!=='')return r[names[i]];}
+    var wanted={}; names.forEach(function(n){wanted[nk(n)]=1});
+    for(var k in r){if(wanted[nk(k)]&&r[k]!=null&&r[k]!=='')return r[k];}
+    return '';
+  }
+  function hasCol(rows,names){return (rows||[]).some(function(r){return firstVal(r,names)!=='';});}
+  function rowSector(r){return String(firstVal(r,['SETOR','SETOR OPERACIONAL'])||r.SETOR||'').toUpperCase();}
+  function rowMonth(r){return monthKey(firstVal(r,['MES','MÊS','MONTH','PERIODO','PERÍODO'])||r.MES||'');}
+  function isFleetMonth(r){var m=rowMonth(r); if(!m)return true; return MESES.indexOf(m)>=MESES.indexOf(FLEET_MIN_MONTH);}
+
+  function fleetRowsNoScope(){
+    var rows=(STATE.rawFleet&&STATE.rawFleet.length)?STATE.rawFleet:STATE.raw;
+    rows=(rows||[]).filter(isFleetMonth);
+    var setorAtual=STATE.setor||'ALL';
+    var useSetor=hasCol(rows,['SETOR','SETOR OPERACIONAL']);
+    if(useSetor){
+      if(setorAtual&&setorAtual!=='ALL') rows=rows.filter(function(r){return rowSector(r)===setorAtual;});
+      else rows=rows.filter(function(r){var s=rowSector(r); return ['GARAG_BAHIA','GARAG_MG'].indexOf(s)<0;});
+    }
+    return rows;
+  }
+  function fleetRowsScoped(){
+    var rows=fleetRowsNoScope();
+    if(STATE.scope&&STATE.scope!=='ALL') rows=rows.filter(function(r){return rowMonth(r)===STATE.scope;});
+    return rows;
+  }
+  function extractFleetRows(wb){
+    if(!wb||!wb.SheetNames)return [];
+    var names=wb.SheetNames||[];
+    var found='';
+    for(var i=0;i<FLEET_SHEETS.length;i++){
+      var target=nk(FLEET_SHEETS[i]);
+      for(var j=0;j<names.length;j++){if(nk(names[j])===target){found=names[j];break;}}
+      if(found)break;
+    }
+    if(!found)return [];
+    return XLSX.utils.sheet_to_json(wb.Sheets[found]);
+  }
+
+  var originalInit=window.init;
+  if(typeof originalInit==='function'){
+    window.init=function(wb){
+      try{STATE.rawFleet=extractFleetRows(wb)||[];}catch(e){STATE.rawFleet=[];}
+      return originalInit.apply(this,arguments);
+    };
+  }
+
+  var originalRefreshMonths=window.refreshMonths;
+  if(typeof originalRefreshMonths==='function'){
+    window.refreshMonths=function(){
+      var ret=originalRefreshMonths.apply(this,arguments);
+      try{
+        if(STATE.rawFleet&&STATE.rawFleet.length){
+          var seen={}; (STATE.months||[]).forEach(function(m){seen[m]=1;});
+          fleetRowsNoScope().forEach(function(r){var m=rowMonth(r); if(m&&MESES.indexOf(m)>=0)seen[m]=1;});
+          STATE.months=Object.keys(seen).sort(function(a,b){return MESES.indexOf(a)-MESES.indexOf(b)});
+          if(STATE.scope!=='ALL'&&STATE.months.indexOf(STATE.scope)<0)STATE.scope='ALL';
+        }
+      }catch(e){}
+      return ret;
+    };
+  }
+
+  function buildFleetModel(){
+    var rows=fleetRowsScoped();
+    var hasFleetBase=(STATE.rawFleet&&STATE.rawFleet.length)||hasCol(rows,FLEET_NAME_COLS);
+    var cars={}, evTot={}; EV_COLS.forEach(function(e){evTot[e]=0});
+    rows.forEach(function(r){
+      var nome=String(firstVal(r,FLEET_NAME_COLS)||'').trim();
+      if(!nome)return;
+      var o=cars[nome]||(cars[nome]={nome:nome,km:0,pts:0,ev:{}});
+      var km=num(firstVal(r,FLEET_KM_COLS));
+      var evSum=0;
+      EV_COLS.forEach(function(e){var v=evVal(r,e)||0; o.ev[e]=(o.ev[e]||0)+v; evTot[e]+=v; evSum+=v;});
+      var rawPts=firstVal(r,FLEET_POINTS_COLS);
+      var pts=(rawPts===''||rawPts==null)?evSum:num(rawPts);
+      o.km+=km; o.pts+=pts;
+    });
+    var vehicles=Object.values(cars).map(function(o){
+      var perf=calcPerf(o.km,o.pts);
+      var kme=Math.round(kmPorEvento(o.km,o.pts)*10)/10;
+      var dom='—',mx=-1;EV_COLS.forEach(function(e){if((o.ev[e]||0)>mx){mx=o.ev[e]||0;dom=e;}});
+      if(o.pts===0)dom='—';
+      return {nome:o.nome,km:Math.round(o.km),pts:o.pts,perf:perf,perfStd:perf,kme:kme,ev:o.ev,dom:dom};
+    });
+    var totEv=Object.values(evTot).reduce(function(a,b){return a+b},0);
+    var totKm=vehicles.reduce(function(a,v){return a+(v.km||0)},0);
+    var evRank=EV_COLS.map(function(e){return [e,evTot[e]||0,totEv?Math.round((evTot[e]||0)/totEv*1000)/10:0];}).sort(function(a,b){return b[1]-a[1] || EV_COLS.indexOf(a[0])-EV_COLS.indexOf(b[0]);});
+    return {vehicles:vehicles,evRank:evRank,evTot:evTot,totEv:totEv,totKm:totKm,fleetN:vehicles.length,hasBase:!!hasFleetBase,rowsCount:rows.length};
+  }
+
+  function fleetPerf(d){return d.perfStd;}
+  function fleetNoDataHtml(){
+    return '<div class="frota-ready-note"><strong>Front-end da frota pronto</strong>Quando a planilha trouxer uma coluna de carro/frota/prefixo e os dados a partir de junho, os rankings serão preenchidos automaticamente.</div>';
+  }
+  function renderFleetEventCards(F){
+    safeSet('frotaEventCards',EV_COLS.map(function(e){return '<div class="mini-ev"><div class="mini-ev-name">'+evLabel(e).replace(/<br>/g,' ')+'</div><div class="mini-ev-val">'+fmt(F.evTot[e]||0)+'</div><div class="mini-ev-sub">eventos na frota</div></div>';}).join(''));
+  }
+  function fleetRowFn(d,i){var perf=fleetPerf(d);return '<tr><td class="rank">'+(i+1)+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+pPill(perf)+'</td><td>'+fmt(d.km)+'</td><td>'+fmt(d.pts)+'</td><td><span class="dtag">'+esc(d.dom)+'</span></td></tr>';}
+
+  function showFleetTop5(evName,F){
+    safeText('fleetTop5Titulo','Top 5 piores carros · '+evName);
+    safeText('fleetTop5Sub','Ranking por ocorrências em '+periodLabelShort()+'.');
+    var box=document.getElementById('fleetTop5List'); if(!box)return;
+    var sorted=F.vehicles.filter(function(d){return(d.ev[evName]||0)>0;}).sort(function(a,b){return(b.ev[evName]||0)-(a.ev[evName]||0);}).slice(0,5);
+    box.className='top5panel'+(sorted.length?'':' top5empty');
+    box.innerHTML=sorted.map(function(d,i){return '<div class="top5item"><span class="top5rank">'+(i+1)+'</span><span class="top5nome">'+esc(d.nome)+'</span><span class="top5meta"><span class="top5val">'+fmt(d.ev[evName]||0)+' eventos</span><span class="top5km">'+fmt(d.km)+' km · '+fmtDec(d.kme||0,1)+' km/evento</span></span></div>';}).join('') || '<div class="top5hint">Sem ocorrências</div><div>Nenhum carro com este desvio no período selecionado.</div>';
+  }
+
+  function showFleetRankChart(F){
+    if(CH['cFleetRank']){try{CH['cFleetRank'].destroy()}catch(e){}}
+    var el=document.getElementById('cFleetRank'); if(!el||typeof Chart==='undefined')return;
+    var rows=F.evRank&&F.evRank.length?F.evRank:EV_COLS.map(function(e){return[e,0,0]});
+    CH['cFleetRank']=new Chart(el,{
+      type:'bar',
+      data:{labels:rows.map(function(r){return r[0]}),datasets:[{data:rows.map(function(r){return r[1]}),backgroundColor:rows.map(function(){return '#00A19B'}),borderColor:rows.map(function(r){return r[0]===STATE.fleetSelEvent?'#062f2f':'transparent'}),borderWidth:rows.map(function(r){return r[0]===STATE.fleetSelEvent?3:0}),borderRadius:4}]},
+      options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmt(c.raw)+' eventos ('+(rows[c.dataIndex]&&rows[c.dataIndex][2]||0)+'%)';}}}},scales:{x:{grid:{color:'#eef4f3'}},y:{ticks:{font:{size:11}}}},onClick:function(evt,els){if(els&&els.length){STATE.fleetSelEvent=rows[els[0].index][0];showFleetRankChart(F);showFleetTop5(STATE.fleetSelEvent,F);}}}
+    });
+    var ev=STATE.fleetSelEvent||rows[0][0];
+    if(ev){STATE.fleetSelEvent=ev;showFleetTop5(ev,F);}
+  }
+
+  function renderFleetTables(F){
+    safeText('fleetT10wSub','Considerando mínimo 250 km rodados em '+periodLabelShort()+'.');
+    safeText('fleetT10bSub','Considerando mínimo 250 km rodados em '+periodLabelShort()+'.');
+    var valid=F.vehicles.filter(function(d){return d.km>250&&fleetPerf(d)!=null;});
+    var rw=valid.slice().sort(function(a,b){return fleetPerf(a)-fleetPerf(b);}).slice(0,10);
+    var rb=valid.slice().sort(function(a,b){return fleetPerf(b)-fleetPerf(a);}).slice(0,10);
+    var empty='<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Aguardando dados da frota a partir de junho.</td></tr>';
+    safeSet('fleetTop10w',rw.map(fleetRowFn).join('')||empty);
+    safeSet('fleetTop10b',rb.map(fleetRowFn).join('')||empty);
+  }
+
+  function renderFleetDetail(F){
+    var head=document.getElementById('fleetTblHead'); if(!head)return;
+    head.innerHTML='<th>#</th><th>Carro ↕</th><th>Performance</th><th>KM</th><th>Eventos</th>'+EV_COLS.map(function(e){return'<th class="evth">'+evLabel(e)+'</th>';}).join('');
+    var q=(document.getElementById('qFleet')&&document.getElementById('qFleet').value||'').trim().toUpperCase();
+    var rows=F.vehicles.filter(function(d){return !q||d.nome.toUpperCase().indexOf(q)>=0;}).sort(function(a,b){return (fleetPerf(a)||-999999)-(fleetPerf(b)||-999999);});
+    safeText('fleetCnt',rows.length+' carros');
+    safeSet('fleetTbody',rows.map(function(d,i){return '<tr><td class="rank">'+(i+1)+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+pPill(fleetPerf(d))+'</td><td>'+fmt(d.km)+'</td><td>'+fmt(d.pts)+'</td>'+EV_COLS.map(function(e){return'<td>'+(d.ev[e]||0)+'</td>';}).join('')+'</tr>';}).join('') || '<tr><td colspan="20" style="padding:24px;text-align:center;color:var(--muted)">Aguardando dados da frota a partir de junho.</td></tr>');
+  }
+
+  function setFleetView(view){
+    STATE.fleetView=view||'resumo';
+    document.querySelectorAll('.perf-btn[data-frota-view]').forEach(function(b){b.classList.toggle('active',b.dataset.frotaView===STATE.fleetView);});
+    var resumo=document.getElementById('frotaResumo'), detalhado=document.getElementById('frotaDetalhado');
+    if(resumo)resumo.style.display=STATE.fleetView==='resumo'?'':'none';
+    if(detalhado)detalhado.style.display=STATE.fleetView==='detalhado'?'':'none';
+    renderFrota();
+  }
+  window.setFleetView=setFleetView;
+
+  function renderFrota(){
+    if(!document.getElementById('frota'))return;
+    var F=buildFleetModel(); STATE.F=F;
+    safeText('fleetEvTypePeriod',periodLabelCompact());
+    renderFleetEventCards(F);
+    renderFleetTables(F);
+    if(STATE.fleetView==='detalhado')renderFleetDetail(F);
+    else showFleetRankChart(F);
+    if(!F.fleetN){
+      safeSet('fleetTop10w','<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Front-end pronto. Aguardando planilha da frota a partir de junho.</td></tr>');
+      safeSet('fleetTop10b','<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Front-end pronto. Aguardando planilha da frota a partir de junho.</td></tr>');
+      var box=document.getElementById('fleetTop5List'); if(box){box.className='top5panel top5empty'; box.innerHTML='<div class="top5hint">Front-end pronto</div><div>Aguardando base com carro/frota/prefixo, km e eventos a partir de junho.</div>';}
+    }
+  }
+  window.renderFrota=renderFrota;
+
+  function setHeroFleet(){
+    var F=buildFleetModel();
+    var pa=F.fleetN?(calcPerf(F.totKm,F.totEv)||0):null;
+    var worstEvt=F.evRank&&F.evRank.length?F.evRank.filter(function(r){return r[1]>0})[0]:null;
+    var bestEvt=F.evRank&&F.evRank.length?F.evRank.filter(function(r){return r[1]>0}).slice().sort(function(a,b){return a[1]-b[1]})[0]:null;
+    safeText('hSetor','FROTAS');
+    safeSet('hTitulo','Desempenho da Frota');
+    safeText('hSubtitle',(F.fleetN?fmt(F.fleetN)+' carros monitorados em '+periodLabelShort():'Estrutura da frota pronta · aguardando dados a partir de junho'));
+    safeText('heroMainLabel','Performance Frota');
+    safeText('heroPerf',pa==null?'—':fmtDec(pa,2)+'%');
+    safeSet('heroMainPeriod','Período <b>'+esc(periodLabelCompact())+'</b>');
+    safeSet('heroSide1Period','Período <b>'+esc(periodLabelCompact())+'</b>');
+    safeSet('heroSide2Period','Período <b>'+esc(periodLabelCompact())+'</b>');
+    safeText('heroSide1Label','Melhor Evento');
+    safeText('heroSide1Value',bestEvt?bestEvt[0]:'Sem eventos');
+    var s1=document.getElementById('heroSide1Value'); if(s1)s1.className='hero-stat-value text';
+    safeText('heroSide1Sub',bestEvt?fmt(bestEvt[1])+' ocorrências':'dados previstos a partir de junho');
+    safeText('heroSide2Label','Pior Evento');
+    safeText('heroSide2Value',worstEvt?worstEvt[0]:'Sem eventos');
+    var s2=document.getElementById('heroSide2Value'); if(s2)s2.className='hero-stat-value text';
+    safeText('heroSide2Sub',worstEvt?fmt(worstEvt[1])+' ocorrências':'aguardando base da frota');
+    setDelta('heroMainDelta',null,'',false);setDelta('heroSide1Delta',null,'',false);setDelta('heroSide2Delta',null,'',false);
+    var side2=document.getElementById('heroSide2Card'); if(side2)side2.classList.add('worst-card');
+    var main=document.querySelector('.hero-main-stat');
+    if(main){main.classList.remove('perf-good','perf-warn','perf-alert','perf-bad'); if(pa==null||pa<0)main.classList.add('perf-bad'); else if(pa<50)main.classList.add('perf-alert'); else if(pa<90)main.classList.add('perf-warn'); else main.classList.add('perf-good');}
+    safeText('hMiniMotLabel','Carros'); safeText('hMiniMot',fmt(F.fleetN)); safeText('hMiniKmeLabel','KM/Evento'); safeText('hMiniKme',fmtDec(kmPorEvento(F.totKm,F.totEv)||0,1)+' km');
+  }
+
+  var originalSetHero=window.setHeroForTab;
+  if(typeof originalSetHero==='function'){
+    window.setHeroForTab=function(){
+      var ret=originalSetHero.apply(this,arguments);
+      try{
+        if(currentTab()==='frota')setHeroFleet();
+        else if(arguments[0] && typeof renderHeroMiniStats==='function')renderHeroMiniStats(arguments[0]);
+      }catch(e){}
+      return ret;
+    };
+  }
+
+  var originalRender=window.render;
+  if(typeof originalRender==='function'){
+    window.render=function(){
+      var ret=originalRender.apply(this,arguments);
+      try{renderFrota();}catch(e){}
+      return ret;
+    };
+  }
+
+  function bindFleetEvents(){
+    document.querySelectorAll('.perf-btn[data-frota-view]').forEach(function(btn){
+      if(btn.dataset.frotaBound)return; btn.dataset.frotaBound='1';
+      btn.addEventListener('click',function(){setFleetView(btn.dataset.frotaView);});
+    });
+    var q=document.getElementById('qFleet'); if(q&&!q.dataset.frotaBound){q.dataset.frotaBound='1'; q.addEventListener('input',function(){if(STATE.F)renderFleetDetail(STATE.F);});}
+    document.querySelectorAll('.tab[data-t="frota"]').forEach(function(btn){
+      if(btn.dataset.frotaBound)return; btn.dataset.frotaBound='1';
+      btn.addEventListener('click',function(){setFleetView('resumo'); if(STATE.D)setHeroFleet();});
+    });
+  }
+  var originalBind=window.bindEvents;
+  if(typeof originalBind==='function'){
+    window.bindEvents=function(){var ret=originalBind.apply(this,arguments);bindFleetEvents();return ret;};
+  }else{
+    document.addEventListener('DOMContentLoaded',bindFleetEvents);
+  }
+})();
+</script>
+
 
 
 
