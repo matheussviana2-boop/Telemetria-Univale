@@ -4195,155 +4195,6 @@ header h1{
 @media(max-width:900px){.hero-stat .dynamic-line-zone{height:74px !important}.hero-main-stat .dynamic-line-zone{height:82px !important}.hero-stat .dynamic-line-zone .dyn-line-wave,.hero-main-stat .dynamic-line-zone .dyn-line-wave{bottom:-56px !important}.hero-stat .dynamic-line-zone::before,.hero-main-stat .dynamic-line-zone::before{bottom:-50px !important}.hero-stat .dynamic-line-zone::after,.hero-main-stat .dynamic-line-zone::after{bottom:-56px !important}}
 </style>
 
-
-
-<style id="cc-performance-color-rules-final">
-/* ===== CORES FINAIS DO CARD PERFORMANCE GERAL =====
-   Regra aplicada:
-   0% até 49,99%  => laranja
-   50% até 89,99% => amarelo claro
-   90% ou mais    => verde/teal já existente
-   negativo/nulo  => vermelho já existente
-*/
-.hero-main-stat.perf-alert{
-  --card-accent:#ff9a2e !important;
-  --card-accent-rgb:255,154,46 !important;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(255,154,46,.24), transparent 40%),
-    radial-gradient(circle at 50% 108%, rgba(255,154,46,.18), transparent 50%),
-    linear-gradient(180deg, rgba(58,34,8,.96), rgba(30,19,7,.92)) !important;
-  border:1px solid rgba(255,154,46,.74) !important;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.035),
-    inset 0 22px 54px rgba(255,154,46,.10),
-    0 0 32px rgba(255,154,46,.18),
-    0 18px 38px rgba(0,20,20,.16) !important;
-}
-.hero-main-stat.perf-alert::before{
-  background:
-    linear-gradient(90deg,
-      transparent 0 6%,
-      rgba(255,154,46,.90) 6% 25%,
-      transparent 25% 37%,
-      rgba(255,154,46,1) 37% 63%,
-      transparent 63% 75%,
-      rgba(255,154,46,.90) 75% 94%,
-      transparent 94% 100%) top/100% 2px no-repeat,
-    linear-gradient(180deg,rgba(255,154,46,.22),rgba(255,154,46,0) 100%) !important;
-  filter:drop-shadow(0 0 8px rgba(255,154,46,.46)) !important;
-}
-.hero-main-stat.perf-alert::after{
-  box-shadow:inset 0 0 0 1px rgba(255,154,46,.32) !important;
-  background:
-    linear-gradient(180deg, rgba(255,154,46,.86), rgba(255,154,46,.18) 18%, transparent 28%) left top/1px 100% no-repeat,
-    linear-gradient(180deg, rgba(255,154,46,.86), rgba(255,154,46,.18) 18%, transparent 28%) right top/1px 100% no-repeat,
-    linear-gradient(90deg, rgba(255,154,46,.86), rgba(255,154,46,.18) 20%, rgba(255,154,46,.18) 80%, rgba(255,154,46,.86)) top/100% 1px no-repeat !important;
-}
-.hero-main-stat.perf-alert .hero-stat-label,
-.hero-main-stat.perf-alert .hero-stat-value,
-.hero-main-stat.perf-alert .hero-ico,
-.hero-main-stat.perf-alert .metric-period b{
-  color:#ffb15c !important;
-}
-.hero-main-stat.perf-alert .hero-stat-sub,
-.hero-main-stat.perf-alert .hero-stat-delta,
-.hero-main-stat.perf-alert .hero-stat-delta.good,
-.hero-main-stat.perf-alert .hero-stat-delta.neutral{
-  color:#ffd9b3 !important;
-}
-.hero-main-stat.perf-alert .hero-ico{
-  border-color:rgba(255,154,46,.62) !important;
-  background:rgba(66,34,8,.62) !important;
-  box-shadow:0 0 14px rgba(255,154,46,.22) !important;
-}
-.hero-main-stat.perf-alert .dynamic-line-zone,
-.hero-main-stat.perf-alert .hero-spark{
-  background:linear-gradient(180deg,transparent 0%,rgba(255,154,46,.07) 50%,rgba(255,154,46,.18) 100%) !important;
-}
-.hero-main-stat.perf-alert .dynamic-line-zone .dyn-line-wave,
-.hero-main-stat.perf-alert .dynamic-line-zone::before,
-.hero-main-stat.perf-alert .dynamic-line-zone::after{
-  filter:
-    drop-shadow(0 0 13px rgba(255,154,46,.70))
-    drop-shadow(0 0 28px rgba(255,154,46,.38))
-    saturate(1.45)
-    brightness(1.34)
-    sepia(.35)
-    hue-rotate(-28deg) !important;
-}
-
-.hero-main-stat.perf-warn{
-  --card-accent:#ffe760 !important;
-  --card-accent-rgb:255,231,96 !important;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(255,231,96,.24), transparent 42%),
-    radial-gradient(circle at 50% 108%, rgba(255,231,96,.18), transparent 50%),
-    linear-gradient(180deg, rgba(50,42,8,.96), rgba(27,25,9,.92)) !important;
-  border:1px solid rgba(255,231,96,.78) !important;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.04),
-    inset 0 22px 54px rgba(255,231,96,.11),
-    0 0 34px rgba(255,231,96,.18),
-    0 18px 38px rgba(0,20,20,.16) !important;
-}
-.hero-main-stat.perf-warn::before{
-  background:
-    linear-gradient(90deg,
-      transparent 0 6%,
-      rgba(255,231,96,.92) 6% 25%,
-      transparent 25% 37%,
-      rgba(255,231,96,1) 37% 63%,
-      transparent 63% 75%,
-      rgba(255,231,96,.92) 75% 94%,
-      transparent 94% 100%) top/100% 2px no-repeat,
-    linear-gradient(180deg,rgba(255,231,96,.24),rgba(255,231,96,0) 100%) !important;
-  filter:drop-shadow(0 0 8px rgba(255,231,96,.50)) !important;
-}
-.hero-main-stat.perf-warn::after{
-  box-shadow:inset 0 0 0 1px rgba(255,231,96,.34) !important;
-  background:
-    linear-gradient(180deg, rgba(255,231,96,.90), rgba(255,231,96,.20) 18%, transparent 28%) left top/1px 100% no-repeat,
-    linear-gradient(180deg, rgba(255,231,96,.90), rgba(255,231,96,.20) 18%, transparent 28%) right top/1px 100% no-repeat,
-    linear-gradient(90deg, rgba(255,231,96,.90), rgba(255,231,96,.20) 20%, rgba(255,231,96,.20) 80%, rgba(255,231,96,.90)) top/100% 1px no-repeat !important;
-}
-.hero-main-stat.perf-warn .hero-stat-label,
-.hero-main-stat.perf-warn .hero-stat-value,
-.hero-main-stat.perf-warn .hero-ico,
-.hero-main-stat.perf-warn .metric-period b{
-  color:#fff1a6 !important;
-}
-.hero-main-stat.perf-warn .hero-stat-sub,
-.hero-main-stat.perf-warn .hero-stat-delta,
-.hero-main-stat.perf-warn .hero-stat-delta.good,
-.hero-main-stat.perf-warn .hero-stat-delta.neutral{
-  color:#fff4c8 !important;
-}
-.hero-main-stat.perf-warn .hero-ico{
-  border-color:rgba(255,231,96,.64) !important;
-  background:rgba(64,52,10,.64) !important;
-  box-shadow:0 0 14px rgba(255,231,96,.24) !important;
-}
-.hero-main-stat.perf-warn .dynamic-line-zone,
-.hero-main-stat.perf-warn .hero-spark{
-  background:linear-gradient(180deg,transparent 0%,rgba(255,231,96,.07) 50%,rgba(255,231,96,.18) 100%) !important;
-}
-.hero-main-stat.perf-warn .dynamic-line-zone .dyn-line-wave,
-.hero-main-stat.perf-warn .dynamic-line-zone::before,
-.hero-main-stat.perf-warn .dynamic-line-zone::after{
-  filter:
-    drop-shadow(0 0 13px rgba(255,231,96,.72))
-    drop-shadow(0 0 28px rgba(255,231,96,.40))
-    saturate(1.25)
-    brightness(1.46)
-    sepia(.18)
-    hue-rotate(-12deg) !important;
-}
-
-/* Garante que o verde de referência continue somente para performance boa */
-.hero-main-stat.perf-good{
-  --card-accent-rgb:0,255,135 !important;
-}
-</style>
 </head>
 <body>
 <header>
@@ -5972,40 +5823,187 @@ document.addEventListener('DOMContentLoaded',loadSheet);
 </script>
 
 
-<script id="cc-performance-threshold-guard">
+<!-- Correção de cor da Performance Geral - mantém estrutura, bordas e moldura originais -->
+<style id="cc-performance-color-only-fix">
+/*
+  Regra de cores do card Performance Geral sem alterar medidas, layout ou estrutura:
+  >= 90%       mantém o verde atual
+  50% a 89,9%  amarelo claro
+  0% a 49,9%   laranja
+  < 0          vermelho
+*/
+.hero-main-stat.perf-good{
+  --card-accent:#00FF87 !important;
+  --card-accent-rgb:0,255,135 !important;
+  --liquid-rgb:0,255,135 !important;
+  --liquid-glow-rgb:0,255,135 !important;
+  border-color:rgba(0,255,135,.62) !important;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(0,255,135,.15),transparent 38%),
+    radial-gradient(circle at 50% 108%,rgba(0,255,135,.14),transparent 48%),
+    linear-gradient(180deg,rgba(4,42,32,.94),rgba(1,22,22,.90)) !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 0 28px rgba(0,255,135,.13) !important;
+}
+.hero-main-stat.perf-good .hero-stat-label,
+.hero-main-stat.perf-good .hero-ico,
+.hero-main-stat.perf-good .metric-period b{
+  color:#00FF87 !important;
+}
+.hero-main-stat.perf-good .hero-ico{
+  border-color:rgba(0,255,135,.52) !important;
+}
+.hero-main-stat.perf-good .hero-stat-value{
+  color:#ffffff !important;
+}
+
+.hero-main-stat.perf-warn{
+  --card-accent:#FFE45C !important;
+  --card-accent-rgb:255,228,92 !important;
+  --liquid-rgb:255,228,92 !important;
+  --liquid-glow-rgb:255,228,92 !important;
+  border-color:rgba(255,228,92,.68) !important;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(255,228,92,.18),transparent 38%),
+    radial-gradient(circle at 50% 108%,rgba(255,228,92,.16),transparent 48%),
+    linear-gradient(180deg,rgba(55,48,12,.94),rgba(28,27,8,.90)) !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 0 28px rgba(255,228,92,.14) !important;
+}
+.hero-main-stat.perf-warn .hero-stat-label,
+.hero-main-stat.perf-warn .hero-ico,
+.hero-main-stat.perf-warn .metric-period b{
+  color:#FFE45C !important;
+}
+.hero-main-stat.perf-warn .hero-stat-value{
+  color:#FFF1A8 !important;
+}
+.hero-main-stat.perf-warn .hero-ico{
+  border-color:rgba(255,228,92,.56) !important;
+  background:rgba(58,49,12,.56) !important;
+}
+.hero-main-stat.perf-warn .hero-stat-delta,
+.hero-main-stat.perf-warn .hero-stat-delta.good,
+.hero-main-stat.perf-warn .hero-stat-delta.neutral{
+  color:#FFEFC2 !important;
+}
+.hero-main-stat.perf-warn .dyn-line-wave{
+  filter:drop-shadow(0 0 16px rgba(255,228,92,.76)) drop-shadow(0 0 34px rgba(255,228,92,.38)) saturate(1.18) brightness(1.18) !important;
+}
+
+.hero-main-stat.perf-alert{
+  --card-accent:#FF9A2F !important;
+  --card-accent-rgb:255,154,47 !important;
+  --liquid-rgb:255,154,47 !important;
+  --liquid-glow-rgb:255,154,47 !important;
+  border-color:rgba(255,154,47,.70) !important;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(255,154,47,.18),transparent 38%),
+    radial-gradient(circle at 50% 108%,rgba(255,154,47,.16),transparent 48%),
+    linear-gradient(180deg,rgba(58,34,10,.94),rgba(30,19,6,.90)) !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 0 28px rgba(255,154,47,.14) !important;
+}
+.hero-main-stat.perf-alert .hero-stat-label,
+.hero-main-stat.perf-alert .hero-ico,
+.hero-main-stat.perf-alert .metric-period b{
+  color:#FF9A2F !important;
+}
+.hero-main-stat.perf-alert .hero-stat-value{
+  color:#FFFFFF !important;
+}
+.hero-main-stat.perf-alert .hero-ico{
+  border-color:rgba(255,154,47,.58) !important;
+  background:rgba(64,38,12,.56) !important;
+}
+.hero-main-stat.perf-alert .hero-stat-delta,
+.hero-main-stat.perf-alert .hero-stat-delta.good,
+.hero-main-stat.perf-alert .hero-stat-delta.neutral{
+  color:#FFD9B4 !important;
+}
+.hero-main-stat.perf-alert .dyn-line-wave{
+  filter:hue-rotate(302deg) saturate(1.55) brightness(1.12) drop-shadow(0 0 16px rgba(255,154,47,.76)) drop-shadow(0 0 34px rgba(255,154,47,.40)) !important;
+}
+
+.hero-main-stat.perf-bad{
+  --card-accent:#FF3A68 !important;
+  --card-accent-rgb:255,58,104 !important;
+  --liquid-rgb:255,58,104 !important;
+  --liquid-glow-rgb:255,58,104 !important;
+  border-color:rgba(255,58,104,.62) !important;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(255,58,104,.16),transparent 38%),
+    radial-gradient(circle at 50% 108%,rgba(255,58,104,.14),transparent 48%),
+    linear-gradient(180deg,rgba(54,18,28,.94),rgba(24,18,22,.90)) !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),0 0 28px rgba(255,58,104,.13) !important;
+}
+.hero-main-stat.perf-bad .hero-stat-label,
+.hero-main-stat.perf-bad .hero-ico,
+.hero-main-stat.perf-bad .metric-period b{
+  color:#FF3A68 !important;
+}
+.hero-main-stat.perf-bad .hero-stat-value{
+  color:#FFFFFF !important;
+}
+.hero-main-stat.perf-bad .hero-ico{
+  border-color:rgba(255,58,104,.54) !important;
+  background:rgba(62,19,31,.56) !important;
+}
+
+/* Mantém os efeitos existentes de moldura/linhas usando a mesma cor do card. */
+.hero-main-stat.perf-good::before,
+.hero-main-stat.perf-good::after,
+.hero-main-stat.perf-warn::before,
+.hero-main-stat.perf-warn::after,
+.hero-main-stat.perf-alert::before,
+.hero-main-stat.perf-alert::after,
+.hero-main-stat.perf-bad::before,
+.hero-main-stat.perf-bad::after{
+  border-color:rgba(var(--card-accent-rgb),.38) !important;
+}
+.hero-main-stat.perf-good .dynamic-line-zone,
+.hero-main-stat.perf-warn .dynamic-line-zone,
+.hero-main-stat.perf-alert .dynamic-line-zone,
+.hero-main-stat.perf-bad .dynamic-line-zone,
+.hero-main-stat.perf-good .hero-spark,
+.hero-main-stat.perf-warn .hero-spark,
+.hero-main-stat.perf-alert .hero-spark,
+.hero-main-stat.perf-bad .hero-spark{
+  background:transparent !important;
+}
+</style>
+<script id="cc-performance-threshold-color-only-fix">
+/* Reaplica somente as classes de cor se algum render posterior trocar o card. */
 (function(){
-  function parsePtPercent(txt){
-    if(!txt) return NaN;
-    var clean = String(txt).replace(/\s/g,'').replace('%','').replace(/\./g,'').replace(',', '.');
-    return Number(clean);
+  function parsePercent(txt){
+    if(!txt) return null;
+    var raw = String(txt).trim();
+    // Aceita tanto formato brasileiro (61,77%) quanto ponto decimal (61.77%).
+    var normalized = raw.indexOf(',') >= 0 ? raw.replace(/\./g,'').replace(',', '.') : raw;
+    var n = normalized.match(/-?\d+(?:\.\d+)?/);
+    return n ? parseFloat(n[0]) : null;
   }
-  function applyPerformanceTone(){
-    var perf = document.getElementById('heroPerf');
+  function applyPerfTone(){
     var card = document.querySelector('.hero-main-stat');
-    if(!perf || !card) return;
-    var value = parsePtPercent(perf.textContent || perf.innerText || '');
-    if(!isFinite(value)) return;
-    var tone = value < 0 ? 'perf-bad' : (value < 50 ? 'perf-alert' : (value < 90 ? 'perf-warn' : 'perf-good'));
-    if(card.getAttribute('data-cc-perf-tone') === tone) return;
+    var valEl = document.getElementById('heroPerf');
+    if(!card || !valEl) return;
+    var value = parsePercent(valEl.textContent || '');
+    if(value === null || isNaN(value)) return;
+    var cls = value < 0 ? 'perf-bad' : (value < 50 ? 'perf-alert' : (value < 90 ? 'perf-warn' : 'perf-good'));
     card.classList.remove('perf-good','perf-warn','perf-alert','perf-bad');
-    card.classList.add(tone);
-    card.setAttribute('data-cc-perf-tone', tone);
+    card.classList.add(cls);
   }
-  function start(){
-    applyPerformanceTone();
-    var perf = document.getElementById('heroPerf');
-    if(perf){
-      new MutationObserver(function(){requestAnimationFrame(applyPerformanceTone);}).observe(perf,{childList:true,subtree:true,characterData:true});
-    }
-    document.querySelectorAll('.tab, .msel, #setorSel, #mesSel').forEach(function(el){
-      el.addEventListener('click', function(){setTimeout(applyPerformanceTone, 0); setTimeout(applyPerformanceTone, 80);}, true);
-      el.addEventListener('change', function(){setTimeout(applyPerformanceTone, 0); setTimeout(applyPerformanceTone, 80);}, true);
-    });
-    setInterval(applyPerformanceTone, 750);
+  var oldSetHero = window.setHeroForTab;
+  if(typeof oldSetHero === 'function'){
+    window.setHeroForTab = function(){
+      var ret = oldSetHero.apply(this, arguments);
+      applyPerfTone();
+      setTimeout(applyPerfTone, 0);
+      return ret;
+    };
   }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
-  else start();
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyPerfTone);
+  else applyPerfTone();
+  new MutationObserver(applyPerfTone).observe(document.body, {subtree:true, childList:true, characterData:true});
 })();
 </script>
+
 </body>
 </html>
