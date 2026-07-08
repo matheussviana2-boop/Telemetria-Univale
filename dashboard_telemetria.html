@@ -4195,6 +4195,15 @@ header h1{
 @media(max-width:900px){.hero-stat .dynamic-line-zone{height:74px !important}.hero-main-stat .dynamic-line-zone{height:82px !important}.hero-stat .dynamic-line-zone .dyn-line-wave,.hero-main-stat .dynamic-line-zone .dyn-line-wave{bottom:-56px !important}.hero-stat .dynamic-line-zone::before,.hero-main-stat .dynamic-line-zone::before{bottom:-50px !important}.hero-stat .dynamic-line-zone::after,.hero-main-stat .dynamic-line-zone::after{bottom:-56px !important}}
 </style>
 
+
+<style id="matheus-resumo-operacional-ajustes">
+/* Ajustes solicitados: cards do Resumo Operacional mais limpos, sem os ícones grandes de rodapé */
+#diag .op-col-mark{display:none !important;}
+#diag .op-list{padding-bottom:13px !important;}
+#diag .op-col.alert .op-col-head,
+#diag .op-col.bad .op-col-head,
+#diag .op-fleet-card.alert .op-col-head{background:linear-gradient(180deg,#b3001b,#850014) !important;}
+</style>
 </head>
 <body>
 <header>
@@ -5172,7 +5181,7 @@ function renderDiag(){
         '<div class="op-col good"><div class="op-col-head"><span class="op-col-ico">▲</span><div class="op-col-title">Motoristas em evolução</div></div><div class="op-list">'+drvUpHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></div></div>'+
         '<div class="op-col alert"><div class="op-col-head"><span class="op-col-ico">♙</span><div class="op-col-title">Motoristas em alerta</div></div><div class="op-list">'+drvDownHtml+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div></div>'+
       '</div>'+
-      '<div class="op-fleet-cards">'+fleetWorstHtml+fleetBestHtml+'</div>'+
+      '<div class="op-fleet-cards">'+fleetBestHtml+fleetWorstHtml+'</div>'+
     '</div>';
 }
 var TBL={D:null,sortK:'activePerf',sortDir:-1};
@@ -5757,23 +5766,34 @@ document.addEventListener('DOMContentLoaded',loadSheet);
   var ICONS = {
     'km/evento':'<svg viewBox="0 0 24 24"><path d="M4 20l4-16"/><path d="M20 20l-4-16"/><path d="M4 20h16"/><circle cx="12" cy="7" r="1.5"/><circle cx="12" cy="13" r="1.5"/></svg>',
     'motoristas':'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+    'carros':'<svg viewBox="0 0 24 24"><path d="M5 16h14"/><path d="M6.5 16l1.4-4.2A3 3 0 0 1 10.7 10h2.6a3 3 0 0 1 2.8 1.8l1.4 4.2"/><path d="M7 16v2"/><path d="M17 16v2"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/><path d="M9 13h6"/></svg>',
     'setores':'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'
   };
+  function pickIcon(label){
+    var key=(label||'').trim().toLowerCase();
+    if(ICONS[key]) return ICONS[key];
+    var found=Object.keys(ICONS).find(function(k){return key.indexOf(k)>-1;});
+    return found?ICONS[found]:'';
+  }
   function apply(){
     document.querySelectorAll('.hero-dashboard .hero-mini-stat').forEach(function(el){
-      if(el.querySelector('.cc-mini-icon')) return;
       var lbl = (el.querySelector('.hero-mini-label')||{}).textContent||'';
-      var key = lbl.trim().toLowerCase();
-      var svg = ICONS[key] || ICONS[Object.keys(ICONS).find(k => key.indexOf(k)>-1)||''];
+      var svg = pickIcon(lbl);
       if(!svg) return;
-      var span = document.createElement('span');
-      span.className = 'cc-mini-icon';
-      span.innerHTML = svg;
-      el.appendChild(span);
+      var span = el.querySelector('.cc-mini-icon');
+      if(!span){
+        span = document.createElement('span');
+        span.className = 'cc-mini-icon';
+        el.appendChild(span);
+      }
+      if(span.getAttribute('data-label') !== lbl){
+        span.innerHTML = svg;
+        span.setAttribute('data-label', lbl);
+      }
     });
   }
   apply();
-  new MutationObserver(apply).observe(document.body,{subtree:true,childList:true});
+  new MutationObserver(apply).observe(document.body,{subtree:true,childList:true,characterData:true});
 })();
 </script>
 
