@@ -4212,6 +4212,13 @@ header h1{
 #diag .op-fluig-link:hover{filter:brightness(1.08);text-decoration:none;transform:translateY(-1px);box-shadow:0 10px 20px rgba(2,6,23,.22);}
 #diag .op-fluig-link.disabled{color:var(--muted);border-color:#d5e8e7;background:#f5fbfa;box-shadow:none;cursor:not-allowed;}
 #diag .op-fluig-link.disabled::before{display:none;}
+
+/* Camada clicável para os nomes dos eventos nos gráficos */
+.event-label-click-layer{position:absolute;inset:0;z-index:3;pointer-events:none;}
+.event-label-click-layer .event-label-btn{position:absolute;display:flex;align-items:center;justify-content:flex-end;height:22px;border:0;border-radius:9px;background:transparent;color:#5b7a78;font-family:'Inter',sans-serif;font-size:11px;font-weight:700;line-height:1;text-align:right;cursor:pointer;pointer-events:auto;padding:0 8px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .15s ease,color .15s ease,font-weight .15s ease,transform .15s ease,box-shadow .15s ease;}
+.event-label-click-layer .event-label-btn:hover{color:#063f3d;background:rgba(0,161,155,.10);transform:translateX(-1px);}
+.event-label-click-layer .event-label-btn.selected{color:#062f2f;background:rgba(0,161,155,.16);font-weight:900;box-shadow:inset 3px 0 0 #00A19B;}
+.event-label-click-layer .event-label-btn.selected::after{content:'●';font-size:7px;margin-left:6px;color:#00A19B;}
 /* Ajuste: remover comentários/subtítulos abaixo dos títulos dos menus e cards */
 #hSubtitle,.hsubtitle,.csub,#diag .op-subtitle{display:none !important;}
 
@@ -4982,18 +4989,65 @@ function eventTickLabel(ctx,rows){
   return null;
 }
 function eventTickOptions(stateKey,rows){
+  /* Mantém o espaço reservado dos rótulos do eixo Y, mas deixa a camada HTML abaixo controlar clique e destaque. */
   return {
     padding:8,
-    color:function(ctx){
-      var label=eventTickLabel(ctx,rows);
-      return label&&label===STATE[stateKey]?'#062f2f':'#5b7a78';
-    },
-    font:function(ctx){
-      var label=eventTickLabel(ctx,rows);
-      var selected=label&&label===STATE[stateKey];
-      return {size:selected?12:11,weight:selected?'900':'600'};
-    }
+    color:'rgba(0,0,0,0)',
+    font:{size:11,weight:'700'}
   };
+}
+
+function installEventLabelClickLayer(chart,rows,stateKey,onSelect){
+  try{
+    if(!chart||!chart.canvas||!rows||!rows.length)return;
+    var parent=chart.canvas.parentElement;
+    if(!parent)return;
+    parent.style.position='relative';
+    var old=parent.querySelector('.event-label-click-layer');
+    if(old)old.remove();
+    var layer=document.createElement('div');
+    layer.className='event-label-click-layer';
+    parent.appendChild(layer);
+
+    function paint(){
+      try{
+        if(!chart||!chart.canvas||!chart.chartArea)return;
+        layer.innerHTML='';
+        var area=chart.chartArea||{};
+        var meta=chart.getDatasetMeta&&chart.getDatasetMeta(0);
+        var yScale=chart.scales&&(chart.scales.y||chart.scales['y']);
+        var labelWidth=Math.max(112,Math.min(190,(area.left||140)-8));
+        var canvasTop=chart.canvas.offsetTop||0;
+        var canvasLeft=chart.canvas.offsetLeft||0;
+        rows.forEach(function(r,i){
+          var ev=r&&r[0];
+          if(!ev)return;
+          var y=null;
+          if(meta&&meta.data&&meta.data[i]&&typeof meta.data[i].y==='number')y=meta.data[i].y;
+          if((y==null||isNaN(y))&&yScale&&typeof yScale.getPixelForValue==='function')y=yScale.getPixelForValue(i);
+          if(y==null||isNaN(y))return;
+          var btn=document.createElement('button');
+          btn.type='button';
+          btn.className='event-label-btn'+(STATE[stateKey]===ev?' selected':'');
+          btn.textContent=ev;
+          btn.title='Selecionar '+ev;
+          btn.style.left=canvasLeft+'px';
+          btn.style.width=labelWidth+'px';
+          btn.style.top=(canvasTop+y-11)+'px';
+          btn.setAttribute('aria-pressed',STATE[stateKey]===ev?'true':'false');
+          btn.addEventListener('click',function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            if(typeof onSelect==='function')onSelect(ev,i);
+          });
+          layer.appendChild(btn);
+        });
+      }catch(e){}
+    }
+    paint();
+    setTimeout(paint,60);
+    setTimeout(paint,260);
+  }catch(e){}
 }
 
 function showRankChart(D){
@@ -5034,6 +5088,11 @@ function showRankChart(D){
       }
     }
   });
+  installEventLabelClickLayer(CH['cRank'],D.evRank,'selEvent',function(ev){
+    STATE.selEvent=ev;
+    showRankChart(D);
+    showTop5(ev,D);
+  });
 }
 function clearTop5(){
   document.getElementById('top5Titulo').textContent='Top 5 piores motoristas por evento';
@@ -5064,6 +5123,11 @@ function showRankChart2(D){
     scales:{x:{grid:{color:'#eef4f3'}},y:{ticks:eventTickOptions('selEvent2',D.evRank)}},
     onHover:function(evt,els,chart){setChartPointerOnEventLabels(chart||CH['cRank2'],evt,els,D.evRank);},
     onClick:function(evt,els,chart){var idx=eventLabelIndexFromClick(chart||CH['cRank2'],evt,D.evRank);if(idx!=null){STATE.selEvent2=D.evRank[idx][0];showRankChart2(D);showTop52(STATE.selEvent2,D);}}}
+  });
+  installEventLabelClickLayer(CH['cRank2'],D.evRank,'selEvent2',function(ev){
+    STATE.selEvent2=ev;
+    showRankChart2(D);
+    showTop52(ev,D);
   });
   if(ev2){showTop52(ev2,D);}
 }
@@ -5527,6 +5591,11 @@ document.addEventListener('DOMContentLoaded',loadSheet);
       type:'bar',
       data:{labels:rows.map(function(r){return r[0]}),datasets:[{data:rows.map(function(r){return r[1]}),backgroundColor:rows.map(function(){return '#00A19B'}),borderColor:rows.map(function(r){return r[0]===STATE.fleetSelEvent?'#062f2f':'transparent'}),borderWidth:rows.map(function(r){return r[0]===STATE.fleetSelEvent?3:0}),borderRadius:4}]},
       options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmt(c.raw)+' eventos ('+(rows[c.dataIndex]&&rows[c.dataIndex][2]||0)+'%)';}}}},scales:{x:{grid:{color:'#eef4f3'}},y:{ticks:eventTickOptions('fleetSelEvent',rows)}},onHover:function(evt,els,chart){setChartPointerOnEventLabels(chart||CH['cFleetRank'],evt,els,rows);},onClick:function(evt,els,chart){var idx=eventLabelIndexFromClick(chart||CH['cFleetRank'],evt,rows);if(idx!=null){STATE.fleetSelEvent=rows[idx][0];showFleetRankChart(F);showFleetTop5(STATE.fleetSelEvent,F);}}}
+    });
+    installEventLabelClickLayer(CH['cFleetRank'],rows,'fleetSelEvent',function(selectedEv){
+      STATE.fleetSelEvent=selectedEv;
+      showFleetRankChart(F);
+      showFleetTop5(selectedEv,F);
     });
     if(ev){showFleetTop5(ev,F);}
   }
