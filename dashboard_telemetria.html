@@ -4399,15 +4399,15 @@ header h1{
         <div class="g2eq mb18" id="frotaTop5Section">
           <div class="card" id="cardFleetRank">
             <div class="card-topbar"><div class="ctitle">Eventos por tipo · Frota</div><div class="period-badge" id="fleetEvTypePeriod">Todos os meses</div></div>
-            <div class="csub">Selecione um desvio para ver o top 5 piores carros.</div>
+            <div class="csub">Selecione um desvio para ver o top 5 piores veículos.</div>
             <div class="cbox" id="fleetRankBox"><canvas id="cFleetRank"></canvas></div>
           </div>
           <div class="card" id="fleetTop5Card">
-            <div class="ctitle" id="fleetTop5Titulo">Top 5 piores carros por evento</div>
+            <div class="ctitle" id="fleetTop5Titulo">Top 5 piores veículos por evento</div>
             <div class="csub" id="fleetTop5Sub">Selecione um desvio ao lado.</div>
             <div class="top5panel top5empty" id="fleetTop5List">
               <div class="top5hint">Front-end pronto</div>
-              <div>Assim que a base da frota possuir carro, km e eventos, este ranking será preenchido automaticamente.</div>
+              <div>Assim que a base da frota possuir veículo, km e eventos, este ranking será preenchido automaticamente.</div>
             </div>
           </div>
         </div>
@@ -4415,20 +4415,20 @@ header h1{
         <!-- Top 10 piores carros -->
         <div class="card mb18">
           <div class="card-topbar">
-            <div><div class="ctitle" id="fleetT10wTitle">10 carros com menor performance</div><div class="csub" id="fleetT10wSub">Considerando mínimo de 250 km rodados no período.</div></div>
+            <div><div class="ctitle" id="fleetT10wTitle">10 veículos com menor performance</div><div class="csub" id="fleetT10wSub">Considerando mínimo de 250 km rodados no período.</div></div>
           </div>
           <div class="twrap" style="box-shadow:none;border:1px solid var(--line)">
-            <table><thead><tr><th>#</th><th>Carro</th><th>Performance</th><th>KM</th><th>Eventos</th><th>Desvio principal</th></tr></thead><tbody id="fleetTop10w"></tbody></table>
+            <table><thead><tr><th>#</th><th>Veículo</th><th>Performance</th><th>KM</th><th>Eventos</th><th>Desvio principal</th></tr></thead><tbody id="fleetTop10w"></tbody></table>
           </div>
         </div>
 
         <!-- Top 10 melhores carros -->
         <div class="card mb18">
           <div class="card-topbar">
-            <div><div class="ctitle" id="fleetT10bTitle">10 carros com melhor performance</div><div class="csub" id="fleetT10bSub">Considerando mínimo de 250 km rodados no período.</div></div>
+            <div><div class="ctitle" id="fleetT10bTitle">10 veículos com melhor performance</div><div class="csub" id="fleetT10bSub">Considerando mínimo de 250 km rodados no período.</div></div>
           </div>
           <div class="twrap" style="box-shadow:none;border:1px solid var(--line)">
-            <table><thead><tr><th>#</th><th>Carro</th><th>Performance</th><th>KM</th><th>Eventos</th><th>Desvio principal</th></tr></thead><tbody id="fleetTop10b"></tbody></table>
+            <table><thead><tr><th>#</th><th>Veículo</th><th>Performance</th><th>KM</th><th>Eventos</th><th>Desvio principal</th></tr></thead><tbody id="fleetTop10b"></tbody></table>
           </div>
         </div>
       </div>
@@ -4436,7 +4436,7 @@ header h1{
       <!-- DETALHADO FROTA -->
       <div id="frotaDetalhado" style="display:none">
         <div class="controls mot-controls" style="margin-top:8px">
-          <input type="search" id="qFleet" placeholder="Buscar carro, frota, prefixo ou placa...">
+          <input type="search" id="qFleet" placeholder="Buscar veículo, frota, prefixo ou placa...">
         </div>
         <div class="cnt" id="fleetCnt"></div>
         <div class="twrap"><table id="fleetTbl"><thead><tr id="fleetTblHead"></tr></thead><tbody id="fleetTbody"></tbody></table></div>
@@ -5376,7 +5376,7 @@ document.addEventListener('DOMContentLoaded',loadSheet);
 
   function fleetPerf(d){return d.perfStd;}
   function fleetNoDataHtml(){
-    return '<div class="frota-ready-note"><strong>Front-end da frota pronto</strong>Quando a planilha trouxer uma coluna de carro/frota/prefixo e os dados a partir de junho, os rankings serão preenchidos automaticamente.</div>';
+    return '<div class="frota-ready-note"><strong>Front-end da frota pronto</strong>Quando a planilha trouxer uma coluna de veículo/frota/prefixo e os dados a partir de junho, os rankings serão preenchidos automaticamente.</div>';
   }
   function renderFleetEventCards(F){
     safeSet('frotaEventCards',EV_COLS.map(function(e){return '<div class="mini-ev"><div class="mini-ev-name">'+evLabel(e).replace(/<br>/g,' ')+'</div><div class="mini-ev-val">'+fmt(F.evTot[e]||0)+'</div><div class="mini-ev-sub">eventos na frota</div></div>';}).join(''));
@@ -5384,12 +5384,12 @@ document.addEventListener('DOMContentLoaded',loadSheet);
   function fleetRowFn(d,i){var perf=fleetPerf(d);return '<tr><td class="rank">'+(i+1)+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+pPill(perf)+'</td><td>'+fmt(d.km)+'</td><td>'+fmt(d.pts)+'</td><td><span class="dtag">'+esc(d.dom)+'</span></td></tr>';}
 
   function showFleetTop5(evName,F){
-    safeText('fleetTop5Titulo','Top 5 piores carros · '+evName);
+    safeText('fleetTop5Titulo','Top 5 piores veículos · '+evName);
     safeText('fleetTop5Sub','Ranking por ocorrências em '+periodLabelShort()+'.');
     var box=document.getElementById('fleetTop5List'); if(!box)return;
     var sorted=F.vehicles.filter(function(d){return(d.ev[evName]||0)>0;}).sort(function(a,b){return(b.ev[evName]||0)-(a.ev[evName]||0);}).slice(0,5);
     box.className='top5panel'+(sorted.length?'':' top5empty');
-    box.innerHTML=sorted.map(function(d,i){return '<div class="top5item"><span class="top5rank">'+(i+1)+'</span><span class="top5nome">'+esc(d.nome)+'</span><span class="top5meta"><span class="top5val">'+fmt(d.ev[evName]||0)+' eventos</span><span class="top5km">'+fmt(d.km)+' km · '+fmtDec(d.kme||0,1)+' km/evento</span></span></div>';}).join('') || '<div class="top5hint">Sem ocorrências</div><div>Nenhum carro com este desvio no período selecionado.</div>';
+    box.innerHTML=sorted.map(function(d,i){return '<div class="top5item"><span class="top5rank">'+(i+1)+'</span><span class="top5nome">'+esc(d.nome)+'</span><span class="top5meta"><span class="top5val">'+fmt(d.ev[evName]||0)+' eventos</span><span class="top5km">'+fmt(d.km)+' km · '+fmtDec(d.kme||0,1)+' km/evento</span></span></div>';}).join('') || '<div class="top5hint">Sem ocorrências</div><div>Nenhum veículo com este desvio no período selecionado.</div>';
   }
 
   function showFleetRankChart(F){
@@ -5418,10 +5418,10 @@ document.addEventListener('DOMContentLoaded',loadSheet);
 
   function renderFleetDetail(F){
     var head=document.getElementById('fleetTblHead'); if(!head)return;
-    head.innerHTML='<th>#</th><th>Carro ↕</th><th>Performance</th><th>KM</th><th>Eventos</th>'+EV_COLS.map(function(e){return'<th class="evth">'+evLabel(e)+'</th>';}).join('');
+    head.innerHTML='<th>#</th><th>Veículo ↕</th><th>Performance</th><th>KM</th><th>Eventos</th>'+EV_COLS.map(function(e){return'<th class="evth">'+evLabel(e)+'</th>';}).join('');
     var q=(document.getElementById('qFleet')&&document.getElementById('qFleet').value||'').trim().toUpperCase();
     var rows=F.vehicles.filter(function(d){return !q||d.nome.toUpperCase().indexOf(q)>=0;}).sort(function(a,b){return (fleetPerf(a)||-999999)-(fleetPerf(b)||-999999);});
-    safeText('fleetCnt',rows.length+' carros');
+    safeText('fleetCnt',rows.length+' veículos');
     safeSet('fleetTbody',rows.map(function(d,i){return '<tr><td class="rank">'+(i+1)+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+pPill(fleetPerf(d))+'</td><td>'+fmt(d.km)+'</td><td>'+fmt(d.pts)+'</td>'+EV_COLS.map(function(e){return'<td>'+(d.ev[e]||0)+'</td>';}).join('')+'</tr>';}).join('') || '<tr><td colspan="20" style="padding:24px;text-align:center;color:var(--muted)">Aguardando dados da frota a partir de junho.</td></tr>');
   }
 
@@ -5446,7 +5446,7 @@ document.addEventListener('DOMContentLoaded',loadSheet);
     if(!F.fleetN){
       safeSet('fleetTop10w','<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Front-end pronto. Aguardando planilha da frota a partir de junho.</td></tr>');
       safeSet('fleetTop10b','<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Front-end pronto. Aguardando planilha da frota a partir de junho.</td></tr>');
-      var box=document.getElementById('fleetTop5List'); if(box){box.className='top5panel top5empty'; box.innerHTML='<div class="top5hint">Front-end pronto</div><div>Aguardando base com carro/frota/prefixo, km e eventos a partir de junho.</div>';}
+      var box=document.getElementById('fleetTop5List'); if(box){box.className='top5panel top5empty'; box.innerHTML='<div class="top5hint">Front-end pronto</div><div>Aguardando base com veículo/frota/prefixo, km e eventos a partir de junho.</div>';}
     }
   }
   window.renderFrota=renderFrota;
@@ -5458,7 +5458,7 @@ document.addEventListener('DOMContentLoaded',loadSheet);
     var bestEvt=F.evRank&&F.evRank.length?F.evRank.filter(function(r){return r[1]>0}).slice().sort(function(a,b){return a[1]-b[1]})[0]:null;
     safeText('hSetor','FROTAS');
     safeSet('hTitulo','Desempenho da Frota');
-    safeText('hSubtitle',(F.fleetN?fmt(F.fleetN)+' carros monitorados em '+periodLabelShort():'Estrutura da frota pronta · aguardando dados a partir de junho'));
+    safeText('hSubtitle',(F.fleetN?fmt(F.fleetN)+' veículos monitorados em '+periodLabelShort():'Estrutura da frota pronta · aguardando dados a partir de junho'));
     safeText('heroMainLabel','Performance Frota');
     safeText('heroPerf',pa==null?'—':fmtDec(pa,2)+'%');
     safeSet('heroMainPeriod','Período <b>'+esc(periodLabelCompact())+'</b>');
@@ -5476,7 +5476,7 @@ document.addEventListener('DOMContentLoaded',loadSheet);
     var side2=document.getElementById('heroSide2Card'); if(side2)side2.classList.add('worst-card');
     var main=document.querySelector('.hero-main-stat');
     if(main){main.classList.remove('perf-good','perf-warn','perf-alert','perf-bad'); if(pa==null||pa<0)main.classList.add('perf-bad'); else if(pa<50)main.classList.add('perf-alert'); else if(pa<90)main.classList.add('perf-warn'); else main.classList.add('perf-good');}
-    safeText('hMiniMotLabel','Carros'); safeText('hMiniMot',fmt(F.fleetN)); safeText('hMiniKmeLabel','KM/Evento'); safeText('hMiniKme',fmtDec(kmPorEvento(F.totKm,F.totEv)||0,1)+' km');
+    safeText('hMiniMotLabel','Veículos'); safeText('hMiniMot',fmt(F.fleetN)); safeText('hMiniKmeLabel','KM/Evento'); safeText('hMiniKme',fmtDec(kmPorEvento(F.totKm,F.totEv)||0,1)+' km');
   }
 
   var originalSetHero=window.setHeroForTab;
@@ -5766,7 +5766,9 @@ document.addEventListener('DOMContentLoaded',loadSheet);
   var ICONS = {
     'km/evento':'<svg viewBox="0 0 24 24"><path d="M4 20l4-16"/><path d="M20 20l-4-16"/><path d="M4 20h16"/><circle cx="12" cy="7" r="1.5"/><circle cx="12" cy="13" r="1.5"/></svg>',
     'motoristas':'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
-    'carros':'<svg viewBox="0 0 24 24"><path d="M5 16h14"/><path d="M6.5 16l1.4-4.2A3 3 0 0 1 10.7 10h2.6a3 3 0 0 1 2.8 1.8l1.4 4.2"/><path d="M7 16v2"/><path d="M17 16v2"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/><path d="M9 13h6"/></svg>',
+    'veículos':'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="2.1"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/><path d="M12 6.9v2.6M12 14.5v2.6M6.9 12h2.6M14.5 12h2.6M8.4 8.4l1.8 1.8M13.8 13.8l1.8 1.8M15.6 8.4l-1.8 1.8M10.2 13.8l-1.8 1.8"/><circle cx="12" cy="7.4" r="0.45" fill="currentColor" stroke="none"/><circle cx="16.6" cy="12" r="0.45" fill="currentColor" stroke="none"/><circle cx="12" cy="16.6" r="0.45" fill="currentColor" stroke="none"/><circle cx="7.4" cy="12" r="0.45" fill="currentColor" stroke="none"/></svg>',
+    'veiculos':'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="2.1"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/><path d="M12 6.9v2.6M12 14.5v2.6M6.9 12h2.6M14.5 12h2.6M8.4 8.4l1.8 1.8M13.8 13.8l1.8 1.8M15.6 8.4l-1.8 1.8M10.2 13.8l-1.8 1.8"/><circle cx="12" cy="7.4" r="0.45" fill="currentColor" stroke="none"/><circle cx="16.6" cy="12" r="0.45" fill="currentColor" stroke="none"/><circle cx="12" cy="16.6" r="0.45" fill="currentColor" stroke="none"/><circle cx="7.4" cy="12" r="0.45" fill="currentColor" stroke="none"/></svg>',
+    'carros':'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="2.1"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/><path d="M12 6.9v2.6M12 14.5v2.6M6.9 12h2.6M14.5 12h2.6M8.4 8.4l1.8 1.8M13.8 13.8l1.8 1.8M15.6 8.4l-1.8 1.8M10.2 13.8l-1.8 1.8"/><circle cx="12" cy="7.4" r="0.45" fill="currentColor" stroke="none"/><circle cx="16.6" cy="12" r="0.45" fill="currentColor" stroke="none"/><circle cx="12" cy="16.6" r="0.45" fill="currentColor" stroke="none"/><circle cx="7.4" cy="12" r="0.45" fill="currentColor" stroke="none"/></svg>',
     'setores':'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>'
   };
   function pickIcon(label){
