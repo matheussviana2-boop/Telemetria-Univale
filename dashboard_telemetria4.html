@@ -5380,13 +5380,12 @@ function renderDiag(){
   function vehicleRankHtml(title,arr,prevMap,kind,empty){
     var rows=arr.map(function(v,i){
       var pv=prevMap[v.nome];
-      var delta=(pv&&pv.perf!=null)?(v.perf-pv.perf):null;
       var pct=(pv&&pv.perf!=null)?signedPct(v.perf,pv.perf):null;
-      var trendHtml=pct==null?'<span class="op-trend neutral">— sem base anterior</span>':'<span class="op-trend '+trendClass(pct,false)+'">'+pctArrow(pct)+'</span>';
+      var trendHtml=pct==null?'<span class="op-trend neutral">—</span>':'<span class="op-trend '+trendClass(pct,false)+'">'+pctArrow(pct)+'</span>';
       return '<div class="op-row '+kind+' fleet-row">'+
         '<div class="op-name"><span class="fleet-rank">'+(i+1)+'</span> '+esc(v.nome)+'</div>'+
-        '<div class="op-meta">'+fmtDec(v.perf,2)+'%</div>'+
-        '<div class="op-submeta">'+trendHtml+' · '+fmt(v.pts)+' eventos</div>'+
+        '<div class="op-meta">'+trendHtml+'</div>'+
+        '<div class="op-submeta">'+fmt(v.pts)+' eventos</div>'+
       '</div>';
     }).join('')||emptyRow(empty);
     return '<div class="op-col '+kind+' op-fleet-card"><div class="op-col-head"><span class="op-col-ico">▣</span><div class="op-col-title">'+esc(title)+'</div></div><div class="op-list">'+rows+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M5 18h14"/><path d="M7 18l1-8h8l1 8"/><path d="M9 10V7h6v3"/></svg></div></div>';
