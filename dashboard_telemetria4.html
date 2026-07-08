@@ -5310,24 +5310,61 @@ function renderDiag(){
   var drvUpHtml=drv.up.slice(0,3).map(function(x){return driverRow(x,'good',true)}).join('')||emptyRow('Sem motoristas em melhora no comparativo.');
   var drvDownHtml=drv.down.slice(0,3).map(function(x){return driverRow(x,'bad')}).join('')||emptyRow('Sem motoristas em piora no mês.');
 
+  function fleetNum(v){
+    if(typeof v==='number'&&isFinite(v))return v;
+    var s=String(v==null?'':v).trim();
+    if(!s)return 0;
+    if(s.indexOf(',')>=0&&s.indexOf('.')>=0)s=s.replace(/\./g,'').replace(',','.');
+    else if(s.indexOf(',')>=0)s=s.replace(',','.');
+    s=s.replace(/[^0-9.-]/g,'');
+    var n=parseFloat(s);
+    return isFinite(n)?n:0;
+  }
+  function fleetMonthOf(r){
+    var m=rowVal(r,['MES','MÊS','MONTH','PERIODO','PERÍODO'])||r.MES||'';
+    return String(m).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().slice(0,3);
+  }
+  function fleetSectorOf(r){
+    return normalizeSectorCode(rowVal(r,['SETOR','SETOR OPERACIONAL','SETOR_OPERACIONAL','CLIENTE','EMPRESA'])||r.SETOR||'');
+  }
+  function fleetBadName(v){
+    var s=String(v==null?'':v).trim();
+    if(!s)return true;
+    var k=nkey(s);
+    return !k||k==='0'||k==='00'||k==='000'||k==='NAN'||k==='NULL'||k==='TOTAL'||k==='SUBTOTAL'||k==='CARRO'||k==='VEICULO'||k==='FROTA'||k==='DESCRICAODOATIVO';
+  }
   function vehicleName(r){
-    var direct=['VEICULO','VEÍCULO','CARRO','PREFIXO','PLACA','FROTA','VEICULO/PLACA','VEÍCULO/PLACA','CARRO/PLACA'];
-    for(var i=0;i<direct.length;i++){if(r[direct[i]]!=null&&String(r[direct[i]]).trim())return String(r[direct[i]]).trim()}
+    var direct=['CARRO','FROTA','NOME DA FROTA','DESCRIÇÃO DO ATIVO','DESCRICAO DO ATIVO','DESCRIÇÃO ATIVO','DESCRICAO ATIVO','VEICULO','VEÍCULO','NOME DO VEÍCULO','NOME DO VEICULO','PREFIXO','PREFIXO VEICULO','PREFIXO VEÍCULO','PLACA','Nº CARRO','NRO CARRO','NUMERO CARRO','NÚMERO CARRO','CODIGO VEICULO','CÓDIGO VEÍCULO','ONIBUS','ÔNIBUS'];
+    for(var i=0;i<direct.length;i++){var v=rowVal(r,[direct[i]]);if(!fleetBadName(v))return String(v).trim().toUpperCase();}
     for(var k in r){
       var nk=nkey(k);
-      if((nk.indexOf('VEICULO')>=0||nk.indexOf('CARRO')>=0||nk.indexOf('PREFIXO')>=0||nk.indexOf('PLACA')>=0) && String(r[k]||'').trim())return String(r[k]).trim();
+      if((nk.indexOf('VEICULO')>=0||nk.indexOf('CARRO')>=0||nk.indexOf('FROTA')>=0||nk.indexOf('ATIVO')>=0||nk.indexOf('PREFIXO')>=0||nk.indexOf('PLACA')>=0) && !fleetBadName(r[k]))return String(r[k]).trim().toUpperCase();
     }
     return '';
   }
-  function aggregateVehicles(model){
+  function aggregateVehiclesFromFleet(monthKey){
+    var rows=(STATE.rawFleet&&STATE.rawFleet.length)?STATE.rawFleet:[];
+    var setorAtual=normalizeSectorCode(STATE.setor||'ALL');
+    rows=(rows||[]).filter(function(r){
+      var m=fleetMonthOf(r);
+      if(monthKey&&m!==monthKey)return false;
+      var s=fleetSectorOf(r);
+      if(setorAtual&&setorAtual!=='ALL')return s===setorAtual;
+      return ['GARAG_BAHIA','GARAG_MG'].indexOf(s)<0;
+    });
     var map={};
-    (model&&model.rawRows?model.rawRows:[]).forEach(function(r){
+    rows.forEach(function(r){
       var v=vehicleName(r);
       if(!v)return;
-      var o=map[v]||(map[v]={nome:v,km:0,pts:0,ev:{}});
-      o.km+=+r.KM||0;
-      o.pts+=+r.PONTUACAO||0;
-      EV_COLS.forEach(function(e){o.ev[e]=(o.ev[e]||0)+evVal(r,e)});
+      var key=nkey(v);
+      var o=map[key]||(map[key]={nome:v,km:0,pts:0,ev:{}});
+      var km=fleetNum(rowVal(r,['KM','KM RODADO','KM RODADOS','KM TOTAL','QUILOMETRAGEM'])||r.KM);
+      var evSum=0;
+      EV_COLS.forEach(function(e){var val=evVal(r,e)||0;o.ev[e]=(o.ev[e]||0)+val;evSum+=val;});
+      var ptsRaw=rowVal(r,['PONTUACAO','PONTUAÇÃO','EVENTOS','TOTAL EVENTOS','PONTOS','QTD EVENTOS','QTDE EVENTOS']);
+      var pts=(ptsRaw===''||ptsRaw==null)?evSum:fleetNum(ptsRaw);
+      o.km+=km;
+      o.pts+=pts;
     });
     return Object.values(map).map(function(o){
       o.perf=calcPerf(o.km,o.pts);
@@ -5381,8 +5418,8 @@ function renderDiag(){
     var total=items.length?(items.length===1?'1 registro encontrado':items.length+' registros encontrados'):'Sem registros';
     return '<div class="op-col good op-fluig-card"><div class="op-col-head"><span class="op-col-ico">↗</span><div><div class="op-col-title">Motoristas com registro no Fluig</div><div style="font-size:10.5px;font-weight:800;opacity:.86;margin-top:2px">'+esc(total)+' · '+esc(label)+'</div></div></div><div class="op-list">'+rows+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg></div></div>';
   }
-  var curVeh=aggregateVehicles(cur);
-  var prevVeh=aggregateVehicles(prev);
+  var curVeh=aggregateVehiclesFromFleet(curMonthKey);
+  var prevVeh=aggregateVehiclesFromFleet(prevMonthKey);
   var prevVehMap={};prevVeh.forEach(function(v){prevVehMap[v.nome]=v});
   var bestVeh=curVeh.slice().sort(function(a,b){return b.perf-a.perf}).slice(0,5);
   var worstVeh=curVeh.slice().sort(function(a,b){return a.perf-b.perf}).slice(0,5);
