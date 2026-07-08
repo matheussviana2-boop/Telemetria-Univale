@@ -4204,12 +4204,14 @@ header h1{
 #diag .op-col.bad .op-col-head,
 #diag .op-fleet-card.alert .op-col-head{background:linear-gradient(180deg,#b3001b,#850014) !important;}
 #diag .op-fluig-card{margin-top:14px;min-height:auto;}
-#diag .op-fluig-card .op-col-head{background:linear-gradient(180deg,#038b85,#007d78) !important;}
+#diag .op-fluig-card .op-col-head{background:linear-gradient(180deg,#111827,#020617) !important;}
 #diag .op-fluig-card .op-list{padding-bottom:13px !important;}
 #diag .op-fluig-card .op-row{grid-template-columns:minmax(0,1fr) auto;align-items:center;}
-#diag .op-fluig-link{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(0,161,155,.28);border-radius:999px;padding:5px 10px;color:var(--teal-d);background:rgba(0,161,155,.08);font-family:var(--mono);font-size:11px;font-weight:900;text-decoration:none;white-space:nowrap;}
-#diag .op-fluig-link:hover{filter:brightness(.96);text-decoration:none;}
-#diag .op-fluig-link.disabled{color:var(--muted);border-color:#d5e8e7;background:#f5fbfa;}
+#diag .op-fluig-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid rgba(2,6,23,.22);border-radius:999px;padding:7px 12px;color:#fff;background:linear-gradient(180deg,#111827,#020617);box-shadow:0 7px 16px rgba(2,6,23,.16);font-family:var(--mono);font-size:11px;font-weight:900;text-decoration:none;white-space:nowrap;letter-spacing:.02em;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;}
+#diag .op-fluig-link::before{content:'↗';display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:999px;background:rgba(255,255,255,.14);font-family:Arial,sans-serif;font-size:11px;line-height:1;}
+#diag .op-fluig-link:hover{filter:brightness(1.08);text-decoration:none;transform:translateY(-1px);box-shadow:0 10px 20px rgba(2,6,23,.22);}
+#diag .op-fluig-link.disabled{color:var(--muted);border-color:#d5e8e7;background:#f5fbfa;box-shadow:none;cursor:not-allowed;}
+#diag .op-fluig-link.disabled::before{display:none;}
 /* Ajuste: remover comentários/subtítulos abaixo dos títulos dos menus e cards */
 #hSubtitle,.hsubtitle,.csub,#diag .op-subtitle{display:none !important;}
 
@@ -4346,7 +4348,7 @@ header h1{
         <div class="g2eq mb18" id="top5Section">
           <div class="card" id="cardRank2">
             <div class="card-topbar"><div class="ctitle">Eventos por tipo</div><div class="period-badge" id="evTypePeriod">Todos os meses</div></div>
-            <div class="csub">Selecione um desvio para ver o top 5 motoristas.</div>
+            <div class="csub"></div>
             <div class="cbox" id="rankBox2"><canvas id="cRank2"></canvas></div>
           </div>
           <div class="card" id="top5Card2">
@@ -4409,7 +4411,7 @@ header h1{
         <div class="g2eq mb18" id="frotaTop5Section">
           <div class="card" id="cardFleetRank">
             <div class="card-topbar"><div class="ctitle">Eventos por tipo · Frota</div><div class="period-badge" id="fleetEvTypePeriod">Todos os meses</div></div>
-            <div class="csub">Selecione um desvio para ver o top 5 piores veículos.</div>
+            <div class="csub"></div>
             <div class="cbox" id="fleetRankBox"><canvas id="cFleetRank"></canvas></div>
           </div>
           <div class="card" id="fleetTop5Card">
@@ -4948,8 +4950,9 @@ function eventLabelIndexFromClick(chart,evt,rows){
     }
     if(x==null||y==null)return null;
     if(y<(area.top||0)||y>(area.bottom||chart.height))return null;
-    /* O clique no nome do evento acontece na área à esquerda das barras. */
-    if(x>(area.left||0)+8)return null;
+    /* O clique válido acontece somente no nome do evento, na área à esquerda das barras. */
+    var labelRight=(area.left||0)+4;
+    if(x<0||x>labelRight)return null;
     var yScale=chart.scales&&(chart.scales.y||chart.scales['y']);
     var idx=null;
     if(yScale&&typeof yScale.getValueForPixel==='function')idx=yScale.getValueForPixel(y);
@@ -4965,8 +4968,32 @@ function setChartPointerOnEventLabels(chart,evt,els,rows){
   try{
     if(!chart||!chart.canvas)return;
     var idx=eventLabelIndexFromClick(chart,evt,rows);
-    chart.canvas.style.cursor=(idx!=null||(els&&els.length))?'pointer':'default';
+    chart.canvas.style.cursor=(idx!=null)?'pointer':'default';
   }catch(e){}
+}
+
+function eventTickLabel(ctx,rows){
+  try{
+    if(!ctx)return null;
+    if(ctx.tick&&ctx.tick.label!=null)return String(ctx.tick.label);
+    if(rows&&rows[ctx.index])return String(rows[ctx.index][0]);
+    if(ctx.tick&&ctx.tick.value!=null&&rows&&rows[ctx.tick.value])return String(rows[ctx.tick.value][0]);
+  }catch(e){}
+  return null;
+}
+function eventTickOptions(stateKey,rows){
+  return {
+    padding:8,
+    color:function(ctx){
+      var label=eventTickLabel(ctx,rows);
+      return label&&label===STATE[stateKey]?'#062f2f':'#5b7a78';
+    },
+    font:function(ctx){
+      var label=eventTickLabel(ctx,rows);
+      var selected=label&&label===STATE[stateKey];
+      return {size:selected?12:11,weight:selected?'900':'600'};
+    }
+  };
 }
 
 function showRankChart(D){
@@ -4994,12 +5021,11 @@ function showRankChart(D){
       },
       scales:{
         x:{grid:{color:'#eef4f3'}},
-        y:{ticks:{font:{size:11}}}
+        y:{ticks:eventTickOptions('selEvent',D.evRank)}
       },
       onHover:function(evt,els,chart){setChartPointerOnEventLabels(chart||CH['cRank'],evt,els,D.evRank);},
       onClick:function(evt,els,chart){
         var idx=eventLabelIndexFromClick(chart||CH['cRank'],evt,D.evRank);
-        if(idx==null&&els&&els.length)idx=els[0].index;
         if(idx!=null){
           STATE.selEvent=D.evRank[idx][0];
           showRankChart(D);
@@ -5029,16 +5055,17 @@ function showRankChart2(D){
   if(!document.getElementById('cRank2'))return;
   if(CH['cRank2']){try{CH['cRank2'].destroy()}catch(e){}}
   var el=document.getElementById('cRank2');if(!el||typeof Chart==='undefined')return;
+  var ev2=STATE.selEvent2&&D.evTot[STATE.selEvent2]>0?STATE.selEvent2:(D.evRank[0]?D.evRank[0][0]:null);
+  if(ev2)STATE.selEvent2=ev2;
   CH['cRank2']=new Chart(el,{
     type:'bar',
     data:{labels:D.evRank.map(function(r){return r[0]}),datasets:[{data:D.evRank.map(function(r){return r[1]}),backgroundColor:D.evRank.map(function(){return '#00A19B'}),borderColor:D.evRank.map(function(r){return r[0]===STATE.selEvent2?'#062f2f':'transparent'}),borderWidth:D.evRank.map(function(r){return r[0]===STATE.selEvent2?3:0}),borderRadius:4}]},
     options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmt(c.raw)+' eventos ('+D.evRank[c.dataIndex][2]+'%)';}}}},
-    scales:{x:{grid:{color:'#eef4f3'}},y:{ticks:{font:{size:11}}}},
+    scales:{x:{grid:{color:'#eef4f3'}},y:{ticks:eventTickOptions('selEvent2',D.evRank)}},
     onHover:function(evt,els,chart){setChartPointerOnEventLabels(chart||CH['cRank2'],evt,els,D.evRank);},
-    onClick:function(evt,els,chart){var idx=eventLabelIndexFromClick(chart||CH['cRank2'],evt,D.evRank);if(idx==null&&els&&els.length)idx=els[0].index;if(idx!=null){STATE.selEvent2=D.evRank[idx][0];showRankChart2(D);showTop52(STATE.selEvent2,D);}}}
+    onClick:function(evt,els,chart){var idx=eventLabelIndexFromClick(chart||CH['cRank2'],evt,D.evRank);if(idx!=null){STATE.selEvent2=D.evRank[idx][0];showRankChart2(D);showTop52(STATE.selEvent2,D);}}}
   });
-  var ev2=STATE.selEvent2&&D.evTot[STATE.selEvent2]>0?STATE.selEvent2:(D.evRank[0]?D.evRank[0][0]:null);
-  if(ev2){STATE.selEvent2=ev2;showTop52(ev2,D);}
+  if(ev2){showTop52(ev2,D);}
 }
 function showTop52(evName,D){
   var sorted=D.drivers.filter(function(d){return(d.ev[evName]||0)>0}).sort(function(a,b){return(b.ev[evName]||0)-(a.ev[evName]||0)}).slice(0,5);
@@ -5203,24 +5230,31 @@ function renderDiag(){
   }
   function fluigCardHtml(model,label){
     var seen={},items=[];
+    var mostrarSetor=STATE.setor==='ALL';
     (model&&model.rawRows?model.rawRows:[]).forEach(function(r){
       var raw=fluigLink(r);
       if(!raw)return;
       var nome=String(rowVal(r,['MOTORISTA','NOME MOTORISTA','CONDUTOR','DRIVER'])||'Motorista não identificado').trim();
       var link=String(raw).trim();
-      var key=nkey(nome)+'|'+link;
+      var setor=String(rowVal(r,['SETOR','SETOR MOTORISTA','SETOR/CONTRATO','CONTRATO'])||'').trim().toUpperCase();
+      var key=nkey(nome)+'|'+link+'|'+setor;
       if(seen[key])return;
       seen[key]=1;
-      items.push({nome:nome,link:link,url:safeHref(link),code:fCode(link)});
+      items.push({nome:nome,link:link,url:safeHref(link),code:fCode(link),setor:setor,setorTxt:setorLabel(setor)});
     });
-    items.sort(function(a,b){return a.nome.localeCompare(b.nome,'pt-BR')});
+    items.sort(function(a,b){
+      var sa=(a.setorTxt||'').localeCompare(b.setorTxt||'','pt-BR');
+      return mostrarSetor&&sa?sa:a.nome.localeCompare(b.nome,'pt-BR');
+    });
     var rows=items.map(function(x){
-      var labelLink=x.code?'Registro '+esc(x.code):'Abrir Fluig';
-      var linkHtml=x.url?'<a class="op-fluig-link" href="'+esc(x.url)+'" target="_blank" rel="noopener noreferrer">'+labelLink+'</a>':'<span class="op-fluig-link disabled">Link inválido</span>';
+      var title=x.code?'Abrir registro Fluig '+x.code:'Abrir registro Fluig';
+      var linkHtml=x.url?'<a class="op-fluig-link" href="'+esc(x.url)+'" target="_blank" rel="noopener noreferrer" title="'+esc(title)+'">Visualizar registro Fluig</a>':'<span class="op-fluig-link disabled">Link inválido</span>';
+      var setorTxt=(mostrarSetor&&x.setor)?' · Setor: '+esc(x.setorTxt):'';
+      var codeTxt=x.code?' · Registro '+esc(x.code):'';
       return '<div class="op-row good fluig-row">'+
         '<div class="op-name">'+esc(x.nome)+'</div>'+
         '<div class="op-meta">'+linkHtml+'</div>'+
-        '<div class="op-submeta">Registro Fluig em '+esc(label)+'</div>'+
+        '<div class="op-submeta">Registro Fluig em '+esc(label)+setorTxt+codeTxt+'</div>'+
       '</div>';
     }).join('')||emptyRow('Não existe registro de Fluig para o mês selecionado.');
     var total=items.length?(items.length===1?'1 registro encontrado':items.length+' registros encontrados'):'Sem registros';
@@ -5487,13 +5521,14 @@ document.addEventListener('DOMContentLoaded',loadSheet);
     if(CH['cFleetRank']){try{CH['cFleetRank'].destroy()}catch(e){}}
     var el=document.getElementById('cFleetRank'); if(!el||typeof Chart==='undefined')return;
     var rows=F.evRank&&F.evRank.length?F.evRank:EV_COLS.map(function(e){return[e,0,0]});
+    var ev=STATE.fleetSelEvent||rows[0][0];
+    if(ev)STATE.fleetSelEvent=ev;
     CH['cFleetRank']=new Chart(el,{
       type:'bar',
       data:{labels:rows.map(function(r){return r[0]}),datasets:[{data:rows.map(function(r){return r[1]}),backgroundColor:rows.map(function(){return '#00A19B'}),borderColor:rows.map(function(r){return r[0]===STATE.fleetSelEvent?'#062f2f':'transparent'}),borderWidth:rows.map(function(r){return r[0]===STATE.fleetSelEvent?3:0}),borderRadius:4}]},
-      options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmt(c.raw)+' eventos ('+(rows[c.dataIndex]&&rows[c.dataIndex][2]||0)+'%)';}}}},scales:{x:{grid:{color:'#eef4f3'}},y:{ticks:{font:{size:11}}}},onHover:function(evt,els,chart){setChartPointerOnEventLabels(chart||CH['cFleetRank'],evt,els,rows);},onClick:function(evt,els,chart){var idx=eventLabelIndexFromClick(chart||CH['cFleetRank'],evt,rows);if(idx==null&&els&&els.length)idx=els[0].index;if(idx!=null){STATE.fleetSelEvent=rows[idx][0];showFleetRankChart(F);showFleetTop5(STATE.fleetSelEvent,F);}}}
+      options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmt(c.raw)+' eventos ('+(rows[c.dataIndex]&&rows[c.dataIndex][2]||0)+'%)';}}}},scales:{x:{grid:{color:'#eef4f3'}},y:{ticks:eventTickOptions('fleetSelEvent',rows)}},onHover:function(evt,els,chart){setChartPointerOnEventLabels(chart||CH['cFleetRank'],evt,els,rows);},onClick:function(evt,els,chart){var idx=eventLabelIndexFromClick(chart||CH['cFleetRank'],evt,rows);if(idx!=null){STATE.fleetSelEvent=rows[idx][0];showFleetRankChart(F);showFleetTop5(STATE.fleetSelEvent,F);}}}
     });
-    var ev=STATE.fleetSelEvent||rows[0][0];
-    if(ev){STATE.fleetSelEvent=ev;showFleetTop5(ev,F);}
+    if(ev){showFleetTop5(ev,F);}
   }
 
   function renderFleetTables(F){
