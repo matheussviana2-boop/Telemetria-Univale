@@ -1069,7 +1069,7 @@ header .msel,
   -moz-appearance:none !important;
   appearance:none !important;
   background:
-    linear-gradient(180deg, rgba(5,44,46,.96), rgba(3,28,31,.94)) !important;
+    linear-gradient(180deg, rgba(6,30,47,.96), rgba(4,18,32,.94)) !important;
   color:#ecfffd !important;
   border:1px solid rgba(129,245,236,.26) !important;
   border-radius:999px !important;
@@ -1083,7 +1083,7 @@ header .msel,
 /* seta mais visível e alinhada com o tema */
 .hero-top-filters .msel{
   background-image:
-    linear-gradient(180deg, rgba(5,44,46,.96), rgba(3,28,31,.94)),
+    linear-gradient(180deg, rgba(6,30,47,.96), rgba(4,18,32,.94)),
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23dffefd' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
   background-repeat:no-repeat,no-repeat;
   background-position:0 0, calc(100% - 14px) 50%;
@@ -1109,26 +1109,26 @@ header .msel:focus,
     0 12px 24px rgba(0,34,34,.24) !important;
 }
 
-/* fundo da lista aberta */
+/* fundo da lista aberta — azul escuro alinhado ao dashboard */
 header .msel option,
 .hero-top-filters .msel option{
-  background:#0b5558 !important;
-  color:#f3fffe !important;
+  background:#061e2f !important;
+  color:#e8f4ff !important;
 }
 
 /* item selecionado na lista */
 header .msel option:checked,
 .hero-top-filters .msel option:checked{
-  background:#0ea7a2 !important;
-  color:#05292b !important;
+  background:#0d3a5c !important;
+  color:#ffffff !important;
   font-weight:700;
 }
 
 /* fallback para alguns navegadores */
 header .msel optgroup,
 .hero-top-filters .msel optgroup{
-  background:#0b5558 !important;
-  color:#f3fffe !important;
+  background:#061e2f !important;
+  color:#e8f4ff !important;
 }
 
 
@@ -1606,7 +1606,7 @@ header .msel.locked-filter{
 }
 .hero-top-filters .msel.locked-filter{
   background-image:
-    linear-gradient(180deg, rgba(5,44,46,.96), rgba(3,28,31,.94)),
+    linear-gradient(180deg, rgba(6,30,47,.96), rgba(4,18,32,.94)),
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237cf3d9' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='11' width='14' height='10' rx='2'/><path d='M8 11V8a4 4 0 0 1 8 0v3'/></svg>") !important;
   background-repeat:no-repeat,no-repeat !important;
   background-position:0 0, calc(100% - 14px) 50% !important;
@@ -4519,9 +4519,11 @@ var SLABELS={
   'MUSA':'Musa',
   'TURIM':'Turim Rodoviário',
   'GARAG_BAHIA':'Garagistas Bahia',
-  'GARAG_MG':'Garagistas MG'
+  'GARAG_MG':'Garagistas MG',
+  'ENGEPACK':'Engepack',
+  'OXITENO':'Oxiteno'
 };
-var SECTOR_ORDER=['BEMISA','CENIBRA','CIPALAM','FRET_BAHIA','LINHAS_BAHIA','LINHAS_MINAS','MUSA','TURIM','GARAG_BAHIA','GARAG_MG'];
+var SECTOR_ORDER=['BEMISA','CENIBRA','CIPALAM','ENGEPACK','FRET_BAHIA','LINHAS_BAHIA','LINHAS_MINAS','MUSA','OXITENO','TURIM','GARAG_BAHIA','GARAG_MG'];
 var SECTOR_ALIAS={
   'ALL':'ALL','TODOS':'ALL','TODOSOSSETORES':'ALL',
   'BEMISA':'BEMISA','FRETAMENTOBEMISA':'BEMISA','FRETAMENTOBEMISA':'BEMISA','FRETBEMISA':'BEMISA',
@@ -4533,7 +4535,9 @@ var SECTOR_ALIAS={
   'LINHASBAHIA':'LINHAS_BAHIA','LINHASBA':'LINHAS_BAHIA','LINHASBAHIAS':'LINHAS_BAHIA',
   'LINHASMINAS':'LINHAS_MINAS','LINHASMG':'LINHAS_MINAS','LINHAS':'LINHAS_MINAS','LINHASMINASGERAIS':'LINHAS_MINAS',
   'GARAGISTASBAHIA':'GARAG_BAHIA','GARAGISTASBA':'GARAG_BAHIA','GARAGBAHIA':'GARAG_BAHIA','GARAGBA':'GARAG_BAHIA',
-  'GARAGISTASMG':'GARAG_MG','GARAGISTASMINAS':'GARAG_MG','GARAGMG':'GARAG_MG','GARAGMINAS':'GARAG_MG'
+  'GARAGISTASMG':'GARAG_MG','GARAGISTASMINAS':'GARAG_MG','GARAGMG':'GARAG_MG','GARAGMINAS':'GARAG_MG',
+  'ENGEPACK':'ENGEPACK','PERFORMANCEFROTAENGE':'ENGEPACK','PERFORMANCEFROTAENGEPACK':'ENGEPACK','FROTAENGEPACK':'ENGEPACK',
+  'OXITENO':'OXITENO','PERFORMANCEFROTAOXIT':'OXITENO','PERFORMANCEFROTAOXITENO':'OXITENO','FROTAOXITENO':'OXITENO'
 };
 var STATE={raw:[],rawFleet:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,F:null,selEvent:null,selEvent2:null,fleetSelEvent:null,motView:'resumo',fleetView:'resumo'};
 var CH={};
@@ -4560,6 +4564,8 @@ function normalizeSectorCode(v){
   if(compact==='LINHAS')return 'LINHAS_MINAS';
   if(compact.indexOf('GARAGISTASBA')>=0||compact.indexOf('GARAGBA')>=0)return 'GARAG_BAHIA';
   if(compact.indexOf('GARAGISTASMG')>=0||compact.indexOf('GARAGISTASMINAS')>=0||compact.indexOf('GARAGMG')>=0)return 'GARAG_MG';
+  if(compact.indexOf('ENGEPACK')>=0)return 'ENGEPACK';
+  if(compact.indexOf('OXITENO')>=0)return 'OXITENO';
   return raw.toUpperCase().replace(/\s+/g,'_');
 }
 function sectorSort(a,b){var ia=SECTOR_ORDER.indexOf(a),ib=SECTOR_ORDER.indexOf(b); if(ia<0)ia=999; if(ib<0)ib=999; return ia-ib||setorLabel(a).localeCompare(setorLabel(b),'pt-BR');}
