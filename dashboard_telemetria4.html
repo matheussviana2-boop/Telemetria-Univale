@@ -4470,6 +4470,12 @@ header h1{
     <!-- RESUMO OPERACIONAL -->
     <section class="panel" id="diag">
       <div class="stitle">Resumo operacional</div>
+      <div style="display:flex;align-items:center;justify-content:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:12px">
+        <div class="perf-toggle" role="tablist" aria-label="Alternar resumo operacional">
+          <button type="button" class="perf-btn active" id="btnDiagMensal" data-diag-view="mensal">Resumo mensal</button>
+          <button type="button" class="perf-btn" id="btnDiagConsolidado" data-diag-view="consolidado">Consolidado</button>
+        </div>
+      </div>
       <div class="diag-summary-grid" id="diagGrid"></div>
     </section>
 
@@ -4539,7 +4545,7 @@ var SECTOR_ALIAS={
   'ENGEPACK':'ENGEPACK','PERFORMANCEFROTAENGE':'ENGEPACK','PERFORMANCEFROTAENGEPACK':'ENGEPACK','FROTAENGEPACK':'ENGEPACK',
   'OXITENO':'OXITENO','PERFORMANCEFROTAOXIT':'OXITENO','PERFORMANCEFROTAOXITENO':'OXITENO','FROTAOXITENO':'OXITENO'
 };
-var STATE={raw:[],rawFleet:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,F:null,selEvent:null,selEvent2:null,fleetSelEvent:null,motView:'resumo',fleetView:'resumo'};
+var STATE={raw:[],rawFleet:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,F:null,selEvent:null,selEvent2:null,fleetSelEvent:null,motView:'resumo',fleetView:'resumo',diagView:'mensal'};
 var CH={};
 function fmt(n){return Math.round(n).toLocaleString('pt-BR')}
 function fmtDec(n,d){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
@@ -5246,6 +5252,17 @@ function renderDiag(){
     var bad=invert ? v>0 : v<0;
     return good?'good':bad?'bad':'neutral';
   }
+  function consolidatedIndex(km,ev){
+    km=Number(km)||0;
+    ev=Number(ev)||0;
+    if(km<=0)return 0;
+    return km/(ev+1);
+  }
+  function eventsPerThousand(km,ev){
+    km=Number(km)||0;
+    ev=Number(ev)||0;
+    return km>0?(ev/km*1000):0;
+  }
 
   var months=monthKeysWithData(full);
   var curMonthKey=(sc!=='ALL'&&months.indexOf(sc)>=0)?sc:(months[months.length-1]||null);
@@ -5439,21 +5456,24 @@ function renderDiag(){
 
   // ===== SEÇÃO 2: RESUMO CONSOLIDADO (todo o período) =====
   var allModel=full; // modelo com todos os meses (sem filtro de scope)
-  var allPerf=calcPerf(allModel.totKm,allModel.totEv)||0;
   var allKme=kmPorEvento(allModel.totKm,allModel.totEv);
+  var allWeightedIndex=consolidatedIndex(allModel.totKm,allModel.totEv);
+  var allEvPerThousand=eventsPerThousand(allModel.totKm,allModel.totEv);
   var periodLabel=periodLabelCompact();
 
   // Top motoristas consolidado (min 250km)
-  var validDrivers=allModel.drivers.filter(function(d){return d.km>=250&&d.perfStd!=null});
-  var bestDrivers=validDrivers.slice().sort(function(a,b){return drvPerf(b)-drvPerf(a)}).slice(0,5);
-  var worstDrivers=validDrivers.slice().sort(function(a,b){return drvPerf(a)-drvPerf(b)}).slice(0,5);
+  // Aqui o ranking NÃO usa a performance pura. O índice ponderado é KM ÷ (eventos + 1),
+  // para desempatar quem teve 0 eventos e valorizar quem rodou mais com pouca ocorrência.
+  var validDrivers=allModel.drivers.filter(function(d){return d.km>=250});
+  validDrivers.forEach(function(d){d.consolidatedIndex=consolidatedIndex(d.km,d.pts);d.consolidatedEv1000=eventsPerThousand(d.km,d.pts);});
+  var bestDrivers=validDrivers.slice().sort(function(a,b){return b.consolidatedIndex-a.consolidatedIndex}).slice(0,5);
+  var worstDrivers=validDrivers.slice().sort(function(a,b){return a.consolidatedIndex-b.consolidatedIndex}).slice(0,5);
 
   function consolidatedDriverRow(d,i,kind){
-    var p=drvPerf(d);
     return '<div class="op-row '+kind+'">'+
       '<div class="op-name"><span class="fleet-rank">'+(i+1)+'</span> '+esc(d.nome)+'</div>'+
-      '<div class="op-meta">'+(p!=null?fmtDec(p,2)+'%':'—')+'</div>'+
-      '<div class="op-submeta">'+fmt(d.km)+' km · '+fmt(d.pts)+' eventos</div>'+
+      '<div class="op-meta">Índice '+fmtDec(d.consolidatedIndex,1)+'</div>'+
+      '<div class="op-submeta">'+fmt(d.km)+' km · '+fmt(d.pts)+' eventos · '+fmtDec(d.consolidatedEv1000,2)+' ev/1.000 km</div>'+
     '</div>';
   }
   var bestDrvHtml=bestDrivers.map(function(d,i){return consolidatedDriverRow(d,i,'good')}).join('')||emptyRow('Sem motoristas com mínimo de 250 km.');
@@ -5461,15 +5481,16 @@ function renderDiag(){
 
   // Top veículos consolidado (todo o período, sem filtro de mês)
   var allVeh=aggregateVehiclesFromFleet(null);
-  var validVeh=allVeh.filter(function(v){return v.km>=250&&v.perf!=null});
-  var bestVehAll=validVeh.slice().sort(function(a,b){return b.perf-a.perf}).slice(0,5);
-  var worstVehAll=validVeh.slice().sort(function(a,b){return a.perf-b.perf}).slice(0,5);
+  var validVeh=allVeh.filter(function(v){return v.km>=250});
+  validVeh.forEach(function(v){v.consolidatedIndex=consolidatedIndex(v.km,v.pts);v.consolidatedEv1000=eventsPerThousand(v.km,v.pts);});
+  var bestVehAll=validVeh.slice().sort(function(a,b){return b.consolidatedIndex-a.consolidatedIndex}).slice(0,5);
+  var worstVehAll=validVeh.slice().sort(function(a,b){return a.consolidatedIndex-b.consolidatedIndex}).slice(0,5);
 
   function consolidatedVehRow(v,i,kind){
     return '<div class="op-row '+kind+' fleet-row">'+
       '<div class="op-name"><span class="fleet-rank">'+(i+1)+'</span> '+esc(v.nome)+'</div>'+
-      '<div class="op-meta">'+(v.perf!=null?fmtDec(v.perf,2)+'%':'—')+'</div>'+
-      '<div class="op-submeta">'+fmt(v.km)+' km · '+fmt(v.pts)+' eventos</div>'+
+      '<div class="op-meta">Índice '+fmtDec(v.consolidatedIndex,1)+'</div>'+
+      '<div class="op-submeta">'+fmt(v.km)+' km · '+fmt(v.pts)+' eventos · '+fmtDec(v.consolidatedEv1000,2)+' ev/1.000 km</div>'+
     '</div>';
   }
   var bestVehAllHtml=bestVehAll.map(function(v,i){return consolidatedVehRow(v,i,'good')}).join('')||emptyRow('Aguardando dados da frota.');
@@ -5496,8 +5517,7 @@ function renderDiag(){
   var fluigAllHtml=fluigCardHtml(allModel,'Todo o período');
 
   // ===== MONTAR HTML FINAL =====
-  document.getElementById('diagGrid').innerHTML=
-
+  var mensalHtml=
     // --- PARTE 1: RESUMO MENSAL ---
     '<div class="op-resumo-card">'+
       '<div class="op-head">'+
@@ -5536,15 +5556,16 @@ function renderDiag(){
       '</div>'+
       '<div class="op-fleet-cards">'+fleetBestHtml+fleetWorstHtml+'</div>'+
       fluigHtmlMes+
-    '</div>'+
+    '</div>';
 
+  var consolidadoHtml=
     // --- PARTE 2: RESUMO CONSOLIDADO ---
-    '<div class="op-resumo-card" style="margin-top:24px">'+
+'<div class="op-resumo-card">'+
       '<div class="op-head">'+
         '<div>'+
           '<div class="op-eyebrow">Resumo consolidado</div>'+
           '<div class="op-title">Consolidado do período</div>'+
-          '<div class="op-subtitle">Visão geral considerando todos os meses disponíveis. Mínimo de 250 km para rankings.</div>'+
+          '<div class="op-subtitle">Ranking consolidado por índice proporcional: KM ÷ (eventos + 1). Assim, 0 evento não empata automaticamente e o volume de KM rodado ganha peso.</div>'+
         '</div>'+
         '<div class="op-badge">▣ '+esc(periodLabel)+'</div>'+
       '</div>'+
@@ -5552,15 +5573,15 @@ function renderDiag(){
       '<div class="op-kpi-strip">'+
         '<div class="op-kpi">'+
           '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 16l4-4 3 3 5-7"/><path d="M18 8h-4"/><path d="M18 8v4"/></svg></span>'+
-          '<div><div class="op-kpi-label">Performance geral</div><div class="op-kpi-value">'+fmtDec(allPerf,2)+'%</div><div class="op-kpi-delta neutral">'+esc(periodLabel)+'</div></div>'+
+          '<div><div class="op-kpi-label">Índice proporcional</div><div class="op-kpi-value">'+fmtDec(allWeightedIndex,1)+'</div><div class="op-kpi-delta neutral">KM ÷ (eventos + 1)</div></div>'+
         '</div>'+
         '<div class="op-kpi">'+
           '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3v4"/><path d="M16 3v4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16"/><path d="M9 14h.01"/><path d="M13 14h.01"/><path d="M17 14h.01"/></svg></span>'+
-          '<div><div class="op-kpi-label">Total de eventos</div><div class="op-kpi-value">'+fmt(allModel.totEv)+'</div><div class="op-kpi-delta neutral">'+fmt(allModel.motN)+' motoristas</div></div>'+
+          '<div><div class="op-kpi-label">Eventos / 1.000 km</div><div class="op-kpi-value">'+fmtDec(allEvPerThousand,2)+'</div><div class="op-kpi-delta neutral">'+fmt(allModel.totEv)+' eventos · '+fmt(allModel.motN)+' motoristas</div></div>'+
         '</div>'+
         '<div class="op-kpi">'+
           '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 20l4-16"/><path d="M14 4l4 16"/><path d="M12 4v16"/><path d="M8.5 12h7"/><path d="M7.2 17h9.6"/></svg></span>'+
-          '<div><div class="op-kpi-label">KM/evento geral</div><div class="op-kpi-value">'+fmtDec(allKme,1)+'</div><div class="op-kpi-delta neutral">'+fmt(allModel.totKm)+' km totais</div></div>'+
+          '<div><div class="op-kpi-label">KM/evento geral</div><div class="op-kpi-value">'+(allModel.totEv?fmtDec(allKme,1):'Sem eventos')+'</div><div class="op-kpi-delta neutral">'+fmt(allModel.totKm)+' km totais</div></div>'+
         '</div>'+
         '<div class="op-kpi">'+
           '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 18h14"/><path d="M7 18l1-8h8l1 8"/><path d="M9 10V7h6v3"/></svg></span>'+
@@ -5580,6 +5601,11 @@ function renderDiag(){
       '</div>'+
       fluigAllHtml+
     '</div>';
+
+  safeSet('diagGrid',
+    '<div id="diagMensalView" class="diag-view-panel">'+mensalHtml+'</div>'+ 
+    '<div id="diagConsolidadoView" class="diag-view-panel" style="display:none">'+consolidadoHtml+'</div>');
+  setDiagView(STATE.diagView||'mensal',true);
 }
 var TBL={D:null,sortK:'activePerf',sortDir:-1};
 function renderMotEventCards(D){
@@ -5654,8 +5680,16 @@ function setMotView(view){
   if(STATE.motView==='detalhado'&&STATE.D)setupTable(STATE.D);
   if(STATE.motView==='resumo'&&STATE.D)showRankChart2(STATE.D);
 }
+function setDiagView(view,silent){
+  STATE.diagView=view==='consolidado'?'consolidado':'mensal';
+  document.querySelectorAll('.perf-btn[data-diag-view]').forEach(function(b){b.classList.toggle('active',b.dataset.diagView===STATE.diagView)});
+  var mensal=document.getElementById('diagMensalView');
+  var consolidado=document.getElementById('diagConsolidadoView');
+  if(mensal)mensal.style.display=STATE.diagView==='mensal'?'':'none';
+  if(consolidado)consolidado.style.display=STATE.diagView==='consolidado'?'':'none';
+}
 function bindEvents(){
-  document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');var el=document.getElementById(b.dataset.t);if(el)el.classList.add('active');if(b.dataset.t==='mot')setMotView('resumo');if(STATE.D){var pa=calcPerf(STATE.D.totKm,STATE.D.totEv)||0;setHeroForTab(STATE.D,pa)}window.scrollTo({top:0,behavior:'smooth'})})});
+  document.querySelectorAll('.tab').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active')});b.classList.add('active');var el=document.getElementById(b.dataset.t);if(el)el.classList.add('active');if(b.dataset.t==='mot')setMotView('resumo');if(b.dataset.t==='diag')setDiagView(STATE.diagView||'mensal');if(STATE.D){var pa=calcPerf(STATE.D.totKm,STATE.D.totEv)||0;setHeroForTab(STATE.D,pa)}window.scrollTo({top:0,behavior:'smooth'})})});
   document.getElementById('sectorSel').addEventListener('change',function(){if(STATE.lockedSetor){this.value=STATE.setor;return;}STATE.setor=normalizeSectorCode(this.value);STATE.selEvent=null;applySetor()});
   document.getElementById('monthSel').addEventListener('change',function(){STATE.scope=this.value;buildRender()});
   ['q'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',renderTable)});
@@ -5663,7 +5697,11 @@ function bindEvents(){
   document.querySelectorAll('.perf-btn[data-view]').forEach(function(btn){
     btn.addEventListener('click',function(){setMotView(btn.dataset.view)});
   });
+  document.querySelectorAll('.perf-btn[data-diag-view]').forEach(function(btn){
+    btn.addEventListener('click',function(){setDiagView(btn.dataset.diagView)});
+  });
   setMotView(STATE.motView||'resumo');
+  setDiagView(STATE.diagView||'mensal');
 }
 // fuel animation via CSS
 document.addEventListener('DOMContentLoaded',loadSheet);
