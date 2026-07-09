@@ -4490,6 +4490,7 @@ var SHEET_URL='https://docs.google.com/spreadsheets/d/11jw5uFKuKcOVE5Jxgf1MsCyOX
 var SETOR_FIXO='';
 var MESES=["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
 var MESES_FULL={JAN:"Janeiro",FEV:"Fevereiro",MAR:"Março",ABR:"Abril",MAI:"Maio",JUN:"Junho",JUL:"Julho",AGO:"Agosto",SET:"Setembro",OUT:"Outubro",NOV:"Novembro",DEZ:"Dezembro"};
+var MONTH_ALIAS={JAN:'JAN',JANEIRO:'JAN',FEV:'FEV',FEVEREIRO:'FEV',MAR:'MAR',MARCO:'MAR',MARCO:'MAR',ABR:'ABR',ABRIL:'ABR',MAI:'MAI',MAIO:'MAI',JUN:'JUN',JUNHO:'JUN',JUL:'JUL',JULHO:'JUL',AGO:'AGO',AGOSTO:'AGO',SET:'SET',SETEMBRO:'SET',OUT:'OUT',OUTUBRO:'OUT',NOV:'NOV',NOVEMBRO:'NOV',DEZ:'DEZ',DEZEMBRO:'DEZ'};
 var PAL=['#EA0029','#00A19B','#10CFC9','#0d7d78','#7ad6d2','#0a6e6a','#9aa5a4','#e0a800'];
 var EV_COLS=['Aceleração Brusca','Batendo Transmissão','Curva Brusca','Excesso Marcha Lenta','Excesso Rotação','Excesso RPM Parado','Fora Faixa Verde','Freada Brusca','Pedal Acelerador','Desengrenado'];
 var EV_LABELS={'Aceleração Brusca':'Aceleração<br>Brusca','Batendo Transmissão':'Batendo<br>Transmissão','Curva Brusca':'Curva<br>Brusca','Excesso Marcha Lenta':'Excesso<br>Marcha<br>Lenta','Excesso Rotação':'Excesso<br>Rotação','Excesso RPM Parado':'Excesso<br>RPM<br>Parado','Fora Faixa Verde':'Fora<br>Faixa<br>Verde','Freada Brusca':'Freada<br>Brusca','Pedal Acelerador':'Pedal<br>Acelerador','Desengrenado':'Desengrenado'};
@@ -4548,7 +4549,7 @@ var SECTOR_ALIAS={
   'ENGEPACK':'ENGEPACK','PERFORMANCEFROTAENGE':'ENGEPACK','PERFORMANCEFROTAENGEPACK':'ENGEPACK','FROTAENGEPACK':'ENGEPACK',
   'OXITENO':'OXITENO','PERFORMANCEFROTAOXIT':'OXITENO','PERFORMANCEFROTAOXITENO':'OXITENO','FROTAOXITENO':'OXITENO'
 };
-var STATE={raw:[],rawFleet:[],all:[],setor:'ALL',months:[],scope:'ALL',D:null,full:null,F:null,selEvent:null,selEvent2:null,fleetSelEvent:null,motView:'resumo',fleetView:'resumo',diagView:'mensal'};
+var STATE={raw:[],rawFleet:[],all:[],setor:'ALL',months:[],scope:'ALL',periodReady:false,D:null,full:null,F:null,selEvent:null,selEvent2:null,fleetSelEvent:null,motView:'resumo',fleetView:'resumo',diagView:'mensal'};
 var CH={};
 function fmt(n){return Math.round(n).toLocaleString('pt-BR')}
 function fmtDec(n,d){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
@@ -4629,7 +4630,7 @@ function refreshMonths(){
   var rows=(STATE.all&&STATE.all.length)?STATE.all:currentSetorRows();
   rows.forEach(function(r){var m=String(r.MES||'').toUpperCase();if(m&&!ms[m]){ms[m]=1;STATE.months.push(m)}});
   STATE.months.sort(function(a,b){return MESES.indexOf(a)-MESES.indexOf(b)});
-  if(STATE.scope!=='ALL'&&STATE.months.indexOf(STATE.scope)<0)STATE.scope='ALL';
+  // A seleção inicial do período é controlada por applyDefaultPeriod().
 }
 function applySetor(){
   STATE.setor=normalizeSectorCode(STATE.setor||'ALL');
@@ -4638,6 +4639,7 @@ function applySetor(){
   var hasFleet=(STATE.rawFleet||[]).some(function(r){var s=normalizeSectorCode(r.SETOR); return setorAtual==='ALL'||s===setorAtual;});
   if(!STATE.all.length&&!hasFleet){showErr('Nenhum dado para o setor "'+setorLabel(STATE.setor)+'".');return}
   refreshMonths();
+  applyDefaultPeriod();
   refreshHeader();
   populateSel();
   buildRender();
@@ -4650,6 +4652,33 @@ function rClass(r){return r>=0.08?'r-hi':r>=0.04?'r-md':'r-lo'}
 function dFor(n){return DIAG[n]||{eixo:'Manutenção',cor:'ic-teal-l',icon:'·',mede:'Evento registrado pela telemetria.',acao:'Acompanhar e orientar conforme o caso.'}}
 function eBadge(e){return e==='Segurança'?'b-seg':e==='Economia'?'b-eco':'b-man'}
 function fCode(url){if(!url)return null;var m=String(url).match(/detailsProcessInstanceID=(\d+)/i);return m?m[1]:(String(url).match(/(\d+)\D*$/)||[null,null])[1]}
+function normalizeMonthCode(v){
+  var raw=String(v||'').trim();
+  if(!raw)return '';
+  var compact=nkey(raw);
+  if(MONTH_ALIAS[compact])return MONTH_ALIAS[compact];
+  var short=compact.slice(0,3);
+  return MESES.indexOf(short)>=0?short:'';
+}
+function getPeriodo(){
+  var p=new URLSearchParams(window.location.search);
+  return normalizeMonthCode(p.get('mes')||p.get('m')||p.get('periodo')||p.get('p')||'');
+}
+function applyDefaultPeriod(){
+  var requested=getPeriodo();
+  if(!STATE.periodReady){
+    if(requested&&STATE.months.indexOf(requested)>=0){
+      STATE.scope=requested;
+    }else{
+      STATE.scope=STATE.months.length?STATE.months[STATE.months.length-1]:'ALL';
+    }
+    STATE.periodReady=true;
+    return;
+  }
+  if(STATE.scope!=='ALL'&&STATE.months.indexOf(STATE.scope)<0){
+    STATE.scope=STATE.months.length?STATE.months[STATE.months.length-1]:'ALL';
+  }
+}
 function getSetor(){if(SETOR_FIXO)return normalizeSectorCode(SETOR_FIXO);var p=new URLSearchParams(window.location.search);return normalizeSectorCode((p.get('setor')||p.get('s')||'').trim())}
 function showErr(msg){document.getElementById('loading').style.display='none';document.getElementById('error').style.display='flex';document.getElementById('errMsg').innerHTML=msg}
 function loadSheet(){
