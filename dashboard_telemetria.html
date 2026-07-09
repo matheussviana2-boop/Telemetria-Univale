@@ -4199,6 +4199,9 @@ header h1{
 <style id="matheus-resumo-operacional-ajustes">
 /* Ajustes solicitados: cards do Resumo Operacional mais limpos, sem os ícones grandes de rodapé */
 #diag .op-col-mark{display:none !important;}
+#diag .op-col-ico,#diag .op-kpi-icon{display:none !important;}
+#diag .op-col-head{gap:0 !important;}
+#diag .op-kpi{gap:0 !important;}
 #diag .op-list{padding-bottom:13px !important;}
 #diag .op-col.alert .op-col-head,
 #diag .op-col.bad .op-col-head,
@@ -5413,21 +5416,31 @@ function renderDiag(){
     }).join('')||emptyRow(empty);
     return '<div class="op-col '+kind+' op-fleet-card"><div class="op-col-head"><span class="op-col-ico">▣</span><div class="op-col-title">'+esc(title)+'</div></div><div class="op-list">'+rows+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M5 18h14"/><path d="M7 18l1-8h8l1 8"/><path d="M9 10V7h6v3"/></svg></div></div>';
   }
+  function fluigRecordMonthLabel(r,fallback){
+    var raw=rowVal(r,['MES','MÊS','MONTH','PERIODO','PERÍODO'])||r.MES||'';
+    var key=String(raw||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().slice(0,3);
+    return monthFull(key)||fallback||'Todo o período';
+  }
   function fluigCardHtml(model,label){
     var seen={},items=[];
     var mostrarSetor=STATE.setor==='ALL';
+    var consolidado=String(label||'').toLowerCase().indexOf('todo')>=0;
     (model&&model.rawRows?model.rawRows:[]).forEach(function(r){
       var raw=fluigLink(r);
       if(!raw)return;
       var nome=String(rowVal(r,['MOTORISTA','NOME MOTORISTA','CONDUTOR','DRIVER'])||'Motorista não identificado').trim();
       var link=String(raw).trim();
       var setor=String(rowVal(r,['SETOR','SETOR MOTORISTA','SETOR/CONTRATO','CONTRATO'])||'').trim().toUpperCase();
-      var key=nkey(nome)+'|'+link+'|'+setor;
+      var mesKey=String(rowVal(r,['MES','MÊS','MONTH','PERIODO','PERÍODO'])||r.MES||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().slice(0,3);
+      var mesTxt=fluigRecordMonthLabel(r,label);
+      var key=nkey(nome)+'|'+link+'|'+setor+'|'+mesKey;
       if(seen[key])return;
       seen[key]=1;
-      items.push({nome:nome,link:link,url:safeHref(link),code:fCode(link),setor:setor,setorTxt:setorLabel(setor)});
+      items.push({nome:nome,link:link,url:safeHref(link),code:fCode(link),setor:setor,setorTxt:setorLabel(setor),mes:mesKey,mesTxt:mesTxt});
     });
     items.sort(function(a,b){
+      var ma=MESES.indexOf(a.mes),mb=MESES.indexOf(b.mes);
+      if(ma!==mb)return (ma<0?999:ma)-(mb<0?999:mb);
       var sa=(a.setorTxt||'').localeCompare(b.setorTxt||'','pt-BR');
       return mostrarSetor&&sa?sa:a.nome.localeCompare(b.nome,'pt-BR');
     });
@@ -5436,14 +5449,15 @@ function renderDiag(){
       var linkHtml=x.url?'<a class="op-fluig-link" href="'+esc(x.url)+'" target="_blank" rel="noopener noreferrer" title="'+esc(title)+'">Visualizar registro Fluig</a>':'<span class="op-fluig-link disabled">Link inválido</span>';
       var setorTxt=(mostrarSetor&&x.setor)?' · Setor: '+esc(x.setorTxt):'';
       var codeTxt=x.code?' · Registro '+esc(x.code):'';
+      var mesTxt=' · Mês: '+esc(x.mesTxt||label);
       return '<div class="op-row good fluig-row">'+
-        '<div class="op-name">'+esc(x.nome)+'</div>'+
-        '<div class="op-meta">'+linkHtml+'</div>'+
-        '<div class="op-submeta">Registro Fluig em '+esc(label)+setorTxt+codeTxt+'</div>'+
+        '<div class="op-name">'+esc(x.nome)+'</div>'+ 
+        '<div class="op-meta">'+linkHtml+'</div>'+ 
+        '<div class="op-submeta">Registro Fluig'+mesTxt+setorTxt+codeTxt+'</div>'+ 
       '</div>';
-    }).join('')||emptyRow('Não existe registro de Fluig para o mês selecionado.');
+    }).join('')||emptyRow('Não existe registro de Fluig para o período selecionado.');
     var total=items.length?(items.length===1?'1 registro encontrado':items.length+' registros encontrados'):'Sem registros';
-    return '<div class="op-col good op-fluig-card"><div class="op-col-head"><span class="op-col-ico">↗</span><div><div class="op-col-title">Motoristas com registro no Fluig</div><div style="font-size:10.5px;font-weight:800;opacity:.86;margin-top:2px">'+esc(total)+' · '+esc(label)+'</div></div></div><div class="op-list">'+rows+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg></div></div>';
+    return '<div class="op-col good op-fluig-card"><div class="op-col-head"><div><div class="op-col-title">Motoristas com registro no Fluig</div><div style="font-size:10.5px;font-weight:800;opacity:.86;margin-top:2px">'+esc(total)+' · '+esc(label)+'</div></div></div><div class="op-list">'+rows+'</div><div class="op-col-mark"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg></div></div>';
   }
   var curVeh=aggregateVehiclesFromFleet(curMonthKey);
   var prevVeh=aggregateVehiclesFromFleet(prevMonthKey);
@@ -5509,10 +5523,11 @@ function renderDiag(){
   var totalEvAll=evSorted.reduce(function(s,x){return s+x.total},0);
 
   function consolidatedEvRow(x,kind){
+    var peso=totalEvAll?((Number(x.total)||0)/totalEvAll*100):0;
     return '<div class="op-row '+kind+'">'+
       '<div class="op-name">'+esc(x.nome)+'</div>'+
-      '<div class="op-meta">'+fmt(x.total)+' eventos</div>'+
-      '<div class="op-submeta"></div>'+
+      '<div class="op-meta">'+fmt(x.total)+' eventos · '+fmtDec(peso,1)+'%</div>'+
+      '<div class="op-submeta">do total de eventos</div>'+
     '</div>';
   }
   var evMostHtml=evMost.map(function(x){return consolidatedEvRow(x,'bad')}).join('')||emptyRow('Sem eventos no período.');
