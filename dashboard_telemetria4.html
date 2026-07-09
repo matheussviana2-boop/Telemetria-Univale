@@ -5457,8 +5457,7 @@ function renderDiag(){
   // ===== SEÇÃO 2: RESUMO CONSOLIDADO (todo o período) =====
   var allModel=full; // modelo com todos os meses (sem filtro de scope)
   var allKme=kmPorEvento(allModel.totKm,allModel.totEv);
-  var allWeightedIndex=consolidatedIndex(allModel.totKm,allModel.totEv);
-  var allEvPerThousand=eventsPerThousand(allModel.totKm,allModel.totEv);
+  var allPerf=calcPerf(allModel.totKm,allModel.totEv)||0;
   var periodLabel=periodLabelCompact();
 
   // Top motoristas consolidado (min 250km)
@@ -5469,11 +5468,17 @@ function renderDiag(){
   var bestDrivers=validDrivers.slice().sort(function(a,b){return b.consolidatedIndex-a.consolidatedIndex}).slice(0,5);
   var worstDrivers=validDrivers.slice().sort(function(a,b){return a.consolidatedIndex-b.consolidatedIndex}).slice(0,5);
 
+  function kmEventoText(km,ev){
+    km=Number(km)||0;
+    ev=Number(ev)||0;
+    return ev>0?fmtDec(km/ev,1)+' km/evento':'Sem eventos';
+  }
+
   function consolidatedDriverRow(d,i,kind){
     return '<div class="op-row '+kind+'">'+
       '<div class="op-name"><span class="fleet-rank">'+(i+1)+'</span> '+esc(d.nome)+'</div>'+
-      '<div class="op-meta">Índice '+fmtDec(d.consolidatedIndex,1)+'</div>'+
-      '<div class="op-submeta">'+fmt(d.km)+' km · '+fmt(d.pts)+' eventos · '+fmtDec(d.consolidatedEv1000,2)+' ev/1.000 km</div>'+
+      '<div class="op-meta">'+kmEventoText(d.km,d.pts)+'</div>'+
+      '<div class="op-submeta">'+fmt(d.km)+' km rodados · '+fmt(d.pts)+' eventos</div>'+
     '</div>';
   }
   var bestDrvHtml=bestDrivers.map(function(d,i){return consolidatedDriverRow(d,i,'good')}).join('')||emptyRow('Sem motoristas com mínimo de 250 km.');
@@ -5481,6 +5486,7 @@ function renderDiag(){
 
   // Top veículos consolidado (todo o período, sem filtro de mês)
   var allVeh=aggregateVehiclesFromFleet(null);
+  var allVehN=allVeh.length;
   var validVeh=allVeh.filter(function(v){return v.km>=250});
   validVeh.forEach(function(v){v.consolidatedIndex=consolidatedIndex(v.km,v.pts);v.consolidatedEv1000=eventsPerThousand(v.km,v.pts);});
   var bestVehAll=validVeh.slice().sort(function(a,b){return b.consolidatedIndex-a.consolidatedIndex}).slice(0,5);
@@ -5489,8 +5495,8 @@ function renderDiag(){
   function consolidatedVehRow(v,i,kind){
     return '<div class="op-row '+kind+' fleet-row">'+
       '<div class="op-name"><span class="fleet-rank">'+(i+1)+'</span> '+esc(v.nome)+'</div>'+
-      '<div class="op-meta">Índice '+fmtDec(v.consolidatedIndex,1)+'</div>'+
-      '<div class="op-submeta">'+fmt(v.km)+' km · '+fmt(v.pts)+' eventos · '+fmtDec(v.consolidatedEv1000,2)+' ev/1.000 km</div>'+
+      '<div class="op-meta">'+kmEventoText(v.km,v.pts)+'</div>'+
+      '<div class="op-submeta">'+fmt(v.km)+' km rodados · '+fmt(v.pts)+' eventos</div>'+
     '</div>';
   }
   var bestVehAllHtml=bestVehAll.map(function(v,i){return consolidatedVehRow(v,i,'good')}).join('')||emptyRow('Aguardando dados da frota.');
@@ -5503,11 +5509,10 @@ function renderDiag(){
   var totalEvAll=evSorted.reduce(function(s,x){return s+x.total},0);
 
   function consolidatedEvRow(x,kind){
-    var pct=totalEvAll?(x.total/totalEvAll*100):0;
     return '<div class="op-row '+kind+'">'+
       '<div class="op-name">'+esc(x.nome)+'</div>'+
-      '<div class="op-meta">'+fmtDec(pct,1)+'%</div>'+
-      '<div class="op-submeta">'+fmt(x.total)+' ocorrências no período</div>'+
+      '<div class="op-meta">'+fmt(x.total)+' eventos</div>'+
+      '<div class="op-submeta"></div>'+
     '</div>';
   }
   var evMostHtml=evMost.map(function(x){return consolidatedEvRow(x,'bad')}).join('')||emptyRow('Sem eventos no período.');
@@ -5565,28 +5570,28 @@ function renderDiag(){
         '<div>'+
           '<div class="op-eyebrow">Resumo consolidado</div>'+
           '<div class="op-title">Consolidado do período</div>'+
-          '<div class="op-subtitle">Ranking consolidado por índice proporcional: KM ÷ (eventos + 1). Assim, 0 evento não empata automaticamente e o volume de KM rodado ganha peso.</div>'+
+          '<div class="op-subtitle">Visão consolidada do período com performance simples, KM/evento e totais analisados.</div>'+
         '</div>'+
         '<div class="op-badge">▣ '+esc(periodLabel)+'</div>'+
       '</div>'+
 
-      '<div class="op-kpi-strip">'+
+      '<div class="op-kpi-strip" style="grid-template-columns:repeat(4,minmax(0,1fr))">'+
         '<div class="op-kpi">'+
-          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 16l4-4 3 3 5-7"/><path d="M18 8h-4"/><path d="M18 8v4"/></svg></span>'+
-          '<div><div class="op-kpi-label">Índice proporcional</div><div class="op-kpi-value">'+fmtDec(allWeightedIndex,1)+'</div><div class="op-kpi-delta neutral">KM ÷ (eventos + 1)</div></div>'+
-        '</div>'+
-        '<div class="op-kpi">'+
-          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3v4"/><path d="M16 3v4"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16"/><path d="M9 14h.01"/><path d="M13 14h.01"/><path d="M17 14h.01"/></svg></span>'+
-          '<div><div class="op-kpi-label">Eventos / 1.000 km</div><div class="op-kpi-value">'+fmtDec(allEvPerThousand,2)+'</div><div class="op-kpi-delta neutral">'+fmt(allModel.totEv)+' eventos · '+fmt(allModel.motN)+' motoristas</div></div>'+
-        '</div>'+
-        '<div class="op-kpi">'+
-          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 20l4-16"/><path d="M14 4l4 16"/><path d="M12 4v16"/><path d="M8.5 12h7"/><path d="M7.2 17h9.6"/></svg></span>'+
-          '<div><div class="op-kpi-label">KM/evento geral</div><div class="op-kpi-value">'+(allModel.totEv?fmtDec(allKme,1):'Sem eventos')+'</div><div class="op-kpi-delta neutral">'+fmt(allModel.totKm)+' km totais</div></div>'+
-        '</div>'+
-        '<div class="op-kpi">'+
-          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 18h14"/><path d="M7 18l1-8h8l1 8"/><path d="M9 10V7h6v3"/></svg></span>'+
-          '<div><div class="op-kpi-label">Veículos monitorados</div><div class="op-kpi-value">'+fmt(allVeh.length)+'</div><div class="op-kpi-delta neutral">No período</div></div>'+
-        '</div>'+
+          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 16l4-4 3 3 5-7"/><path d="M18 8h-4"/><path d="M18 8v4"/></svg></span>'+ 
+          '<div><div class="op-kpi-label">Performance geral</div><div class="op-kpi-value">'+fmtDec(allPerf,2)+'%</div><div class="op-kpi-delta neutral">Cálculo simples do período</div></div>'+ 
+        '</div>'+ 
+        '<div class="op-kpi">'+ 
+          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 20l4-16"/><path d="M14 4l4 16"/><path d="M12 4v16"/><path d="M8.5 12h7"/><path d="M7.2 17h9.6"/></svg></span>'+ 
+          '<div><div class="op-kpi-label">KM/evento geral</div><div class="op-kpi-value">'+kmEventoText(allModel.totKm,allModel.totEv)+'</div><div class="op-kpi-delta neutral">Resultado consolidado</div></div>'+ 
+        '</div>'+ 
+        '<div class="op-kpi">'+ 
+          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></span>'+ 
+          '<div><div class="op-kpi-label">Motoristas analisados</div><div class="op-kpi-value">'+fmt(allModel.motN)+'</div><div class="op-kpi-delta neutral">Total no período</div></div>'+ 
+        '</div>'+ 
+        '<div class="op-kpi">'+ 
+          '<span class="op-kpi-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 18h14"/><path d="M7 18l1-8h8l1 8"/><path d="M9 10V7h6v3"/><circle cx="8" cy="18" r="1.4"/><circle cx="16" cy="18" r="1.4"/></svg></span>'+ 
+          '<div><div class="op-kpi-label">Veículos analisados</div><div class="op-kpi-value">'+fmt(allVehN)+'</div><div class="op-kpi-delta neutral">Total no período</div></div>'+ 
+        '</div>'+ 
       '</div>'+
 
       '<div class="op-columns op-columns-4">'+
