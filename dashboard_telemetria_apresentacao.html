@@ -854,6 +854,19 @@ body::before{
 .evolution-mode-toggle{position:absolute;top:2px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:0;background:transparent;border:0;box-shadow:none;z-index:2}
 .evolution-badge{position:absolute;top:0;right:0;z-index:2}
 .evolution-legend{position:absolute;top:34px;right:0;min-height:16px;z-index:2}
+/* ajustes finos do bloco de série/legenda do gráfico */
+.evolution-head{min-height:74px;padding-right:150px}
+.evolution-mode-toggle{top:0;gap:18px}
+.evo-check{font-size:12px;gap:8px;min-height:26px;opacity:.9}
+.evo-check-box{width:14px;height:14px;border-radius:4px;border-color:rgba(155,205,216,.56);background:rgba(3,18,30,.5)}
+.evo-check-box::after{left:4px;top:1px;width:4px;height:8px}
+.evolution-badge{top:2px;right:0;font-size:10px;padding:6px 10px;border-color:rgba(34,228,240,.24);background:rgba(34,228,240,.03);color:#b6dbe3;box-shadow:none;opacity:.88}
+.evolution-legend{top:42px;right:4px;gap:18px}
+.evolution-legend .legend-item{font-size:11px;opacity:.92}
+.evolution-legend .legend-swatch{width:16px;height:5px;box-shadow:0 0 8px rgba(34,228,240,.38)}
+.evolution-legend .legend-swatch.red{box-shadow:0 0 8px rgba(255,75,89,.38)}
+/* melhora leitura dos dados de eventos e km por setor */
+.sector-name .meta{margin-top:4px;font-size:11px;font-weight:600;color:#b8e3ee;letter-spacing:.01em;text-shadow:0 0 8px rgba(34,228,240,.10)}
 
 @media(max-width:1080px){
   .sector-row{grid-template-columns:34px 160px minmax(0,1fr) 76px}
@@ -862,7 +875,7 @@ body::before{
   .evolution-head{padding-right:0;min-height:auto;display:flex;flex-direction:column;gap:14px}
   .evolution-title-wrap{max-width:none}
   .evolution-mode-toggle,.evolution-badge,.evolution-legend{position:static;transform:none}
-  .evolution-side{display:flex;flex-direction:column;gap:10px;align-items:center}
+  .evolution-side{display:flex;flex-direction:column;gap:12px;align-items:center}
   .sector-head{flex-direction:column;align-items:flex-start}
   .sector-row{grid-template-columns:32px 140px minmax(0,1fr) 70px;gap:10px}
 }
@@ -875,7 +888,7 @@ body::before{
   .sector-name{grid-column:2;grid-row:1}
   .sector-track{grid-column:2;grid-row:2;height:12px}
   .sector-value{grid-column:2;grid-row:3;text-align:left;font-size:18px}
-  .evolution-mode-toggle{gap:10px;flex-wrap:wrap;justify-content:center}
+  .evolution-mode-toggle{gap:12px;flex-wrap:wrap;justify-content:center}
 }
 
 
