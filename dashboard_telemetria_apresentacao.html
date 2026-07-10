@@ -803,6 +803,31 @@ body::before{
   .evolution-mode-toggle{gap:10px}
 }
 
+
+
+/* Ajuste final: flags centralizadas no topo do gráfico */
+.performance-evolution .chart-content{position:relative}
+.evolution-head{position:relative}
+.evolution-mode-toggle{
+  position:absolute!important;
+  left:50%!important;
+  top:8px!important;
+  transform:translateX(-50%)!important;
+  z-index:4;
+  display:flex!important;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.evolution-badge{margin-left:auto}
+@media(max-width:1080px){
+  .evolution-mode-toggle{position:static!important;transform:none!important;align-self:center!important}
+}
+
 </style>
 </head>
 <body>
@@ -1087,7 +1112,7 @@ function normalizeSectorCode(v){
   if(compact==='LINHAS')return 'LINHAS_MINAS';
   if(compact.includes('GARAGISTASBA')||compact.includes('GARAGBA'))return 'GARAG_BAHIA';
   if(compact.includes('GARAGISTASMG')||compact.includes('GARAGISTASMINAS')||compact.includes('GARAGMG'))return 'GARAG_MG';
-  if(compact.includes('ENGEPACK'))return 'ENGEPACK';
+  if(compact.includes('ENGEPACK')||compact.includes('ENGEPAK')||compact.includes('ENGEPAC')||compact.startsWith('ENGE'))return 'ENGEPACK';
   if(compact.includes('OXITENO'))return 'OXITENO';
   return raw.toUpperCase().replace(/\s+/g,'_');
 }
@@ -1117,10 +1142,17 @@ function pctVar(curr,prev){curr=Number(curr)||0; prev=Number(prev)||0; if(!prev)
 function sectorSort(a,b){let ia=SECTOR_ORDER.indexOf(a), ib=SECTOR_ORDER.indexOf(b); if(ia<0)ia=999; if(ib<0)ib=999; return ia-ib || labelOf(a).localeCompare(labelOf(b),'pt-BR')}
 function labelOf(s){return s==='TODOS'?'Todos':(SLABELS[s]||String(s||'').replace(/_/g,' '))}
 function normalizeDataRows(rows){
+  let lastSector='', lastMonth='';
   return (rows||[]).map(r=>{
     const out=Object.assign({},r);
-    out.SETOR=normalizeSectorCode(rowVal(out,['SETOR','SETOR OPERACIONAL','SETOR_OPERACIONAL','CLIENTE','EMPRESA'])||out.SETOR);
-    out.MES=normalizeMonthCode(rowVal(out,['MES','MÊS','MONTH','PERIODO','PERÍODO'])||out.MES);
+    const rawSector=rowVal(out,['SETOR','SETOR OPERACIONAL','SETOR_OPERACIONAL','CLIENTE','EMPRESA'])||out.SETOR;
+    const rawMonth=rowVal(out,['MES','MÊS','MONTH','PERIODO','PERÍODO'])||out.MES;
+    const normalizedSector=normalizeSectorCode(rawSector);
+    const normalizedMonth=normalizeMonthCode(rawMonth);
+    if(normalizedSector) lastSector=normalizedSector;
+    if(MESES_ALL.indexOf(normalizedMonth)>=0) lastMonth=normalizedMonth;
+    out.SETOR=normalizedSector||lastSector;
+    out.MES=MESES_ALL.indexOf(normalizedMonth)>=0?normalizedMonth:lastMonth;
     return out;
   }).filter(r=>r.SETOR&&MESES_ALL.indexOf(r.MES)>=0);
 }
