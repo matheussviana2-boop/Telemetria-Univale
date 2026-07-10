@@ -5798,14 +5798,48 @@ document.addEventListener('DOMContentLoaded',loadSheet);
   function extractFleetRows(wb){
     if(!wb||!wb.SheetNames)return [];
     var names=wb.SheetNames||[];
+    var consolidated=[];
     var found='';
+
+    // 1) Base principal consolidada, quando existir.
     for(var i=0;i<FLEET_SHEETS.length;i++){
       var target=nk(FLEET_SHEETS[i]);
-      for(var j=0;j<names.length;j++){if(nk(names[j])===target){found=names[j];break;}}
+      for(var j=0;j<names.length;j++){
+        if(nk(names[j])===target){found=names[j];break;}
+      }
       if(found)break;
     }
-    if(!found)return [];
-    return normalizeDataRows(XLSX.utils.sheet_to_json(wb.Sheets[found]));
+    if(found){
+      consolidated=normalizeDataRows(XLSX.utils.sheet_to_json(wb.Sheets[found]));
+    }
+
+    // 2) Fallback para abas individuais que antes eram ignoradas.
+    // Acrescenta apenas setor/mês ainda ausente na consolidada, evitando duplicidade.
+    var present={};
+    consolidated.forEach(function(r){
+      var s=rowSector(r), m=rowMonth(r);
+      if(s&&m)present[s+'|'+m]=1;
+    });
+
+    var extras=[];
+    names.forEach(function(sheetName){
+      if(sheetName===found)return;
+      var sheetKey=nk(sheetName);
+      var inferred='';
+      if(sheetKey.indexOf('ENGEPACK')>=0 || sheetKey.indexOf('PERFORMANCEFROTAENGE')>=0) inferred='ENGEPACK';
+      else if(sheetKey.indexOf('OXITENO')>=0 || sheetKey.indexOf('PERFORMANCEFROTAOXIT')>=0) inferred='OXITENO';
+      if(!inferred)return;
+
+      var rows=normalizeDataRows(XLSX.utils.sheet_to_json(wb.Sheets[sheetName]));
+      rows.forEach(function(r){
+        if(!r.SETOR)r.SETOR=inferred;
+        else r.SETOR=normalizeSectorCode(r.SETOR)||inferred;
+        var m=rowMonth(r);
+        if(!m || !present[inferred+'|'+m])extras.push(r);
+      });
+    });
+
+    return consolidated.concat(extras);
   }
 
   var originalInit=window.init;
