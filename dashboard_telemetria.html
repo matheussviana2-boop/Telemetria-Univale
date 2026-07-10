@@ -4603,6 +4603,41 @@ function detectEmbeddedBusiness(row){
   }
   return '';
 }
+function parseTelemetryNumber(v){
+  // Valores numéricos vindos do XLSX já estão na escala correta.
+  // Nunca remover o ponto de um Number: 586.9 deve continuar 586.9, e não virar 5869.
+  if(typeof v==='number')return isFinite(v)?v:0;
+  var s=String(v==null?'':v).trim();
+  if(!s)return 0;
+  s=s.replace(/\s+/g,'').replace(/[^0-9,\.\-+]/g,'');
+  if(!s)return 0;
+
+  var lastComma=s.lastIndexOf(','), lastDot=s.lastIndexOf('.');
+  if(lastComma>=0&&lastDot>=0){
+    // Aceita tanto 58.614,79 (pt-BR) quanto 58,614.79 (en-US).
+    if(lastComma>lastDot)s=s.replace(/\./g,'').replace(/,/g,'.');
+    else s=s.replace(/,/g,'');
+  }else if(lastComma>=0){
+    // Sem ponto, a vírgula é tratada como separador decimal.
+    var commaParts=s.split(',');
+    if(commaParts.length>2){var commaDec=commaParts.pop();s=commaParts.join('')+'.'+commaDec;}
+    else s=s.replace(',','.');
+  }else if(lastDot>=0){
+    var dotParts=s.split('.');
+    if(dotParts.length>2){
+      // Vários pontos representam agrupamento de milhar.
+      s=dotParts.join('');
+    }else{
+      var intPart=(dotParts[0]||'').replace(/^[-+]/,'');
+      var fracPart=dotParts[1]||'';
+      // "58.614" é normalmente milhar em pt-BR; "586.9" permanece decimal.
+      if(fracPart.length===3&&intPart.length<=3)s=dotParts.join('');
+    }
+  }
+  var n=Number(s);
+  return isFinite(n)?n:0;
+}
+
 function normalizeDataRows(rows){
   return (rows||[]).map(function(r){
     var out=Object.assign({},r);
@@ -4618,9 +4653,9 @@ function normalizeDataRows(rows){
 
     // Compatibilidade com possíveis mudanças de cabeçalho nos meses novos.
     var km=rowVal(out,['KM','KM RODADO','KM RODADOS','QUILOMETRAGEM','DISTANCIA','DISTÂNCIA']);
-    if(km!==''&&km!=null)out.KM=Number(String(km).replace(/\./g,'').replace(',','.'))||(+km||0);
+    if(km!==''&&km!=null)out.KM=parseTelemetryNumber(km);
     var pts=rowVal(out,['PONTUACAO','PONTUAÇÃO','EVENTOS','TOTAL EVENTOS','TOTAL DE EVENTOS']);
-    if(pts!==''&&pts!=null)out.PONTUACAO=Number(String(pts).replace(/\./g,'').replace(',','.'))||(+pts||0);
+    if(pts!==''&&pts!=null)out.PONTUACAO=parseTelemetryNumber(pts);
     if((out.PONTUACAO==null||out.PONTUACAO==='')&&EV_COLS){
       var soma=0;EV_COLS.forEach(function(e){soma+=evVal(out,e)});out.PONTUACAO=soma;
     }
@@ -5411,14 +5446,7 @@ function renderDiag(){
   var drvDownHtml=drv.down.slice(0,3).map(function(x){return driverRow(x,'bad')}).join('')||emptyRow('Sem motoristas em piora no mês.');
 
   function fleetNum(v){
-    if(typeof v==='number'&&isFinite(v))return v;
-    var s=String(v==null?'':v).trim();
-    if(!s)return 0;
-    if(s.indexOf(',')>=0&&s.indexOf('.')>=0)s=s.replace(/\./g,'').replace(',','.');
-    else if(s.indexOf(',')>=0)s=s.replace(',','.');
-    s=s.replace(/[^0-9.-]/g,'');
-    var n=parseFloat(s);
-    return isFinite(n)?n:0;
+    return parseTelemetryNumber(v);
   }
   function fleetMonthOf(r){
     var m=rowVal(r,['MES','MÊS','MONTH','PERIODO','PERÍODO'])||r.MES||'';
@@ -5810,7 +5838,7 @@ document.addEventListener('DOMContentLoaded',loadSheet);
 
   function nk(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
   function monthKey(v){var k=nk(v); return MONTH_MAP[k] || MONTH_MAP[k.slice(0,3)] || k.slice(0,3);}
-  function num(v){if(typeof v==='number')return v; var s=String(v==null?'':v).trim(); if(!s)return 0; s=s.replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''); return parseFloat(s)||0;}
+  function num(v){return parseTelemetryNumber(v);}
   function firstVal(r,names){
     for(var i=0;i<names.length;i++){if(r[names[i]]!=null&&r[names[i]]!=='')return r[names[i]];}
     var wanted={}; names.forEach(function(n){wanted[nk(n)]=1});
