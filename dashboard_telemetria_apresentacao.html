@@ -572,6 +572,136 @@ select{
 
 /* Ajustes finais dos cards menores e rankings */
 .support-card .mini-desc,.support-card .mini-wave{display:none!important}
+
+
+/* ===== Refinamento visual: seletores discretos e tema mais claro ===== */
+body{
+  background-color:#082237;
+}
+body::before{
+  background:
+    radial-gradient(circle at 12% 18%, rgba(40,231,241,.15), transparent 30%),
+    radial-gradient(circle at 88% 12%, rgba(40,231,241,.13), transparent 34%),
+    linear-gradient(180deg, rgba(15,52,76,.23), rgba(5,23,38,.02));
+}
+.shell{
+  background:
+    radial-gradient(1000px 420px at 70% -10%, rgba(49,229,239,.18), transparent 62%),
+    radial-gradient(900px 380px at 15% 18%, rgba(49,229,239,.12), transparent 60%),
+    linear-gradient(160deg,rgba(14,48,70,.90) 0%,rgba(9,31,49,.89) 55%,rgba(8,39,58,.88) 100%);
+  box-shadow:0 0 25px rgba(34,228,240,.18), inset 0 0 54px rgba(34,228,240,.075);
+}
+.card{
+  background:linear-gradient(165deg, rgba(15,48,69,.84), rgba(8,30,47,.88));
+}
+.support-card{
+  background:
+    radial-gradient(180px 130px at 18% 24%, rgba(34,228,240,.23), transparent 63%),
+    radial-gradient(220px 120px at 80% 100%, rgba(34,228,240,.12), transparent 68%),
+    linear-gradient(158deg, rgba(13,50,71,.78), rgba(7,30,47,.84));
+}
+.performance-evolution{
+  background:
+    radial-gradient(760px 280px at 50% 100%,rgba(34,228,240,.14),transparent 72%),
+    linear-gradient(155deg,rgba(13,49,70,.90),rgba(7,29,45,.92));
+  box-shadow:inset 0 0 38px rgba(34,228,240,.075),0 0 24px rgba(34,228,240,.11);
+}
+.evolution-head{
+  display:grid;
+  grid-template-columns:minmax(260px,1fr) auto minmax(170px,1fr);
+  align-items:start;
+  gap:18px;
+}
+.evolution-title-wrap{grid-column:1}
+.evolution-side{
+  grid-column:2 / 4;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:start;
+  gap:10px 18px;
+  min-width:0;
+  width:100%;
+}
+.evolution-top-controls{
+  grid-column:1 / 4;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:16px;
+  width:100%;
+}
+.evolution-mode-toggle{
+  grid-column:2;
+  justify-self:center;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex-wrap:nowrap;
+  padding:5px 10px;
+  border:1px solid rgba(34,228,240,.18);
+  border-radius:999px;
+  background:rgba(7,28,44,.38);
+  box-shadow:inset 0 0 14px rgba(34,228,240,.035);
+}
+.evolution-badge{grid-column:3;justify-self:end}
+.evolution-legend{grid-column:2 / 4;justify-self:end}
+.evo-check{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:24px;
+  color:#b9dce4;
+  font-family:var(--font-display);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.015em;
+  cursor:pointer;
+  user-select:none;
+  transition:.18s ease;
+  opacity:.72;
+}
+.evo-check:hover{opacity:1}
+.evo-check input{position:absolute;opacity:0;pointer-events:none}
+.evo-check-box{
+  width:13px;height:13px;border-radius:4px;
+  border:1px solid rgba(155,205,216,.48);
+  background:rgba(3,18,30,.58);
+  box-shadow:inset 0 0 7px rgba(255,255,255,.025);
+  position:relative;
+  transition:.18s ease;
+}
+.evo-check-box::after{
+  content:"";position:absolute;left:3px;top:1px;width:4px;height:7px;
+  border-right:2px solid #eaffff;border-bottom:2px solid #eaffff;
+  transform:rotate(45deg) scale(0);transform-origin:center;transition:.16s ease;
+}
+.performance-check input:checked + .evo-check-box{
+  border-color:rgba(34,228,240,.92);
+  background:rgba(34,228,240,.22);
+  box-shadow:0 0 8px rgba(34,228,240,.28),inset 0 0 7px rgba(34,228,240,.18);
+}
+.events-check input:checked + .evo-check-box{
+  border-color:rgba(255,75,89,.92);
+  background:rgba(255,75,89,.22);
+  box-shadow:0 0 8px rgba(255,75,89,.25),inset 0 0 7px rgba(255,75,89,.16);
+}
+.evo-check input:checked + .evo-check-box::after{transform:rotate(45deg) scale(1)}
+.performance-check:has(input:checked){color:#d7fbff;opacity:1;text-shadow:0 0 6px rgba(34,228,240,.28)}
+.events-check:has(input:checked){color:#ffd9dc;opacity:1;text-shadow:0 0 6px rgba(255,75,89,.25)}
+@media(max-width:1080px){
+  .evolution-head{display:flex;flex-direction:column}
+  .evolution-side{display:flex;flex-direction:column;align-items:flex-start}
+  .evolution-top-controls{display:flex;justify-content:space-between}
+  .evolution-mode-toggle{align-self:center}
+  .evolution-badge{margin-left:auto}
+}
+@media(max-width:760px){
+  .evolution-top-controls{justify-content:center}
+  .evolution-mode-toggle{gap:10px;padding:4px 8px}
+  .evo-check{font-size:9px}
+}
+
 </style>
 </head>
 <body>
@@ -733,10 +863,17 @@ select{
         </div>
         <div class="evolution-side">
           <div class="evolution-top-controls">
-            <div class="evolution-mode-toggle" aria-label="Alternar visualização do gráfico">
-              <button class="evo-mode-btn on-performance" data-mode="performance">Performance</button>
-              <button class="evo-mode-btn" data-mode="eventos">Eventos</button>
-              <button class="evo-mode-btn" data-mode="ambos">Ambos</button>
+            <div class="evolution-mode-toggle" aria-label="Selecionar séries do gráfico">
+              <label class="evo-check performance-check">
+                <input type="checkbox" id="evo-check-performance" checked>
+                <span class="evo-check-box" aria-hidden="true"></span>
+                <span>Performance</span>
+              </label>
+              <label class="evo-check events-check">
+                <input type="checkbox" id="evo-check-eventos">
+                <span class="evo-check-box" aria-hidden="true"></span>
+                <span>Eventos</span>
+              </label>
             </div>
             <div class="evolution-badge" id="evolution-sector-label">TODOS OS SETORES</div>
           </div>
@@ -1157,10 +1294,10 @@ function setEvolutionModeUI(){
       subtitle.textContent='Tendência mensal da performance operacional (%)';
     }
   }
-  document.querySelectorAll('.evo-mode-btn').forEach(btn=>{
-    btn.classList.remove('on-performance','on-eventos','on-ambos');
-    if(btn.dataset.mode===evolutionMode) btn.classList.add('on-'+evolutionMode);
-  });
+  const perfCheck=$('evo-check-performance');
+  const eventCheck=$('evo-check-eventos');
+  if(perfCheck) perfCheck.checked=evolutionMode!=='eventos';
+  if(eventCheck) eventCheck.checked=evolutionMode!=='performance';
   const legend=$('evolution-legend');
   if(legend){
     if(evolutionMode==='performance') legend.innerHTML='<span class="legend-item"><span class="legend-swatch"></span>Performance (%)</span>';
@@ -1353,11 +1490,19 @@ function render(){
 /* eventos */
 $('setor').addEventListener('change', e=>{ setor=e.target.value; render(); });
 $('mes').addEventListener('change', e=>{ mes=e.target.value; render(); });
-document.querySelectorAll('.evo-mode-btn').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    evolutionMode=b.dataset.mode||'performance';
-    renderEvolutionChart();
-  });
+function syncEvolutionChecks(changed){
+  const perf=$('evo-check-performance');
+  const events=$('evo-check-eventos');
+  if(!perf || !events) return;
+  if(!perf.checked && !events.checked){
+    changed.checked=true;
+  }
+  evolutionMode=perf.checked && events.checked ? 'ambos' : (events.checked ? 'eventos' : 'performance');
+  renderEvolutionChart();
+}
+['evo-check-performance','evo-check-eventos'].forEach(id=>{
+  const el=$(id);
+  if(el) el.addEventListener('change',()=>syncEvolutionChecks(el));
 });
 document.querySelectorAll('.toggle button').forEach(b=>{
   b.addEventListener('click', ()=>{
