@@ -4562,6 +4562,22 @@ function calcPerf(km,ev){if(!km||km<=0)return null;return (1-(ev/km))*100}
 function evLabel(e){return EV_LABELS[e]||e}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]||c})}
 function nkey(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function validDriverName(v){
+  var s=String(v==null?'':v).trim();
+  if(!s)return '';
+  var k=nkey(s);
+  var invalid={
+    'TOTAL':1,'TOTAIS':1,'TOTALGERAL':1,'SUBTOTAL':1,'SUBTOTAIS':1,
+    'RESUMO':1,'RESUMOMENSAL':1,'RESUMOGERAL':1,'MEDIA':1,'MEDIAGERAL':1,
+    'MOTORISTA':1,'NOMEMOTORISTA':1,'NOMEDOMOTORISTA':1,'CONDUTOR':1,'DRIVER':1,
+    'GERAL':1,'EVENTOS':1,'TOTALEVENTOS':1,'TOTALDEEVENTOS':1
+  };
+  if(invalid[k]||/^TOTAL/.test(k)||/^SUBTOTAL/.test(k)||/^RESUMO/.test(k))return '';
+  return s;
+}
+function isValidDriverRow(r){
+  return !!validDriverName(rowVal(r,['MOTORISTA','NOME MOTORISTA','NOME DO MOTORISTA','CONDUTOR','DRIVER']));
+}
 function normalizeSectorCode(v){
   var raw=String(v||'').trim();
   if(!raw)return '';
@@ -4824,7 +4840,7 @@ function loadSheet(){
 function init(wb){
   var ws=wb.Sheets['DADOS_MOTORISTAS'];
   if(!ws){showErr('Aba DADOS_MOTORISTAS não encontrada.');return}
-  var rows=normalizeDataRows(XLSX.utils.sheet_to_json(ws));
+  var rows=normalizeDataRows(XLSX.utils.sheet_to_json(ws)).filter(isValidDriverRow);
   STATE.raw=rows;
   syncSectorFromUrl(false);
   populateSectorSel();
@@ -4834,6 +4850,9 @@ function init(wb){
   bindEvents();
 }
 function buildModel(rows){
+  // Soma somente linhas operacionais com motorista válido. Linhas de TOTAL,
+  // SUBTOTAL, RESUMO ou sem motorista não entram novamente nos indicadores.
+  rows=(rows||[]).filter(isValidDriverRow);
   var monthly=STATE.months.map(function(m){
     var mr=rows.filter(function(r){return String(r.MES||'').toUpperCase()===m});
     var km=0,ev=0,brk={};EV_COLS.forEach(function(e){brk[e]=0});
@@ -4842,7 +4861,7 @@ function buildModel(rows){
   });
   var drv={};
   rows.forEach(function(r){
-    var n=String(r.MOTORISTA||'').trim();if(!n)return;
+    var n=validDriverName(r.MOTORISTA);if(!n)return;
     var o=drv[n]||(drv[n]={nome:n,km:0,pts:0,ev:{},fluig:null});
     o.km+=+r.KM||0;o.pts+=+r.PONTUACAO||0;
     EV_COLS.forEach(function(e){o.ev[e]=(o.ev[e]||0)+evVal(r,e)});

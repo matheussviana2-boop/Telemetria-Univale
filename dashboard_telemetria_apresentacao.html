@@ -1331,6 +1331,22 @@ const POINTS_COLS = ['PONTUACAO','PONTUAÇÃO','EVENTOS','TOTAL EVENTOS','PONTOS
 let DB = {setores:[], labels:SLABELS, meses:[], dados:{TODOS:{serieKm:[]}}};
 
 function nkey(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function validDriverName(v){
+  const s=String(v==null?'':v).trim();
+  if(!s)return '';
+  const k=nkey(s);
+  const invalid=new Set([
+    'TOTAL','TOTAIS','TOTALGERAL','SUBTOTAL','SUBTOTAIS',
+    'RESUMO','RESUMOMENSAL','RESUMOGERAL','MEDIA','MEDIAGERAL',
+    'MOTORISTA','NOMEMOTORISTA','NOMEDOMOTORISTA','CONDUTOR','DRIVER',
+    'GERAL','EVENTOS','TOTALEVENTOS','TOTALDEEVENTOS'
+  ]);
+  if(invalid.has(k)||/^TOTAL/.test(k)||/^SUBTOTAL/.test(k)||/^RESUMO/.test(k))return '';
+  return s;
+}
+function isValidDriverRow(r){
+  return !!validDriverName(rowVal(r,DRIVER_NAME_COLS));
+}
 function normalizeMonthCode(v){const k=nkey(v); return MES_ALIASES[k] || MES_ALIASES[k.slice(0,3)] || k.slice(0,3)}
 function normalizeSectorCode(v){
   const raw=String(v||'').trim(); if(!raw)return '';
@@ -1507,18 +1523,19 @@ function buildMotorRows(rows){
   let km=0, ptsFallback=0;
   const drv={};
   rows.forEach(r=>{
+    // Valida o registro antes de somar KM e eventos. Isso impede que linhas de
+    // TOTAL, SUBTOTAL, RESUMO e linhas sem motorista sejam contabilizadas duas vezes.
+    const nome=validDriverName(rowVal(r,DRIVER_NAME_COLS));
+    if(!nome)return;
     const rKm=num(rowVal(r,KM_COLS));
     let evSum=0;
     EV_COLS.forEach(e=>{const v=evVal(r,e); evTot[e]+=v; evSum+=v;});
     const rPtsRaw=rowVal(r,POINTS_COLS);
     const rPts=(rPtsRaw===''||rPtsRaw==null)?evSum:num(rPtsRaw);
     km += rKm; ptsFallback += rPts;
-    const nome=String(rowVal(r,DRIVER_NAME_COLS)||'').trim();
-    if(nome){
-      const o=drv[nome]||(drv[nome]={nome:nome,km:0,pts:0,ev:{}});
-      o.km+=rKm; o.pts+=rPts;
-      EV_COLS.forEach(e=>{o.ev[e]=(o.ev[e]||0)+evVal(r,e)});
-    }
+    const o=drv[nome]||(drv[nome]={nome:nome,km:0,pts:0,ev:{}});
+    o.km+=rKm; o.pts+=rPts;
+    EV_COLS.forEach(e=>{o.ev[e]=(o.ev[e]||0)+evVal(r,e)});
   });
   let ev=Object.values(evTot).reduce((a,b)=>a+b,0);
   if(!ev && ptsFallback)ev=ptsFallback;
@@ -1585,7 +1602,7 @@ function buildScopeData(motorRows,fleetRows){
 function buildDBFromWorkbook(wb){
   const ws=wb.Sheets['DADOS_MOTORISTAS'];
   if(!ws)throw new Error('Aba DADOS_MOTORISTAS não encontrada');
-  const raw=normalizeDataRows(XLSX.utils.sheet_to_json(ws,{defval:''}));
+  const raw=normalizeDataRows(XLSX.utils.sheet_to_json(ws,{defval:''})).filter(isValidDriverRow);
   const fws=findSheet(wb,FLEET_SHEETS);
   const rawFleet=fws?normalizeDataRows(XLSX.utils.sheet_to_json(fws,{defval:''})):[];
 
