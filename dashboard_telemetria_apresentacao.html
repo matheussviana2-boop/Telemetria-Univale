@@ -1116,26 +1116,73 @@ function kmPorEvento(km,ev){return ev?km/ev:0}
 function pctVar(curr,prev){curr=Number(curr)||0; prev=Number(prev)||0; if(!prev)return null; return ((curr-prev)/Math.abs(prev))*100}
 function sectorSort(a,b){let ia=SECTOR_ORDER.indexOf(a), ib=SECTOR_ORDER.indexOf(b); if(ia<0)ia=999; if(ib<0)ib=999; return ia-ib || labelOf(a).localeCompare(labelOf(b),'pt-BR')}
 function labelOf(s){return s==='TODOS'?'Todos':(SLABELS[s]||String(s||'').replace(/_/g,' '))}
+function businessReferenceFromRow(row){
+  const parts=[];
+  for(const [key,value] of Object.entries(row||{})){
+    const v=String(value==null?'':value).trim();
+    if(!v) continue;
+    parts.push(nkey(key));
+    parts.push(nkey(v));
+  }
+  const text=parts.join('|');
+
+  /* Cobre nomes completos, abreviações e pequenas variações de digitação. */
+  if(text.includes('OXITENO') || text.includes('OXITEN') || text.includes('OXIT')) return 'OXITENO';
+  if(text.includes('ENGEPACK') || text.includes('ENGEPAK') || text.includes('ENGEPAC') || text.includes('ENGE PACK'.replace(/ /g,''))) return 'ENGEPACK';
+  return '';
+}
+
 function normalizeDataRows(rows){
-  return (rows||[]).map(r=>{
-    const out=Object.assign({},r);
-    out.SETOR=normalizeSectorCode(rowVal(out,['SETOR','SETOR OPERACIONAL','SETOR_OPERACIONAL','CLIENTE','EMPRESA'])||out.SETOR);
-    out.MES=normalizeMonthCode(rowVal(out,['MES','MÊS','MONTH','PERIODO','PERÍODO'])||out.MES);
+  let lastMonth='';
+  let lastBaseSector='';
+  let activeFretBusiness='';
+  const normalized=[];
+
+  for(const sourceRow of (rows||[])){
+    const out=Object.assign({},sourceRow);
+
+    const rawMonth=rowVal(out,['MES','MÊS','MONTH','PERIODO','PERÍODO']);
+    const month=rawMonth!=='' ? normalizeMonthCode(rawMonth) : lastMonth;
+    if(month && MESES_ALL.includes(month)){
+      if(lastMonth && month!==lastMonth) activeFretBusiness='';
+      lastMonth=month;
+    }
+    out.MES=month;
+
+    const rawSector=rowVal(out,['SETOR','SETOR OPERACIONAL','SETOR_OPERACIONAL','CLIENTE','EMPRESA','NEGÓCIO','NEGOCIO']);
+    const explicitSector=rawSector!=='' ? normalizeSectorCode(rawSector) : '';
+    const rowBusiness=businessReferenceFromRow(out);
 
     /*
-      Na base consolidada, os motoristas de Engepack e Oxiteno podem vir
-      originalmente dentro de FRET_BAHIA. Nesses casos, a identificação
-      correta aparece em outra coluna da própria linha, normalmente GARAGEM.
-      Por isso, reclassificamos olhando todos os valores da linha.
+      Maio e junho possuem linhas de Engepack/Oxiteno dentro do bloco de
+      Fretamento Bahia. Em algumas linhas a referência aparece apenas uma vez
+      no início do grupo (ou em célula mesclada), e nas linhas dos motoristas
+      seguintes o campo fica vazio. Por isso mantemos a referência ativa até
+      aparecer outro negócio/setor ou mudar o mês.
     */
-    if(out.SETOR==='FRET_BAHIA'){
-      const rowText=Object.values(out).map(v=>nkey(v)).join('|');
-      if(rowText.includes('OXITENO')) out.SETOR='OXITENO';
-      else if(rowText.includes('ENGEPACK') || rowText.includes('ENGEPAK') || rowText.includes('ENGEPAC')) out.SETOR='ENGEPACK';
+    if(rowBusiness){
+      activeFretBusiness=rowBusiness;
+      out.SETOR=rowBusiness;
+      lastBaseSector='FRET_BAHIA';
+    }else if(explicitSector){
+      if(explicitSector==='FRET_BAHIA'){
+        out.SETOR=activeFretBusiness || 'FRET_BAHIA';
+        lastBaseSector='FRET_BAHIA';
+      }else{
+        out.SETOR=explicitSector;
+        lastBaseSector=explicitSector;
+        activeFretBusiness='';
+      }
+    }else if(lastBaseSector==='FRET_BAHIA' && activeFretBusiness){
+      out.SETOR=activeFretBusiness;
+    }else{
+      out.SETOR=lastBaseSector;
     }
 
-    return out;
-  }).filter(r=>r.SETOR&&MESES_ALL.indexOf(r.MES)>=0);
+    if(out.SETOR && MESES_ALL.includes(out.MES)) normalized.push(out);
+  }
+
+  return normalized;
 }
 function findSheet(wb,names){
   for(const target of names){
@@ -1244,6 +1291,18 @@ function buildDBFromWorkbook(wb){
   const raw=normalizeDataRows(XLSX.utils.sheet_to_json(ws,{defval:''}));
   const fws=findSheet(wb,FLEET_SHEETS);
   const rawFleet=fws?normalizeDataRows(XLSX.utils.sheet_to_json(fws,{defval:''})):[];
+
+  /* Diagnóstico no console para validar a leitura dos dois negócios por mês. */
+  try{
+    ['ENGEPACK','OXITENO'].forEach(s=>{
+      const summary={};
+      MESES_ALL.forEach(m=>{
+        const rows=raw.filter(r=>r.SETOR===s&&r.MES===m);
+        summary[m]={linhas:rows.length,km:Math.round(rows.reduce((a,r)=>a+num(rowVal(r,KM_COLS)),0))};
+      });
+      console.info('[Telemetria] leitura '+s,summary);
+    });
+  }catch(e){}
   const setMap={}; raw.concat(rawFleet).forEach(r=>{if(r.SETOR)setMap[r.SETOR]=1});
   const setores=Object.keys(setMap).filter(s=>s&&s!=='TODOS').sort(sectorSort);
   const monthMap={}; raw.concat(rawFleet).forEach(r=>{if(MESES_ALL.indexOf(r.MES)>=0)monthMap[r.MES]=1});
