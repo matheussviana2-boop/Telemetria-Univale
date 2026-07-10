@@ -5,6 +5,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Telemetria · Univale</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -4488,6 +4491,7 @@ header h1{
 <script>
 var SHEET_URL='https://docs.google.com/spreadsheets/d/11jw5uFKuKcOVE5Jxgf1MsCyOXZPYXra1/export?format=xlsx';
 var SETOR_FIXO='';
+var DASHBOARD_VERSION='20260710-setor-lock-v2';
 var MESES=["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
 var MESES_FULL={JAN:"Janeiro",FEV:"Fevereiro",MAR:"Março",ABR:"Abril",MAI:"Maio",JUN:"Junho",JUL:"Julho",AGO:"Agosto",SET:"Setembro",OUT:"Outubro",NOV:"Novembro",DEZ:"Dezembro"};
 var MONTH_ALIAS={JAN:'JAN',JANEIRO:'JAN',FEV:'FEV',FEVEREIRO:'FEV',MAR:'MAR',MARCO:'MAR',MARCO:'MAR',ABR:'ABR',ABRIL:'ABR',MAI:'MAI',MAIO:'MAI',JUN:'JUN',JUNHO:'JUN',JUL:'JUL',JULHO:'JUL',AGO:'AGO',AGOSTO:'AGO',SET:'SET',SETEMBRO:'SET',OUT:'OUT',OUTUBRO:'OUT',NOV:'NOV',NOVEMBRO:'NOV',DEZ:'DEZ',DEZEMBRO:'DEZ'};
@@ -4735,8 +4739,18 @@ function normalizeMonthCode(v){
   var short=compact.slice(0,3);
   return MESES.indexOf(short)>=0?short:'';
 }
+function getDashboardParams(){
+  var p=new URLSearchParams(window.location.search||'');
+  // Também aceita links antigos no formato #setor=BEMISA ou #?setor=BEMISA.
+  if(!p.get('setor')&&!p.get('s')&&window.location.hash){
+    var hash=String(window.location.hash||'').replace(/^#\??/,'');
+    var hp=new URLSearchParams(hash);
+    if(hp.get('setor')||hp.get('s'))p=hp;
+  }
+  return p;
+}
 function getPeriodo(){
-  var p=new URLSearchParams(window.location.search);
+  var p=getDashboardParams();
   return normalizeMonthCode(p.get('mes')||p.get('m')||p.get('periodo')||p.get('p')||'');
 }
 function applyDefaultPeriod(){
@@ -4754,7 +4768,52 @@ function applyDefaultPeriod(){
     STATE.scope=STATE.months.length?STATE.months[STATE.months.length-1]:'ALL';
   }
 }
-function getSetor(){if(SETOR_FIXO)return normalizeSectorCode(SETOR_FIXO);var p=new URLSearchParams(window.location.search);return normalizeSectorCode((p.get('setor')||p.get('s')||'').trim())}
+function getSetor(){
+  if(SETOR_FIXO)return normalizeSectorCode(SETOR_FIXO);
+  var p=getDashboardParams();
+  return normalizeSectorCode((p.get('setor')||p.get('s')||'').trim());
+}
+function resetSectorTransientState(){
+  STATE.periodReady=false;
+  STATE.scope='ALL';
+  STATE.selEvent=null;
+  STATE.selEvent2=null;
+  STATE.fleetSelEvent=null;
+}
+function syncSectorFromUrl(forceRender){
+  var requested=getSetor();
+  var next=requested||'ALL';
+  var locked=!!(requested&&requested!=='ALL');
+  var changed=normalizeSectorCode(STATE.setor||'ALL')!==next||!!STATE.lockedSetor!==locked;
+  STATE.setor=next;
+  STATE.lockedSetor=locked;
+  if(changed)resetSectorTransientState();
+  if(forceRender&&(STATE.raw.length||STATE.rawFleet.length)){
+    populateSectorSel();
+    applySetor();
+  }
+  return changed;
+}
+function resetDashboardBrowserCache(){
+  // Remove apenas caches e service workers ligados a este dashboard/repositório.
+  try{
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations().then(function(regs){
+        regs.forEach(function(reg){
+          var scope=String(reg.scope||'');
+          if(scope.indexOf('/Telemetria-Univale/')>=0)reg.unregister();
+        });
+      }).catch(function(){});
+    }
+    if('caches' in window){
+      caches.keys().then(function(keys){
+        keys.forEach(function(key){
+          if(/telemetria|dashboard/i.test(key))caches.delete(key);
+        });
+      }).catch(function(){});
+    }
+  }catch(e){}
+}
 function showErr(msg){document.getElementById('loading').style.display='none';document.getElementById('error').style.display='flex';document.getElementById('errMsg').innerHTML=msg}
 function loadSheet(){
   fetch(SHEET_URL + '&_=' + Date.now(), {cache:'no-store'})
@@ -4767,9 +4826,7 @@ function init(wb){
   if(!ws){showErr('Aba DADOS_MOTORISTAS não encontrada.');return}
   var rows=normalizeDataRows(XLSX.utils.sheet_to_json(ws));
   STATE.raw=rows;
-  var qs=getSetor();
-  STATE.setor=qs||'ALL';
-  STATE.lockedSetor=!!(qs&&qs!=='ALL');
+  syncSectorFromUrl(false);
   populateSectorSel();
   applySetor();
   document.getElementById('loading').style.display='none';
@@ -5824,7 +5881,16 @@ function bindEvents(){
   setDiagView(STATE.diagView||'mensal');
 }
 // fuel animation via CSS
-document.addEventListener('DOMContentLoaded',loadSheet);
+document.addEventListener('DOMContentLoaded',function(){
+  resetDashboardBrowserCache();
+  syncSectorFromUrl(false);
+  loadSheet();
+});
+// Corrige restauração por cache de navegação (bfcache), comum em WhatsApp e navegadores móveis.
+window.addEventListener('pageshow',function(ev){
+  if(ev.persisted)syncSectorFromUrl(true);
+});
+window.addEventListener('popstate',function(){syncSectorFromUrl(true)});
 </script>
 
 <script id="frota-front-script">
