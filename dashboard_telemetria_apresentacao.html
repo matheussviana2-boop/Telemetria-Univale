@@ -1537,8 +1537,11 @@ function buildMotorRows(rows){
     o.km+=rKm; o.pts+=rPts;
     EV_COLS.forEach(e=>{o.ev[e]=(o.ev[e]||0)+evVal(r,e)});
   });
-  let ev=Object.values(evTot).reduce((a,b)=>a+b,0);
-  if(!ev && ptsFallback)ev=ptsFallback;
+  // PONTUACAO é o total oficial de eventos usado pela planilha e pela performance.
+  // As colunas por tipo permanecem apenas como detalhamento, pois podem conter
+  // categorias sobrepostas ou auxiliares e não devem substituir o total oficial.
+  let ev=ptsFallback;
+  if(!ev)ev=Object.values(evTot).reduce((a,b)=>a+b,0);
   const drivers=Object.values(drv).map(o=>({nome:o.nome,km:Math.round(o.km),pts:Math.round(o.pts),perf:calcPerf(o.km,o.pts),ev:o.ev}));
   return {km:Math.round(km), ev:Math.round(ev), perf:calcPerf(km,ev), evTot, drivers};
 }

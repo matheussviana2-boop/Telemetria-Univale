@@ -4877,9 +4877,12 @@ function buildModel(rows){
   });
   var evTot={};EV_COLS.forEach(function(e){evTot[e]=0});
   monthly.forEach(function(m){EV_COLS.forEach(function(e){evTot[e]+=m.brk[e]||0})});
-  var totEv=Object.values(evTot).reduce(function(a,b){return a+b},0);
+  // O total oficial vem da coluna PONTUACAO de cada registro/mês.
+  // O somatório das colunas por tipo é mantido apenas para o detalhamento.
+  var totEv=monthly.reduce(function(a,m){return a+(+m.ev||0)},0);
+  var totEvBreakdown=Object.values(evTot).reduce(function(a,b){return a+b},0);
   var totKm=monthly.reduce(function(a,m){return a+m.km},0);
-  var evRank=EV_COLS.map(function(e){return[e,evTot[e],totEv?Math.round(evTot[e]/totEv*1000)/10:0]}).filter(function(x){return x[1]>0}).sort(function(a,b){return b[1]-a[1]});
+  var evRank=EV_COLS.map(function(e){return[e,evTot[e],totEvBreakdown?Math.round(evTot[e]/totEvBreakdown*1000)/10:0]}).filter(function(x){return x[1]>0}).sort(function(a,b){return b[1]-a[1]});
   return{monthly:monthly,drivers:drivers,evRank:evRank,totEv:totEv,totKm:totKm,motN:drivers.length,evTot:evTot,rawRows:rows}
 }
 function buildRender(){
