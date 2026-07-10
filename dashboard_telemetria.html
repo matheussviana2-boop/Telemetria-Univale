@@ -4582,8 +4582,18 @@ function sectorSort(a,b){var ia=SECTOR_ORDER.indexOf(a),ib=SECTOR_ORDER.indexOf(
 function normalizeDataRows(rows){
   return (rows||[]).map(function(r){
     var out=Object.assign({},r);
-    var s=rowVal(out,['SETOR','SETOR OPERACIONAL','SETOR_OPERACIONAL','CLIENTE','EMPRESA']);
-    out.SETOR=normalizeSectorCode(s||out.SETOR);
+
+    // Oxiteno e Engepack ficam dentro da base Fretamento BA, mas podem ser
+    // identificadas pela coluna GRUPO/NEGÓCIO. O grupo deve prevalecer sobre
+    // o setor genérico "Fretamento BA" quando trouxer um negócio conhecido.
+    var grupo=rowVal(out,['GRUPO','GRUPO OPERACIONAL','GRUPO_OPERACIONAL','NEGOCIO','NEGÓCIO','UNIDADE','CONTRATO']);
+    var setor=rowVal(out,['SETOR','SETOR OPERACIONAL','SETOR_OPERACIONAL','CLIENTE','EMPRESA']);
+    var grupoCode=normalizeSectorCode(grupo);
+    var setorCode=normalizeSectorCode(setor||out.SETOR);
+
+    if(grupoCode==='OXITENO'||grupoCode==='ENGEPACK')out.SETOR=grupoCode;
+    else out.SETOR=setorCode||grupoCode;
+
     var m=rowVal(out,['MES','MÊS','MONTH','PERIODO','PERÍODO']);
     if(m)out.MES=String(m).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().slice(0,3);
     return out;
@@ -5385,7 +5395,10 @@ function renderDiag(){
     return String(m).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().slice(0,3);
   }
   function fleetSectorOf(r){
-    return normalizeSectorCode(rowVal(r,['SETOR','SETOR OPERACIONAL','SETOR_OPERACIONAL','CLIENTE','EMPRESA'])||r.SETOR||'');
+    var grupo=rowVal(r,['GRUPO','GRUPO OPERACIONAL','GRUPO_OPERACIONAL','NEGOCIO','NEGÓCIO','UNIDADE','CONTRATO']);
+    var grupoCode=normalizeSectorCode(grupo);
+    if(grupoCode==='OXITENO'||grupoCode==='ENGEPACK')return grupoCode;
+    return normalizeSectorCode(rowVal(r,['SETOR','SETOR OPERACIONAL','SETOR_OPERACIONAL','CLIENTE','EMPRESA'])||r.SETOR||grupo||'');
   }
   function fleetBadName(v){
     var s=String(v==null?'':v).trim();
@@ -5798,48 +5811,14 @@ document.addEventListener('DOMContentLoaded',loadSheet);
   function extractFleetRows(wb){
     if(!wb||!wb.SheetNames)return [];
     var names=wb.SheetNames||[];
-    var consolidated=[];
     var found='';
-
-    // 1) Base principal consolidada, quando existir.
     for(var i=0;i<FLEET_SHEETS.length;i++){
       var target=nk(FLEET_SHEETS[i]);
-      for(var j=0;j<names.length;j++){
-        if(nk(names[j])===target){found=names[j];break;}
-      }
+      for(var j=0;j<names.length;j++){if(nk(names[j])===target){found=names[j];break;}}
       if(found)break;
     }
-    if(found){
-      consolidated=normalizeDataRows(XLSX.utils.sheet_to_json(wb.Sheets[found]));
-    }
-
-    // 2) Fallback para abas individuais que antes eram ignoradas.
-    // Acrescenta apenas setor/mês ainda ausente na consolidada, evitando duplicidade.
-    var present={};
-    consolidated.forEach(function(r){
-      var s=rowSector(r), m=rowMonth(r);
-      if(s&&m)present[s+'|'+m]=1;
-    });
-
-    var extras=[];
-    names.forEach(function(sheetName){
-      if(sheetName===found)return;
-      var sheetKey=nk(sheetName);
-      var inferred='';
-      if(sheetKey.indexOf('ENGEPACK')>=0 || sheetKey.indexOf('PERFORMANCEFROTAENGE')>=0) inferred='ENGEPACK';
-      else if(sheetKey.indexOf('OXITENO')>=0 || sheetKey.indexOf('PERFORMANCEFROTAOXIT')>=0) inferred='OXITENO';
-      if(!inferred)return;
-
-      var rows=normalizeDataRows(XLSX.utils.sheet_to_json(wb.Sheets[sheetName]));
-      rows.forEach(function(r){
-        if(!r.SETOR)r.SETOR=inferred;
-        else r.SETOR=normalizeSectorCode(r.SETOR)||inferred;
-        var m=rowMonth(r);
-        if(!m || !present[inferred+'|'+m])extras.push(r);
-      });
-    });
-
-    return consolidated.concat(extras);
+    if(!found)return [];
+    return normalizeDataRows(XLSX.utils.sheet_to_json(wb.Sheets[found]));
   }
 
   var originalInit=window.init;
