@@ -1197,7 +1197,12 @@ function renderEvolutionChart(){
   const svg=$('performance-chart');
   if(!svg || !DB || !DB.dados || !DB.dados[setor]) return;
   setEvolutionModeUI();
-  const W=1200,H=330, ml=62,mr=48,mt=26,mb=46;
+  const W=1200,H=330;
+  const bothMode = evolutionMode==='ambos';
+  const ml = bothMode ? 54 : 62;
+  const mr = bothMode ? 78 : 48;
+  const mt = 26, mb = 46;
+  const sideInset = bothMode ? 34 : (evolutionMode==='eventos' ? 10 : 0);
   const pw=W-ml-mr, ph=H-mt-mb;
   const available=(DB.meses&&DB.meses.length?DB.meses:MESES_ALL).filter(m=>DB.dados[setor][m]);
   const months=MESES_ALL.filter(m=>available.includes(m));
@@ -1214,7 +1219,10 @@ function renderEvolutionChart(){
     out+=`<text class="evo-empty" x="${W/2}" y="${H/2}">Sem dados mensais para o setor selecionado</text>`;
     svg.innerHTML=out; return;
   }
-  const x=i=> series.length===1 ? ml+pw/2 : ml+(i/(series.length-1))*pw;
+  const xStart = ml + sideInset;
+  const xEnd = W - mr - sideInset;
+  const plotW = Math.max(120, xEnd - xStart);
+  const x=i=> series.length===1 ? xStart+plotW/2 : xStart+(i/(series.length-1))*plotW;
   const perfY=v=> mt+ph-(Math.max(0,Math.min(100,v))/100)*ph;
   const maxEv=niceMaxEvent(Math.max(...series.map(s=>s.ev),0));
   const evY=v=> mt+ph-(Math.max(0,Math.min(maxEv,v))/maxEv)*ph;
@@ -1263,7 +1271,7 @@ function renderEvolutionChart(){
     }
     out+=`<line class="evo-axis" x1="${ml}" y1="${mt}" x2="${ml}" y2="${mt+ph}"/><line class="evo-axis" x1="${ml}" y1="${mt+ph}" x2="${W-mr}" y2="${mt+ph}"/><line class="evo-axis-red" x1="${W-mr}" y1="${mt}" x2="${W-mr}" y2="${mt+ph}"/>`;
     const path=smoothPath(perfPts), area=`${path} L ${perfPts[perfPts.length-1].x.toFixed(1)} ${mt+ph} L ${perfPts[0].x.toFixed(1)} ${mt+ph} Z`;
-    const barW=Math.min(46, Math.max(22, pw/(series.length*4.1)));
+    const barW=Math.min(42, Math.max(18, plotW/(Math.max(series.length,1)*4.8)));
     evPts.forEach(p=>{
       const x0=(p.x-barW/2).toFixed(1), y0=p.y.toFixed(1), h=(mt+ph-p.y).toFixed(1);
       out+=`<rect class="evo-bar" data-tip="1" data-kind="event-bar" data-month="${escHtml(monthNames[p.m]||p.m)}" data-perf="${p.perf.toFixed(2)}" data-ev="${p.ev}" x="${x0}" y="${y0}" width="${barW.toFixed(1)}" height="${h}" rx="7" ry="7"/>`;
