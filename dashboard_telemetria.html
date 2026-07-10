@@ -4568,34 +4568,64 @@ function normalizeSectorCode(v){
   if(compact.indexOf('CIPALAM')>=0)return 'CIPALAM';
   if(compact.indexOf('MUSA')>=0)return 'MUSA';
   if(compact.indexOf('TURIM')>=0)return 'TURIM';
+  // Negócios internos do Fretamento BA devem ter prioridade sobre o setor genérico.
+  // Ex.: "Fretamento BA - Oxiteno" não pode virar FRET_BAHIA.
+  if(compact.indexOf('ENGEPACK')>=0||compact.indexOf('ENGEPAC')>=0)return 'ENGEPACK';
+  if(compact.indexOf('OXITENO')>=0||compact.indexOf('OXITEN')>=0)return 'OXITENO';
   if(compact.indexOf('FROTAFRETAMENTOBA')>=0||compact.indexOf('FRETAMENTOBA')>=0||compact.indexOf('FRETBA')>=0)return 'FRET_BAHIA';
   if(compact.indexOf('LINHASBA')>=0||compact.indexOf('LINHASBAHIA')>=0)return 'LINHAS_BAHIA';
   if(compact.indexOf('LINHASMG')>=0||compact.indexOf('LINHASMINAS')>=0)return 'LINHAS_MINAS';
   if(compact==='LINHAS')return 'LINHAS_MINAS';
   if(compact.indexOf('GARAGISTASBA')>=0||compact.indexOf('GARAGBA')>=0)return 'GARAG_BAHIA';
   if(compact.indexOf('GARAGISTASMG')>=0||compact.indexOf('GARAGISTASMINAS')>=0||compact.indexOf('GARAGMG')>=0)return 'GARAG_MG';
-  if(compact.indexOf('ENGEPACK')>=0)return 'ENGEPACK';
-  if(compact.indexOf('OXITENO')>=0)return 'OXITENO';
   return raw.toUpperCase().replace(/\s+/g,'_');
 }
 function sectorSort(a,b){var ia=SECTOR_ORDER.indexOf(a),ib=SECTOR_ORDER.indexOf(b); if(ia<0)ia=999; if(ib<0)ib=999; return ia-ib||setorLabel(a).localeCompare(setorLabel(b),'pt-BR');}
+function detectEmbeddedBusiness(row){
+  var preferred=[
+    'GRUPO','GRUPO OPERACIONAL','GRUPO_OPERACIONAL','GRUPO/SETOR','SETOR/GRUPO',
+    'GRUPO CLIENTE','GRUPO_CLIENTE','NEGOCIO','NEGÓCIO','UNIDADE','CONTRATO',
+    'CENTRO DE CUSTO','CENTRO_CUSTO','DESCRIÇÃO','DESCRICAO','OPERAÇÃO','OPERACAO',
+    'SETOR','SETOR OPERACIONAL','SETOR_OPERACIONAL','CLIENTE','EMPRESA','FILIAL'
+  ];
+  for(var i=0;i<preferred.length;i++){
+    var v=rowVal(row,[preferred[i]]), code=normalizeSectorCode(v);
+    if(code==='OXITENO'||code==='ENGEPACK')return code;
+  }
+  // Fallback para mudanças de cabeçalho: procura a referência em qualquer campo textual.
+  for(var k in row){
+    if(!Object.prototype.hasOwnProperty.call(row,k))continue;
+    var val=row[k];
+    if(val==null||typeof val==='object')continue;
+    var compact=nkey(String(val));
+    if(compact.indexOf('ENGEPACK')>=0||compact.indexOf('ENGEPAC')>=0)return 'ENGEPACK';
+    if(compact.indexOf('OXITENO')>=0||compact.indexOf('OXITEN')>=0)return 'OXITENO';
+  }
+  return '';
+}
 function normalizeDataRows(rows){
   return (rows||[]).map(function(r){
     var out=Object.assign({},r);
-
-    // Oxiteno e Engepack ficam dentro da base Fretamento BA, mas podem ser
-    // identificadas pela coluna GRUPO/NEGÓCIO. O grupo deve prevalecer sobre
-    // o setor genérico "Fretamento BA" quando trouxer um negócio conhecido.
-    var grupo=rowVal(out,['GRUPO','GRUPO OPERACIONAL','GRUPO_OPERACIONAL','NEGOCIO','NEGÓCIO','UNIDADE','CONTRATO']);
-    var setor=rowVal(out,['SETOR','SETOR OPERACIONAL','SETOR_OPERACIONAL','CLIENTE','EMPRESA']);
+    var embedded=detectEmbeddedBusiness(out);
+    var grupo=rowVal(out,['GRUPO','GRUPO OPERACIONAL','GRUPO_OPERACIONAL','GRUPO/SETOR','SETOR/GRUPO','GRUPO CLIENTE','GRUPO_CLIENTE','NEGOCIO','NEGÓCIO','UNIDADE','CONTRATO','CENTRO DE CUSTO','CENTRO_CUSTO']);
+    var setor=rowVal(out,['SETOR','SETOR OPERACIONAL','SETOR_OPERACIONAL','CLIENTE','EMPRESA','FILIAL']);
     var grupoCode=normalizeSectorCode(grupo);
     var setorCode=normalizeSectorCode(setor||out.SETOR);
+    out.SETOR=embedded||setorCode||grupoCode;
 
-    if(grupoCode==='OXITENO'||grupoCode==='ENGEPACK')out.SETOR=grupoCode;
-    else out.SETOR=setorCode||grupoCode;
+    var m=rowVal(out,['MES','MÊS','MONTH','PERIODO','PERÍODO','COMPETENCIA','COMPETÊNCIA']);
+    if(m)out.MES=normalizeMonthCode(m)||String(m).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().slice(0,3);
 
-    var m=rowVal(out,['MES','MÊS','MONTH','PERIODO','PERÍODO']);
-    if(m)out.MES=String(m).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().slice(0,3);
+    // Compatibilidade com possíveis mudanças de cabeçalho nos meses novos.
+    var km=rowVal(out,['KM','KM RODADO','KM RODADOS','QUILOMETRAGEM','DISTANCIA','DISTÂNCIA']);
+    if(km!==''&&km!=null)out.KM=Number(String(km).replace(/\./g,'').replace(',','.'))||(+km||0);
+    var pts=rowVal(out,['PONTUACAO','PONTUAÇÃO','EVENTOS','TOTAL EVENTOS','TOTAL DE EVENTOS']);
+    if(pts!==''&&pts!=null)out.PONTUACAO=Number(String(pts).replace(/\./g,'').replace(',','.'))||(+pts||0);
+    if((out.PONTUACAO==null||out.PONTUACAO==='')&&EV_COLS){
+      var soma=0;EV_COLS.forEach(function(e){soma+=evVal(out,e)});out.PONTUACAO=soma;
+    }
+    var mot=rowVal(out,['MOTORISTA','NOME MOTORISTA','NOME DO MOTORISTA','CONDUTOR','DRIVER']);
+    if(mot)out.MOTORISTA=mot;
     return out;
   });
 }
