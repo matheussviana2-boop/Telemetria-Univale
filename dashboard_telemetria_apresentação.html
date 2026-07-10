@@ -125,13 +125,81 @@ select{
 .kpi .desc{font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--text);opacity:.85}
 .delta{font-family:var(--font-body);font-size:13px;font-weight:700;margin-top:auto;min-height:16px}
 .kpi.center .delta,.kpi.gauge-card .delta{margin-top:8px}
-.kpi.center .spark{width:75%;max-width:280px}
+.kpi.center .spark-shell{width:82%;max-width:320px}
 .delta.up{color:var(--green);text-shadow:0 0 8px var(--green-glow)}
 .delta.down{color:var(--red);text-shadow:0 0 8px var(--red-glow)}
 .delta span{color:var(--muted);font-weight:500}
-.spark{width:100%;height:40px;margin-top:4px;flex-shrink:1;min-height:0}
-.spark polyline{fill:none;stroke:var(--cyan);stroke-width:2;filter:drop-shadow(0 0 4px var(--cyan-glow))}
-.spark .area{fill:url(#gradSpark);stroke:none}
+
+/* Linha dinâmica de KM */
+.spark-shell{
+  position:relative;
+  height:58px;
+  margin:5px auto 0;
+  flex:0 0 auto;
+  overflow:visible;
+  isolation:isolate;
+}
+.spark-shell::before{
+  content:"";
+  position:absolute;
+  inset:12px 4% 4px;
+  background:
+    radial-gradient(ellipse at 45% 70%,rgba(34,228,240,.15),transparent 62%),
+    linear-gradient(90deg,transparent,rgba(34,228,240,.07),transparent);
+  filter:blur(8px);
+  opacity:.9;
+  animation:sparkMist 4.8s ease-in-out infinite alternate;
+  pointer-events:none;
+}
+.spark{position:relative;z-index:1;width:100%;height:100%;display:block;overflow:visible}
+.spark path{fill:none;vector-effect:non-scaling-stroke}
+.spark .area{
+  fill:url(#gradSpark);
+  stroke:none;
+  opacity:.82;
+  animation:sparkAreaPulse 3.8s ease-in-out infinite;
+}
+.spark .line-shadow{
+  stroke:rgba(34,228,240,.22);
+  stroke-width:8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  filter:url(#sparkBlur);
+}
+.spark .line-main{
+  stroke:#49f5ff;
+  stroke-width:2.15;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  filter:url(#sparkGlow);
+}
+.spark .line-flow{
+  stroke:rgba(235,255,255,.95);
+  stroke-width:1.25;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:7 25;
+  animation:sparkFlow 3.1s linear infinite;
+  filter:url(#sparkGlow);
+}
+.spark .spark-dot{
+  fill:#eaffff;
+  filter:url(#dotGlow);
+}
+.spark .spark-last{
+  fill:#eaffff;
+  stroke:#49f5ff;
+  stroke-width:1.2;
+  filter:url(#dotGlow);
+  animation:lastPointPulse 1.9s ease-in-out infinite;
+}
+@keyframes sparkFlow{to{stroke-dashoffset:-64}}
+@keyframes sparkAreaPulse{0%,100%{opacity:.56}50%{opacity:.9}}
+@keyframes sparkMist{from{transform:translateX(-2%) scaleX(.97);opacity:.55}to{transform:translateX(2%) scaleX(1.03);opacity:1}}
+@keyframes lastPointPulse{0%,100%{opacity:.7;r:2.1px}50%{opacity:1;r:3.2px}}
+@media (prefers-reduced-motion:reduce){
+  .spark-shell::before,.spark .area,.spark .line-flow,.spark .spark-last{animation:none}
+}
 
 /* ===== VELOCÍMETRO ===== */
 .kpi.gauge-card .content{align-items:center;justify-content:center;text-align:center}
@@ -259,16 +327,44 @@ select{
       <div class="content">
         <h3>KM Total</h3>
         <div class="value" id="kpi-km">—</div>
-        <svg class="spark" viewBox="0 0 200 44" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="gradSpark" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#22e4f0" stop-opacity=".35"/>
-              <stop offset="1" stop-color="#22e4f0" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <polygon class="area" id="spark-area" points=""/>
-          <polyline id="spark-line" points=""/>
-        </svg>
+        <div class="spark-shell" aria-hidden="true">
+          <svg class="spark" viewBox="0 0 200 52" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="gradSpark" x1="0" y1="4" x2="0" y2="52" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#4ff6ff" stop-opacity=".34"/>
+                <stop offset=".48" stop-color="#22e4f0" stop-opacity=".13"/>
+                <stop offset="1" stop-color="#22e4f0" stop-opacity="0"/>
+              </linearGradient>
+              <filter id="sparkBlur" x="-20%" y="-80%" width="140%" height="260%">
+                <feGaussianBlur stdDeviation="3.2"/>
+              </filter>
+              <filter id="sparkGlow" x="-30%" y="-120%" width="160%" height="340%">
+                <feGaussianBlur stdDeviation="1.8" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <filter id="dotGlow" x="-500%" y="-500%" width="1000%" height="1000%">
+                <feGaussianBlur stdDeviation="2.2" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <path class="area" id="spark-area" d=""/>
+            <path class="line-shadow" id="spark-shadow" d=""/>
+            <path class="line-main" id="spark-line" d=""/>
+            <path class="line-flow" id="spark-flow" d=""/>
+            <circle class="spark-dot" id="spark-dot" r="2.25">
+              <animateMotion id="spark-motion" dur="3.9s" repeatCount="indefinite" rotate="auto">
+                <mpath href="#spark-line"/>
+              </animateMotion>
+            </circle>
+            <circle class="spark-last" id="spark-last" r="2.3" cx="0" cy="0"/>
+          </svg>
+        </div>
         <div class="delta" id="d-km"></div>
       </div>
     </div>
@@ -358,16 +454,67 @@ function deltaHtml(el, v, invert=false, suffix='%'){
   el.innerHTML = `${arrow} ${sig}${String(v).replace('.',',')}${suffix} <span>vs Mês Anterior</span>`;
 }
 
-function sparkline(serie){
+function sparkline(serie, trendDelta=null){
   const max = Math.max(...serie,1), min = Math.min(...serie);
   const range = (max-min)||1;
-  const pts = serie.map((v,i)=>{
-    const x = i*(200/(serie.length-1||1));
-    const y = 38 - ((v-min)/range)*30;
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  });
-  $('spark-line').setAttribute('points', pts.join(' '));
-  $('spark-area').setAttribute('points', pts.join(' ')+` 200,44 0,44`);
+  const count = serie.length-1 || 1;
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+
+  const pts = serie.map((v,i)=>({
+    x:i*(200/count),
+    y:43-((v-min)/range)*31
+  }));
+
+  function smoothPath(points, values){
+    if(points.length < 2) return '';
+    if(points.length === 2){
+      return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)} L ${points[1].x.toFixed(1)} ${points[1].y.toFixed(1)}`;
+    }
+
+    const tension = .16;
+    let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+
+    for(let i=0;i<points.length-1;i++){
+      const p0 = points[i===0 ? 0 : i-1];
+      const p1 = points[i];
+      const p2 = points[i+1];
+      const p3 = points[i+2] || p2;
+
+      let cp1x = p1.x + (p2.x - p0.x) * tension;
+      let cp1y = p1.y + (p2.y - p0.y) * tension;
+      let cp2x = p2.x - (p3.x - p1.x) * tension;
+      let cp2y = p2.y - (p3.y - p1.y) * tension;
+
+      if(i === points.length-2){
+        const lastDelta = (values[values.length-1] || 0) - (values[values.length-2] || 0);
+        const trendRef = (trendDelta!==null && trendDelta!==undefined && isFinite(trendDelta)) ? trendDelta : lastDelta;
+        const endTrendUp = trendRef >= 0;
+        const visualAmp = clamp(Math.abs(p2.y - p1.y) * .55 + 4.5, 4.5, 10.5);
+        cp2x = p2.x - Math.min((p2.x - p1.x) * .28, 12);
+        cp2y = endTrendUp ? p2.y + visualAmp : p2.y - visualAmp;
+      }
+
+      d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    }
+    return d;
+  }
+
+  const pathD = smoothPath(pts, serie);
+  const areaD = `${pathD} L 200 52 L 0 52 Z`;
+
+  $('spark-area').setAttribute('d', areaD);
+  $('spark-shadow').setAttribute('d', pathD);
+  $('spark-line').setAttribute('d', pathD);
+  $('spark-flow').setAttribute('d', pathD);
+
+  const last = pts[pts.length-1];
+  $('spark-last').setAttribute('cx', last.x.toFixed(1));
+  $('spark-last').setAttribute('cy', last.y.toFixed(1));
+
+  const motion = $('spark-motion');
+  if(motion && typeof motion.beginElement === 'function'){
+    try{ motion.beginElement(); }catch(e){}
+  }
 }
 
 function rows(id, data){
@@ -406,7 +553,7 @@ function render(){
   sp.classList.remove('zone-orange','zone-yellow','zone-green');
   sp.classList.add(d.perf < 50 ? 'zone-orange' : d.perf < 90 ? 'zone-yellow' : 'zone-green');
 
-  sparkline(DB.dados[setor].serieKm);
+  sparkline(DB.dados[setor].serieKm, d.dKm);
 
   rows('tb-pm', d.pioresMotoristas);
   rows('tb-mm', d.melhoresMotoristas);
