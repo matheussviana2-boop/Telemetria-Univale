@@ -1754,7 +1754,8 @@ function niceMaxEvent(v){
   const pow=Math.pow(10,Math.floor(Math.log10(v)));
   return Math.ceil(v/pow)*pow;
 }
-function fmtPct(v){return String((Number(v)||0).toFixed(1)).replace('.',',')+'%'}
+function truncDec(v,d=2){const n=Number(v)||0, f=10**d; return (n>=0?Math.floor(n*f):Math.ceil(n*f))/f}
+function fmtPct(v){return truncDec(v,2).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'}
 function fmtInt(v){return nf.format(Math.round(Number(v)||0))}
 function escHtml(x){return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function smoothPath(points){
@@ -2012,7 +2013,7 @@ function renderSectorPerformanceChart(){
     const delta=r.delta;
     const trendClass=delta==null||Math.abs(delta)<.05?'flat':(delta>0?'up':'down');
     const arrow=trendClass==='up'?'↑':(trendClass==='down'?'↓':'•');
-    const trendText=delta==null?'—':`${Math.abs(delta).toFixed(1).replace('.',',')}%`;
+    const trendText=delta==null?'—':`${truncDec(Math.abs(delta),2).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}%`;
     const hue=hues[i%hues.length];
     return `
       <div class="sector-row${active?' active':''}" title="${escHtml(r.label)}: ${fmtPct(r.perf)} · ${fmtInt(r.ev)} eventos · ${fmtInt(r.km)} km">
