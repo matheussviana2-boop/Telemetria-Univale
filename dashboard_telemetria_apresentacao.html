@@ -1224,8 +1224,12 @@ function renderEvolutionChart(){
   const plotW = Math.max(120, xEnd - xStart);
   const x=i=> series.length===1 ? xStart+plotW/2 : xStart+(i/(series.length-1))*plotW;
   const perfY=v=> mt+ph-(Math.max(0,Math.min(100,v))/100)*ph;
-  const maxEv=niceMaxEvent(Math.max(...series.map(s=>s.ev),0));
-  const evY=v=> mt+ph-(Math.max(0,Math.min(maxEv,v))/maxEv)*ph;
+  const rawMaxEv=Math.max(...series.map(s=>s.ev),0);
+  const maxEv=niceMaxEvent(rawMaxEv);
+  /* No modo Ambos, acrescenta folga vertical para manter as barras dentro da nuvem de performance. */
+  const maxEvCombined=niceMaxEvent(rawMaxEv*1.38);
+  const evScaleMax=evolutionMode==='ambos' ? maxEvCombined : maxEv;
+  const evY=v=> mt+ph-(Math.max(0,Math.min(evScaleMax,v))/evScaleMax)*ph;
   const perfPts=series.map((d,i)=>({x:x(i), y:perfY(d.perf), ...d}));
   const evPts=series.map((d,i)=>({x:x(i), y:evY(d.ev), ...d}));
   if(evolutionMode==='performance'){
@@ -1266,7 +1270,7 @@ function renderEvolutionChart(){
     });
     const ticks=5;
     for(let i=0;i<=ticks;i++){
-      const v=(maxEv/ticks)*i, y=evY(v);
+      const v=(evScaleMax/ticks)*i, y=evY(v);
       out+=`<text class="evo-label-red" x="${W-mr+18}" y="${y+4}" text-anchor="start">${fmtInt(v)}</text>`;
     }
     out+=`<line class="evo-axis" x1="${ml}" y1="${mt}" x2="${ml}" y2="${mt+ph}"/><line class="evo-axis" x1="${ml}" y1="${mt+ph}" x2="${W-mr}" y2="${mt+ph}"/><line class="evo-axis-red" x1="${W-mr}" y1="${mt}" x2="${W-mr}" y2="${mt+ph}"/>`;
@@ -1275,7 +1279,7 @@ function renderEvolutionChart(){
     evPts.forEach(p=>{
       const x0=(p.x-barW/2).toFixed(1), y0=p.y.toFixed(1), h=(mt+ph-p.y).toFixed(1);
       out+=`<rect class="evo-bar" data-tip="1" data-kind="event-bar" data-month="${escHtml(monthNames[p.m]||p.m)}" data-perf="${p.perf.toFixed(2)}" data-ev="${p.ev}" x="${x0}" y="${y0}" width="${barW.toFixed(1)}" height="${h}" rx="7" ry="7"/>`;
-      out+=`<text class="evo-value-red" x="${p.x}" y="${Math.max(16,p.y-12)}">${fmtInt(p.ev)}</text>`;
+      out+=`<text class="evo-value-red" x="${p.x}" y="${Math.max(22,p.y-8)}">${fmtInt(p.ev)}</text>`;
     });
     out+=`<path class="evo-area" d="${area}"/><path class="evo-shadow" d="${path}"/><path class="evo-line" d="${path}"/>`;
     perfPts.forEach(p=>{
