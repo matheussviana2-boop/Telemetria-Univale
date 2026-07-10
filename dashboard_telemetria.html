@@ -4682,7 +4682,7 @@ function applyDefaultPeriod(){
 function getSetor(){if(SETOR_FIXO)return normalizeSectorCode(SETOR_FIXO);var p=new URLSearchParams(window.location.search);return normalizeSectorCode((p.get('setor')||p.get('s')||'').trim())}
 function showErr(msg){document.getElementById('loading').style.display='none';document.getElementById('error').style.display='flex';document.getElementById('errMsg').innerHTML=msg}
 function loadSheet(){
-  fetch(SHEET_URL)
+  fetch(SHEET_URL + '&_=' + Date.now(), {cache:'no-store'})
     .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer()})
     .then(function(buf){var wb=XLSX.read(new Uint8Array(buf),{type:'array'});init(wb)})
     .catch(function(e){showErr('Não foi possível carregar a planilha.<br><small>'+e.message+'</small>')})
