@@ -985,9 +985,21 @@ body::before{
 .sector-axis-value-spacer{border-top:1px solid rgba(34,228,240,.28)}
 .sector-empty{padding:34px 18px;text-align:center;color:#8fb8c5;font-family:var(--font-display);border-bottom:1px solid rgba(34,228,240,.16)}
 
+/* No consolidado, a coluna de variação é removida por não representar um período comparável. */
+.sector-overview.no-variation .sector-column-head,
+.sector-overview.no-variation .sector-row,
+.sector-overview.no-variation .sector-axis-row{
+  grid-template-columns:62px minmax(160px,205px) minmax(320px,1fr);
+}
+.sector-overview.no-variation .sector-axis-cell{grid-column:3}
+
+
 @media(max-width:1050px){
   .sector-overview .chart-content{padding:20px 18px 16px}
   .sector-column-head,.sector-row,.sector-axis-row{grid-template-columns:56px minmax(145px,180px) 112px minmax(260px,1fr)}
+  .sector-overview.no-variation .sector-column-head,
+  .sector-overview.no-variation .sector-row,
+  .sector-overview.no-variation .sector-axis-row{grid-template-columns:56px minmax(145px,180px) minmax(260px,1fr)}
   .sector-head h3{font-size:20px}
   .sector-average-card{min-width:170px}
 }
@@ -998,6 +1010,7 @@ body::before{
   .sector-summary{width:100%;justify-content:space-between}
   .sector-column-head{display:none}
   .sector-row{grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"rank ident trend" "rank chart chart";align-items:center;gap:6px 4px;padding:8px 0;min-height:88px}
+  .sector-overview.no-variation .sector-row{grid-template-columns:40px minmax(0,1fr);grid-template-areas:"rank ident" "rank chart"}
   .sector-rank{grid-area:rank;font-size:22px;padding:0 5px}
   .sector-ident{grid-area:ident;padding:0 5px}
   .sector-trend{grid-area:trend;padding:0 8px;font-size:15px}
@@ -1612,7 +1625,7 @@ body::before{
       <div class="sector-column-head">
         <div>Ranking</div>
         <div>Setor</div>
-        <div id="sector-trend-label">Tendência (mês)</div>
+        <div id="sector-trend-label">Variação (mês)</div>
         <div class="sector-chart-head">
           <div class="sector-chart-head-track"><span class="sector-target-label">Meta 90%</span></div>
           <div aria-hidden="true"></div>
@@ -2337,9 +2350,11 @@ function renderSectorPerformanceChart(){
   }
   const badge=$('sector-period-label');
   if(badge) badge.textContent=periodText;
+  const isConsolidated=periodo==='consolidado';
+  root.classList.toggle('no-variation',isConsolidated);
   const trendLabel=$('sector-trend-label');
   if(trendLabel){
-    trendLabel.textContent=periodo==='consolidado'?'Tendência (último mês)':'Tendência (mês)';
+    trendLabel.textContent='Variação (mês)';
     const a=previousKey?(MES_LABEL[previousKey]||previousKey):'';
     const b=trendKey?(MES_LABEL[trendKey]||trendKey):'';
     trendLabel.title=a&&b?`${a} → ${b}`:'Variação em pontos percentuais';
@@ -2418,7 +2433,7 @@ function renderSectorPerformanceChart(){
             <div class="meta"><span class="sector-km">${fmtInt(r.km)} km</span><span class="sector-events">${fmtInt(r.ev)} eventos</span></div>
           </div>
         </div>
-        <div class="sector-trend ${trendClass}"><span class="arrow">${arrow}</span><span>${trendText}</span></div>
+        ${periodo==='consolidado'?'':`<div class="sector-trend ${trendClass}"><span class="arrow">${arrow}</span><span>${trendText}</span></div>`}
         <div class="sector-chart-cell">
           <div class="sector-chart-track"><div class="sector-fill ${perfClass}" style="--bar-width:${barWidth.toFixed(3)}%"></div></div>
           <div class="sector-value ${perfClass}">${fmtPct(r.perf)}</div>
