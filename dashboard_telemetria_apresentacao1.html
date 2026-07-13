@@ -1372,6 +1372,33 @@ body::before{
   }
 }
 
+
+/* Refinamento: legenda centralizada abaixo do gráfico e checkboxes no canto direito */
+.evolution-head{
+  position:relative;
+}
+.evolution-mode-toggle{
+  left:auto !important;
+  right:18px !important;
+  top:2px !important;
+  transform:none !important;
+}
+.evolution-legend-bottom{
+  width:100%;
+  justify-content:center !important;
+  text-align:center;
+  margin-left:auto;
+  margin-right:auto;
+}
+@media(max-width:900px){
+  .evolution-mode-toggle{
+    right:8px !important;
+  }
+  .evolution-legend-bottom{
+    justify-content:center !important;
+  }
+}
+
 </style>
 </head>
 <body>
