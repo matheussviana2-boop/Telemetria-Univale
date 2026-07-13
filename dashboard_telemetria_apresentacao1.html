@@ -1317,6 +1317,61 @@ body::before{
   white-space:normal;
 }
 
+
+/* Ajustes do cabeçalho e legenda do gráfico de evolução */
+.evolution-head{
+  min-height:54px;
+  padding-right:0;
+}
+.evolution-title-wrap{
+  max-width:none;
+  width:auto;
+  flex:1 1 auto;
+}
+.evolution-title-wrap h3{
+  white-space:nowrap;
+  overflow:visible;
+  text-overflow:clip;
+}
+.evolution-mode-toggle{
+  left:66%;
+  top:1px;
+  transform:translateX(-50%);
+}
+.evolution-legend-bottom{
+  position:static !important;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:24px;
+  min-height:24px;
+  margin-top:10px;
+  padding-top:2px;
+  right:auto !important;
+  top:auto !important;
+  transform:none !important;
+}
+.evolution-legend-bottom .legend-item{
+  font-size:12px;
+}
+@media(max-width:1080px){
+  .evolution-mode-toggle{
+    left:72%;
+  }
+}
+@media(max-width:900px){
+  .evolution-title-wrap h3{
+    white-space:normal;
+  }
+  .evolution-mode-toggle{
+    left:auto;
+    transform:none;
+  }
+  .evolution-legend-bottom{
+    justify-content:flex-start;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1491,13 +1546,13 @@ body::before{
             </div>
             <div class="evolution-badge" id="evolution-sector-label">TODOS OS SETORES</div>
           </div>
-          <div class="evolution-legend" id="evolution-legend"></div>
         </div>
       </div>
       <div class="evolution-chart-wrap" id="performance-chart-wrap">
         <svg id="performance-chart" viewBox="0 0 1200 330" preserveAspectRatio="none" role="img" aria-label="Gráfico de evolução mensal"></svg>
         <div class="evo-tooltip" id="evo-tooltip"></div>
       </div>
+      <div class="evolution-legend evolution-legend-bottom" id="evolution-legend"></div>
     </div>
   </section>
 
