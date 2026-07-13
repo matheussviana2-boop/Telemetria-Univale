@@ -992,6 +992,7 @@ body::before{
   grid-template-columns:62px minmax(160px,205px) minmax(320px,1fr);
 }
 .sector-overview.no-variation .sector-axis-cell{grid-column:3}
+.sector-overview.no-variation #sector-trend-label{display:none}
 
 
 @media(max-width:1050px){
@@ -1625,7 +1626,7 @@ body::before{
       <div class="sector-column-head">
         <div>Ranking</div>
         <div>Setor</div>
-        <div id="sector-trend-label">Variação (mês)</div>
+        <div id="sector-trend-label">Variação</div>
         <div class="sector-chart-head">
           <div class="sector-chart-head-track"><span class="sector-target-label">Meta 90%</span></div>
           <div aria-hidden="true"></div>
@@ -2354,7 +2355,7 @@ function renderSectorPerformanceChart(){
   root.classList.toggle('no-variation',isConsolidated);
   const trendLabel=$('sector-trend-label');
   if(trendLabel){
-    trendLabel.textContent='Variação (mês)';
+    trendLabel.textContent='Variação';
     const a=previousKey?(MES_LABEL[previousKey]||previousKey):'';
     const b=trendKey?(MES_LABEL[trendKey]||trendKey):'';
     trendLabel.title=a&&b?`${a} → ${b}`:'Variação em pontos percentuais';
