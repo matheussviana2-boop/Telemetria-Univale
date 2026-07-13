@@ -1278,6 +1278,45 @@ body::before{
 .sector-name .meta .sector-km{font-size:10px;font-weight:600;color:#7ea9b4;opacity:.78}
 .card.kpi.center .desc{display:none!important}
 #evolution-subtitle{display:none!important}
+
+/* Ajuste: KM primeiro, maior legibilidade e contraste tipográfico nos dados setoriais */
+.sector-name .meta{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  margin-top:6px;
+}
+.sector-name .meta .sector-km{
+  font-family:var(--font-body);
+  font-size:12px;
+  line-height:1;
+  font-weight:700;
+  color:#bfeef6;
+  opacity:1;
+  letter-spacing:.01em;
+  text-shadow:0 0 8px rgba(34,228,240,.20);
+}
+.sector-name .meta .sector-events{
+  font-family:var(--font-body);
+  font-size:12px;
+  line-height:1;
+  font-weight:600;
+  color:#7fc7d3;
+  letter-spacing:.01em;
+  text-shadow:none;
+}
+
+
+/* Contexto incorporado aos títulos dos gráficos */
+#evolution-sector-label,
+#sector-period-label{
+  display:none !important;
+}
+.evolution-title-wrap h3,
+.sector-title-wrap h3{
+  white-space:normal;
+}
+
 </style>
 </head>
 <body>
@@ -1473,7 +1512,7 @@ body::before{
             <svg viewBox="0 0 36 36"><path d="M5 29V8"/><path d="M5 29h26"/><path d="M9 23l6-6 6 4 9-11"/><path d="M25 10h5v5"/><rect x="9" y="25" width="3" height="4" rx=".7"/><rect x="16" y="22" width="3" height="7" rx=".7"/><rect x="23" y="18" width="3" height="11" rx=".7"/></svg>
           </div>
           <div>
-            <h3>Performance Geral por Setor</h3>
+            <h3 id="sector-overview-title">Performance Geral por Setor</h3>
             
           </div>
         </div>
@@ -2093,9 +2132,13 @@ function renderEvolutionChart(){
     return {m, perf:Number(monthly.perf)||0, ev, km};
   });
   const monthNames={JAN:'Jan',FEV:'Fev',MAR:'Mar',ABR:'Abr',MAI:'Mai',JUN:'Jun',JUL:'Jul',AGO:'Ago',SET:'Set',OUT:'Out',NOV:'Nov',DEZ:'Dez'};
+  const sectorText=(DB.labels&&DB.labels[setor])|| (setor==='TODOS'?'Todos os setores':setor.replaceAll('_',' '));
+  const evolutionTitle=$('evolution-title');
+  if(evolutionTitle){
+    evolutionTitle.textContent='Evolução de Performance - '+sectorText;
+  }
   const badge=$('evolution-sector-label');
   if(badge){
-    const sectorText=(DB.labels&&DB.labels[setor])|| (setor==='TODOS'?'Todos os setores':setor.replaceAll('_',' '));
     badge.textContent=sectorText+' · '+(periodo==='consolidado'?'Consolidado':'Mensal');
   }
   let out=`<defs>
@@ -2205,8 +2248,13 @@ function renderSectorPerformanceChart(){
     previousKey=idx>0?months[idx-1]:'';
   }
 
+  const periodText=periodo==='consolidado'?'Consolidado':(MES_LABEL[key]||key||'Mensal');
+  const sectorOverviewTitle=$('sector-overview-title');
+  if(sectorOverviewTitle){
+    sectorOverviewTitle.textContent='Performance Geral por Setor - '+periodText;
+  }
   const badge=$('sector-period-label');
-  if(badge) badge.textContent=periodo==='consolidado'?'Consolidado':(MES_LABEL[key]||key||'Mensal');
+  if(badge) badge.textContent=periodText;
   const trendLabel=$('sector-trend-label');
   if(trendLabel){
     trendLabel.textContent=periodo==='consolidado'?'Tendência (último mês)':'Tendência (mês)';
@@ -2285,7 +2333,7 @@ function renderSectorPerformanceChart(){
         <div class="sector-ident">
           <div class="sector-name">
             <div class="main" title="${escHtml(r.label)}">${escHtml(r.label)}</div>
-            <div class="meta"><span class="sector-events">${fmtInt(r.ev)} eventos</span><span class="sector-km">${fmtInt(r.km)} km</span></div>
+            <div class="meta"><span class="sector-km">${fmtInt(r.km)} km</span><span class="sector-events">${fmtInt(r.ev)} eventos</span></div>
           </div>
         </div>
         <div class="sector-trend ${trendClass}"><span class="arrow">${arrow}</span><span>${trendText}</span></div>
