@@ -8,16 +8,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#070c16;
-  --side:#0a1120;
-  --side2:#0c1526;
-  --surface:#0e1728;
-  --surface2:#111c30;
-  --line:#1d2a42;
-  --line-soft:#182338;
-  --text:#e9eef7;
-  --muted:#8b99b0;
-  --faint:#5a6980;
+  --bg:#0b1220;
+  --side:#0f192a;
+  --side2:#142139;
+  --surface:#152238;
+  --surface2:#192942;
+  --line:#30425f;
+  --line-soft:#263750;
+  --text:#f7faff;
+  --muted:#c0ccdc;
+  --faint:#8999ae;
   --accent:#3f8cff;
   --cyan:#38bdf8;
   --green:#2dd98f;
@@ -39,7 +39,7 @@ body{
     radial-gradient(900px 460px at 8% 4%,#0e2a4a22 0,transparent 55%),
     var(--bg);
 }
-.app{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+.app{display:grid;grid-template-columns:190px 1fr;min-height:100vh}
 
 /* ============ SIDEBAR ============ */
 .sidebar{
@@ -93,7 +93,7 @@ body{
 .btnRefresh.loading svg{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.secTitle{font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:.3px;margin:0 0 12px;color:#d9e4f2;scroll-margin-top:20px}
+.secTitle{font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:.3px;margin:0 0 12px;color:#f1f5fb;scroll-margin-top:20px}
 
 /* ============ RESUMO DO DIA ============ */
 .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
@@ -118,13 +118,13 @@ body{
 .panel{background:linear-gradient(180deg,var(--surface2),var(--surface));border:1px solid var(--line);
   border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
 .pHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line-soft)}
-.pTitle{font-family:var(--font-display);font-weight:600;font-size:13px;letter-spacing:.3px;color:#d7e2f0}
+.pTitle{font-family:var(--font-display);font-weight:600;font-size:13px;letter-spacing:.3px;color:#f1f5fb}
 .pHint{font-size:10.5px;color:var(--faint)}
 .pBody{padding:16px;flex:1;display:flex;align-items:center;justify-content:center}
 
 .gauges{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%}
 .gauge{display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;
-  background:#0c1424;border:1px solid var(--line-soft);border-radius:12px;padding:15px 10px 13px}
+  background:#111d31;border:1px solid var(--line-soft);border-radius:12px;padding:15px 10px 13px}
 .gauge .g-l{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.2px}
 .gauge .g-sub{font-size:10.5px;font-weight:600}
 .gauge svg text{font-family:var(--font-data)}
@@ -156,12 +156,12 @@ body{
 .searchBox{position:relative}
 .searchBox svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--faint);pointer-events:none}
 .searchBox input{
-  width:260px;background:#0a1322;border:1px solid #21324e;color:var(--text);
+  width:260px;background:#101d31;border:1px solid #385071;color:var(--text);
   border-radius:9px;padding:9px 12px 9px 33px;font:400 12.5px var(--font-body);outline:none;transition:border-color .15s,box-shadow .15s}
 .searchBox input::placeholder{color:var(--faint)}
 .searchBox input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #3f8cff1e}
 
-.legendBar{display:flex;align-items:center;gap:18px;padding:12px 16px;border-bottom:1px solid var(--line-soft);flex-wrap:wrap;background:#0b1322}
+.legendBar{display:flex;align-items:center;gap:18px;padding:12px 16px;border-bottom:1px solid var(--line-soft);flex-wrap:wrap;background:#111d31}
 .lGroup{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .lGroupLabel{font-size:10px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--faint);margin-right:4px}
 .chip{
@@ -179,17 +179,17 @@ body{
 .chipClear:hover{color:var(--muted)}
 .lSep{width:1px;height:22px;background:var(--line-soft)}
 
-.stackWrap{padding:10px 0 12px;border-bottom:1px solid var(--line-soft);background:#0b1322}
+.stackWrap{padding:10px 0 12px;border-bottom:1px solid var(--line-soft);background:#111d31}
 .stackBar{display:flex;height:6px;border-radius:99px;overflow:hidden;margin:0 16px}
 .stackSeg{transition:flex .5s ease;cursor:pointer}
 
 .tableWrap{overflow:auto;max-height:62vh}
 table{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:1080px;table-layout:fixed}
-thead th{position:sticky;top:0;z-index:2;background:#101c32;color:var(--muted);
+thead th{position:sticky;top:0;z-index:2;background:#1a2a44;color:var(--muted);
   font:600 10.5px var(--font-body);letter-spacing:.7px;text-transform:uppercase;
   text-align:left;padding:11px 12px;border-bottom:1px solid #22385c;white-space:nowrap}
 thead th.num,tbody td.num{text-align:right}
-tbody td{padding:10px 12px;border-bottom:1px solid #121e33;color:#d4dfee;white-space:nowrap}
+tbody td{padding:10px 12px;border-bottom:1px solid #121e33;color:#edf3fb;white-space:nowrap}
 tbody td.num{font-family:var(--font-data);font-size:12px;font-weight:500}
 tbody td .ordem{font-family:var(--font-data);font-weight:600;color:var(--text)}
 tbody td .placa{font-family:var(--font-data);font-size:11.5px;color:var(--muted)}
@@ -245,23 +245,6 @@ tbody tr.row-unmatched td:first-child{box-shadow:inset 3px 0 0 #8391a530}
     <div class="navItem active" data-goto="top">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
       <span>Dashboard</span>
-    </div>
-    <div class="navItem" data-goto="secResumo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>
-      <span>Relatórios</span>
-    </div>
-    <div class="navItem" data-goto="secIndicadores">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
-      <span>Indicadores</span>
-    </div>
-    <div class="navItem" data-goto="secVeiculos">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M3 11l2-6h11l3 6v6h-2M5 17v-6h14"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg>
-      <span>Veículos</span>
-    </div>
-    <div class="navItem" id="navAlerts">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-      <span>Alertas</span>
-      <span class="navBadge" id="alertBadge" hidden>0</span>
     </div>
   </nav>
   <div class="sideFoot"><span class="pulse" id="statusPulse"></span><span id="status">Iniciando atualização automática...</span></div>
@@ -389,16 +372,114 @@ const demoApi=[{"codigoveiculo":"5913","placa":"SHT8E02","frota":"U1010 SHT8E02"
 let apiData=[];
 const $=id=>document.getElementById(id);
 const norm=s=>String(s??'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
-function apiOrdem(item){const frota=String(item.frota||'').trim();return norm(frota.split(/\s+/)[0]||'')}
+
+/*
+ * Chave inteligente para cruzamento.
+ * Exemplos equivalentes:
+ * 001/02070, 02070 e 2070 -> 2070
+ * U0270 e U270 -> U270
+ * GSV-2675 e GSV2675 -> GSV2675
+ */
+function smartOrder(value){
+  let raw=String(value??'').trim().toUpperCase();
+  if(raw.includes('/')) raw=raw.split('/').pop();
+  raw=(raw.split(/\s+/)[0]||'').replace(/[^A-Z0-9]/g,'');
+  if(!raw)return'';
+  if(/^\d+$/.test(raw)) return String(parseInt(raw,10)||0);
+  const m=raw.match(/^([A-Z]+)0*(\d+)$/);
+  if(m) return m[1]+String(parseInt(m[2],10)||0);
+  return raw;
+}
+function orderAliases(value){
+  const exact=norm(String(value??'').includes('/')?String(value).split('/').pop():value);
+  const smart=smartOrder(value);
+  const aliases=new Set([exact,smart].filter(Boolean));
+  const numeric=smart.match(/^([A-Z]*)(\d+)$/);
+  if(numeric){
+    const prefix=numeric[1], digits=numeric[2];
+    aliases.add(prefix+digits.padStart(4,'0'));
+    aliases.add(prefix+digits.padStart(5,'0'));
+  }
+  return [...aliases];
+}
+function apiOrdem(item){
+  const frota=String(item.frota||'').trim();
+  return norm(frota.split(/\s+/)[0]||'');
+}
 function n(v){const x=Number(String(v??'').replace(',','.'));return Number.isFinite(x)?x:null}
 function fmt(v,d=0){return v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
-function parseApi(payload){const arr=Array.isArray(payload)?payload:(Array.isArray(payload?.data)?payload.data:[]);return arr.map(x=>({...x,_ordem:apiOrdem(x),_placa:norm(x.placa||String(x.frota||'').split(/\s+/)[1]||''),_hod:n(x.hodometro)})).filter(x=>x._ordem)}
-function parseFuel(payload){const arr=Array.isArray(payload?.abastecimentos)?payload.abastecimentos:[];return arr.map(x=>({veiculoOriginal:x.veiculo||'',ordem:norm(x.ordem),dataAbastecimento:x.dataHoraAbastecimento?new Date(x.dataHoraAbastecimento).toLocaleDateString('pt-BR'):'',dataISO:x.dataHoraAbastecimento||'',hodometroAbastecimento:n(x.hodometroAbastecimento),hodometroAnterior:n(x.hodometroAnterior),kmEntreAbastecimentos:n(x.kmEntreAbastecimentos),litros:n(x.litros),kmLitro:n(x.kmLitro),posto:x.localAbastecimento||''})).filter(x=>x.ordem&&x.hodometroAbastecimento!=null)}
+function parseApi(payload){
+  const arr=Array.isArray(payload)?payload:(Array.isArray(payload?.data)?payload.data:[]);
+  return arr.map(x=>{
+    const ordemOriginal=apiOrdem(x);
+    return {...x,_ordem:ordemOriginal,_ordemKey:smartOrder(ordemOriginal),_aliases:orderAliases(ordemOriginal),
+      _placa:norm(x.placa||String(x.frota||'').split(/\s+/)[1]||''),_hod:n(x.hodometro)};
+  }).filter(x=>x._ordem);
+}
+function parseFuel(payload){
+  const arr=Array.isArray(payload?.abastecimentos)?payload.abastecimentos:[];
+  return arr.map(x=>{
+    const ordemOriginal=norm(x.ordem||x.veiculo||'');
+    return {veiculoOriginal:x.veiculo||'',ordem:ordemOriginal,ordemKey:smartOrder(x.ordem||x.veiculo||''),
+      aliases:orderAliases(x.ordem||x.veiculo||''),placa:norm(x.placa||''),
+      dataAbastecimento:x.dataHoraAbastecimento?new Date(x.dataHoraAbastecimento).toLocaleDateString('pt-BR'):'',
+      dataISO:x.dataHoraAbastecimento||'',hodometroAbastecimento:n(x.hodometroAbastecimento),
+      hodometroAnterior:n(x.hodometroAnterior),kmEntreAbastecimentos:n(x.kmEntreAbastecimentos),
+      litros:n(x.litros),kmLitro:n(x.kmLitro),posto:x.localAbastecimento||''};
+  }).filter(x=>x.ordem&&x.hodometroAbastecimento!=null);
+}
 function renderReportSummary(){const r=reportSummary||{};$('dailyDate').textContent=r.data?('· '+r.data):'';$('rReceived').textContent=Number(r.recebidos||0).toLocaleString('pt-BR');$('rUpdated').textContent=Number(r.atualizados||0).toLocaleString('pt-BR');$('rNoChange').textContent=Number(r.semAlteracao||0).toLocaleString('pt-BR');$('rErrors').textContent=Number(r.erros||0).toLocaleString('pt-BR');$('rLastSuccess').textContent=r.ultimoSucesso||'—'}
+
+function createUniqueIndex(items,keyGetter){
+  const index=new Map(), ambiguous=new Set();
+  items.forEach(item=>{
+    const keys=keyGetter(item);
+    keys.forEach(key=>{
+      if(!key)return;
+      if(index.has(key)&&index.get(key)!==item){ambiguous.add(key);index.delete(key)}
+      else if(!ambiguous.has(key)) index.set(key,item);
+    });
+  });
+  return index;
+}
+function findFuelMatch(apiItem,indexes){
+  // 1. Ordem exata
+  const exact=indexes.exact.get(apiItem._ordem);
+  if(exact)return{fuel:exact,matchType:'ordem exata'};
+  // 2. Ordem normalizada sem zeros à esquerda
+  const smart=indexes.smart.get(apiItem._ordemKey);
+  if(smart)return{fuel:smart,matchType:'ordem normalizada'};
+  // 3. Aliases seguros (só quando a chave é única na base)
+  for(const alias of apiItem._aliases){
+    const f=indexes.alias.get(alias);
+    if(f)return{fuel:f,matchType:'ordem similar'};
+  }
+  // 4. Placa, quando vier no JSON de abastecimento
+  if(apiItem._placa){
+    const byPlate=indexes.plate.get(apiItem._placa);
+    if(byPlate)return{fuel:byPlate,matchType:'placa'};
+  }
+  return{fuel:null,matchType:''};
+}
 function buildRows(){
- const fuelMap=new Map(fuelData.map(x=>[norm(x.ordem),x]));
- const rows=apiData.map(a=>{const f=fuelMap.get(a._ordem);const km=f&&a._hod!=null?a._hod-f.hodometroAbastecimento:null;let level='unmatched',label='Sem abastecimento';if(f){if(km<0||km>3000){level='issue';label='Inconsistência'}else if(km>700){level='attention';label='Atenção'}else{level='normal';label='Normal'}}return{a,f,km,level,label,matched:!!f}});
- return rows;
+  const indexes={
+    exact:createUniqueIndex(fuelData,x=>[x.ordem]),
+    smart:createUniqueIndex(fuelData,x=>[x.ordemKey]),
+    alias:createUniqueIndex(fuelData,x=>x.aliases),
+    plate:createUniqueIndex(fuelData,x=>x.placa?[x.placa]:[])
+  };
+  return apiData.map(a=>{
+    const match=findFuelMatch(a,indexes);
+    const f=match.fuel;
+    const km=f&&a._hod!=null?a._hod-f.hodometroAbastecimento:null;
+    let level='unmatched',label='Sem abastecimento';
+    if(f){
+      if(km<0||km>3000){level='issue';label='Inconsistência'}
+      else if(km>700){level='attention';label='Atenção'}
+      else{level='normal';label='Normal'}
+    }
+    return{a,f,km,level,label,matched:!!f,matchType:match.matchType};
+  });
 }
 
 /* ================= ESTADO DE FILTROS (legenda clicável) ================= */
@@ -427,14 +508,6 @@ document.querySelectorAll('.navItem[data-goto]').forEach(item=>{
   if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
  });
 });
-$('navAlerts').addEventListener('click',()=>{
- document.querySelectorAll('.navItem').forEach(x=>x.classList.remove('active'));
- $('navAlerts').classList.add('active');
- filterState.status=new Set(['issue']);
- render();
- $('secVeiculos').scrollIntoView({behavior:'smooth',block:'start'});
-});
-
 /* ================= GAUGES (anéis de progresso) ================= */
 function ringGauge({value,total,color,label,sub}){
  const pct=total?value/total:0;
@@ -531,9 +604,9 @@ function render(){
 
  const issues=rows.filter(r=>r.level==='issue').length;
 
- /* badge de alertas */
- $('alertBadge').hidden=!issues;
- $('alertBadge').textContent=issues.toLocaleString('pt-BR');
+ /* badge de alertas (quando existir) */
+ const alertBadge=$('alertBadge');
+ if(alertBadge){alertBadge.hidden=!issues;alertBadge.textContent=issues.toLocaleString('pt-BR')}
 
  /* legenda / contadores */
  $('lIssue').textContent=issues.toLocaleString('pt-BR');
@@ -560,7 +633,7 @@ function render(){
  $('fShown').textContent=filtered.length.toLocaleString('pt-BR');
  $('fTotal').textContent=rows.length.toLocaleString('pt-BR');
  $('tbody').innerHTML=filtered.length?filtered.map(r=>`<tr class="row-${r.level}">
-   <td><span class="ordem">${r.a._ordem}</span></td>
+   <td><span class="ordem" title="${r.matchType?`Cruzamento: ${r.matchType}`:'Sem correspondência'}">${r.a._ordem}</span></td>
    <td><span class="placa">${r.a._placa||'—'}</span></td>
    <td>${r.f?.dataAbastecimento||'—'}</td>
    <td class="num">${fmt(r.f?.hodometroAbastecimento,0)}</td>
@@ -591,7 +664,7 @@ async function fetchAll(){
    fuelData=parseFuel(payload);
    reportSummary=payload.resumoHoje||{};
    renderReportSummary();
-   mensagens.push(`${fuelData.length} abastecimentos`);
+   mensagens.push(`${fuelData.length} veículos com abastecimento`);
  }else{
    mensagens.push('falha na base de abastecimentos');
  }
