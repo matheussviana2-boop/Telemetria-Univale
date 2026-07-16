@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Abastecimento x Telemetria</title>
+<style>
+:root{--bg:#06100d;--panel:#0b1814;--panel2:#10231d;--panel3:#132b23;--line:#24483c;--text:#edf8f3;--muted:#8faea2;--green:#35d98b;--yellow:#f0c84b;--orange:#ff9b4a;--red:#ff626b;--cyan:#62d8c2}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 0,#123b2c 0,transparent 30%),linear-gradient(145deg,#050d0b,#091713 58%,#06100d);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;min-height:100vh}.wrap{max-width:1580px;margin:auto;padding:24px}.top{display:flex;gap:18px;align-items:center;justify-content:space-between;margin-bottom:14px}.title h1{margin:0;font-size:27px;letter-spacing:-.4px}.title p{margin:6px 0 0;color:var(--muted);font-size:13px}.actions{display:flex;gap:8px}.actions button{border:1px solid #356154;background:linear-gradient(180deg,#174234,#103126);color:#fff;border-radius:10px;padding:10px 15px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px #0004}.actions button:hover{filter:brightness(1.1)}.statusbar{padding:10px 13px;border:1px solid var(--line);background:#091612;border-radius:10px;color:#9fc0b4;font-size:12px;margin-bottom:14px;display:flex;align-items:center;gap:8px}.statusbar:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 5px #35d98b18}.cards{display:grid;grid-template-columns:repeat(2,minmax(240px,1fr));gap:12px;margin-bottom:14px}.card{position:relative;overflow:hidden;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:17px 18px;min-height:104px;box-shadow:0 12px 34px #0005}.card:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--green),var(--cyan),transparent)}.card .label{color:#a8c5ba;font-size:12px;text-transform:uppercase;letter-spacing:.65px;font-weight:700}.card .value{font-size:30px;font-weight:850;margin-top:8px;letter-spacing:-.7px}.card .sub{font-size:11px;color:var(--muted);margin-top:4px}.analysisPanel{background:linear-gradient(180deg,#0d1d18,#091511);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 38px #0005;overflow:hidden}.panelHead{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 14px;border-bottom:1px solid #203d34;background:#0f211b}.panelTitle{font-size:13px;font-weight:800;color:#d8eee5}.legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.legendItem{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid #29483e;border-radius:999px;background:#0b1814;color:#cfe3db;font-size:11px;font-weight:700}.legendItem b{font-size:12px;color:#fff}.legendDot{width:8px;height:8px;border-radius:50%}.legendDot.issue{background:var(--red)}.legendDot.attention{background:var(--yellow)}.legendDot.normal{background:var(--green)}.legendDot.unmatched{background:#84958f}.filters{display:grid;grid-template-columns:1.4fr repeat(3,minmax(150px,.6fr));gap:9px;padding:12px 14px;border-bottom:1px solid #1d372f}input,select{width:100%;background:#07130f;border:1px solid #2b4d42;color:#fff;border-radius:9px;padding:10px 11px;outline:none}input:focus,select:focus{border-color:#4f8f79;box-shadow:0 0 0 3px #4f8f7920}table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;min-width:1080px;table-layout:fixed}thead th{position:sticky;top:0;background:#132b23;color:#c6ddd4;text-align:center;padding:10px 7px;border-bottom:1px solid #31584b;z-index:2;font-size:11px;white-space:nowrap}tbody td{padding:9px 7px;border-bottom:1px solid #183128;color:#dcebe5;text-align:center;white-space:nowrap}tbody tr:hover{background:#10251e}tbody tr.row-issue{background:#3d1c201f}tbody tr.row-attention{background:#493c1519}.tableWrap{overflow:auto;max-height:66vh}.pill{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;padding:5px 8px;font-weight:800;font-size:10px;min-width:94px}.ok{background:#123d2a;color:#69e6a7}.warn{background:#463b16;color:#ffe078}.bad{background:#492125;color:#ff9298}.neutral{background:#26332f;color:#b5c6c0}.dot{width:7px;height:7px;border-radius:50%;background:currentColor}.num{font-variant-numeric:tabular-nums;text-align:center}.empty{text-align:center;padding:45px;color:var(--muted)}
+.dailyBar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 14px;margin-bottom:14px;background:linear-gradient(180deg,#0d1d18,#091511);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 28px #0003}.dailyTitle{font-size:12px;font-weight:800;color:#d8eee5;white-space:nowrap}.dailyTitle span{color:var(--muted);font-weight:600;margin-left:5px}.dailyMetrics{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.dailyMetrics span{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid #29483e;border-radius:999px;background:#0b1814;color:#bcd2ca;font-size:11px}.dailyMetrics b{color:#fff;font-size:12px}.dailyMetrics .success b{color:var(--green)}.dailyMetrics .mutedState b{color:var(--yellow)}.dailyMetrics .errorState b{color:var(--red)}.dailyMetrics .lastInfo{border-style:dashed}@media(max-width:800px){.dailyBar{align-items:flex-start;flex-direction:column}.dailyMetrics{justify-content:flex-start}}@media(max-width:1000px){.filters{grid-template-columns:1fr 1fr}.top{align-items:flex-start;flex-direction:column}.panelHead{align-items:flex-start;flex-direction:column}}@media(max-width:650px){.wrap{padding:12px}.cards{grid-template-columns:1fr}.filters{grid-template-columns:1fr}.card .value{font-size:25px}}
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><div class="title"><h1>Abastecimento × Telemetria</h1><p>Acompanhamento analítico do último abastecimento de cada veículo com atualização automática da telemetria.</p></div><div class="actions"><button id="btnApi">Atualizar agora</button></div></div>
+<div class="statusbar" id="status">Iniciando atualização automática das bases...</div>
+<div class="dailyBar">
+  <div class="dailyTitle">Relatórios de hoje <span id="dailyDate">—</span></div>
+  <div class="dailyMetrics">
+    <span>Recebidos <b id="rReceived">0</b></span>
+    <span class="success">Atualizados <b id="rUpdated">0</b></span>
+    <span class="mutedState">Sem alteração <b id="rNoChange">0</b></span>
+    <span class="errorState">Erros <b id="rErrors">0</b></span>
+    <span class="lastInfo">Último sucesso: <b id="rLastSuccess">—</b></span>
+  </div>
+</div>
+<div class="cards">
+<div class="card"><div class="label">Veículos analisados</div><div class="value" id="cAnalyzed">0</div><div class="sub">veículos com cruzamento entre abastecimento e telemetria</div></div>
+<div class="card"><div class="label">Veículos na telemetria</div><div class="value" id="cApi">0</div><div class="sub">posições recebidas na última consulta</div></div>
+</div>
+<div class="analysisPanel">
+<div class="panelHead"><div class="panelTitle">Análise por veículo</div><div class="legend">
+<span class="legendItem"><span class="legendDot issue"></span>Inconsistência <b id="lIssue">0</b></span>
+<span class="legendItem"><span class="legendDot attention"></span>Atenção <b id="lAttention">0</b></span>
+<span class="legendItem"><span class="legendDot unmatched"></span>Sem abastecimento <b id="lUnmatched">0</b></span>
+<span class="legendItem"><span class="legendDot normal"></span>Normal <b id="lNormal">0</b></span>
+</div></div>
+<div class="filters"><input id="search" placeholder="Buscar número de ordem ou placa"><select id="matchFilter"><option value="all">Todos os cruzamentos</option><option value="matched">Somente encontrados</option><option value="unmatched">Somente não encontrados</option></select><select id="statusFilter"><option value="all">Todos os status</option><option value="issue">Inconsistência</option><option value="attention">Atenção</option><option value="normal">Normal</option></select><select id="commFilter"><option value="all">Toda comunicação</option><option value="on">Ignição ligada</option><option value="off">Ignição desligada</option></select></div>
+<div class="tableWrap"><table><thead><tr><th style="width:9%">Ordem</th><th style="width:10%">Placa</th><th style="width:13%">Último abastecimento</th><th style="width:14%">Hod. abastecimento</th><th style="width:8%">Litros</th><th style="width:14%">Hod. telemetria</th><th style="width:14%">KM após abastecimento</th><th style="width:12%">Última comunicação</th><th style="width:7%">Ignição</th><th style="width:11%">Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
+</div>
+</div>
+<script>
+const API_URL='https://aefsistemas.inf.br/brasilsat/api/cenibra/posicao?chave=VkVkak9WQlJOVFptUVhGSVdHSnVORGt5UWpVeVFuTlJkdz09';
+let fuelData=[];
+let reportSummary={};
+const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbxWQLruc1VgBPia7TLb215xFiSTHlVJS9AYjeZNI8JJaLtHU-aNMCcUk0--bCUUrJaX7w/exec';
+const demoApi=[{"codigoveiculo":"5913","placa":"SHT8E02","frota":"U1010 SHT8E02","datahora":"15/07/26 16:02","velocidade":"0.000","ignicao":"OFF","gps":"ON","ponto":"Garagem Univale Cel Fab","hodometro":"250050.260","motorista":"-"},{"codigoveiculo":"7122","placa":"SHT8E04","frota":"U1020 SHT8E04","datahora":"15/07/26 15:42","velocidade":"55.000","ignicao":"ON","gps":"ON","ponto":"FERRO VELHO","hodometro":"216398.820","motorista":"MATHEUS HERNANI BORGES DOS SANTOS"},{"codigoveiculo":"8072","placa":"SHK4G24","frota":"U0890 SHK4G24","datahora":"15/07/26 16:10","velocidade":"0.000","ignicao":"OFF","gps":"ON","ponto":"TERMINAL Rodoviario de Coronel Fabriciano","hodometro":"142747.595","motorista":"-"}];
+let apiData=[];
+const $=id=>document.getElementById(id);
+const norm=s=>String(s??'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+function apiOrdem(item){const frota=String(item.frota||'').trim();return norm(frota.split(/\s+/)[0]||'')}
+function n(v){const x=Number(String(v??'').replace(',','.'));return Number.isFinite(x)?x:null}
+function fmt(v,d=0){return v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function parseApi(payload){const arr=Array.isArray(payload)?payload:(Array.isArray(payload?.data)?payload.data:[]);return arr.map(x=>({...x,_ordem:apiOrdem(x),_placa:norm(x.placa||String(x.frota||'').split(/\s+/)[1]||''),_hod:n(x.hodometro)})).filter(x=>x._ordem)}
+function parseFuel(payload){const arr=Array.isArray(payload?.abastecimentos)?payload.abastecimentos:[];return arr.map(x=>({veiculoOriginal:x.veiculo||'',ordem:norm(x.ordem),dataAbastecimento:x.dataHoraAbastecimento?new Date(x.dataHoraAbastecimento).toLocaleDateString('pt-BR'):'',dataISO:x.dataHoraAbastecimento||'',hodometroAbastecimento:n(x.hodometroAbastecimento),hodometroAnterior:n(x.hodometroAnterior),kmEntreAbastecimentos:n(x.kmEntreAbastecimentos),litros:n(x.litros),kmLitro:n(x.kmLitro),posto:x.localAbastecimento||''})).filter(x=>x.ordem&&x.hodometroAbastecimento!=null)}
+function renderReportSummary(){const r=reportSummary||{};$('dailyDate').textContent=r.data||'—';$('rReceived').textContent=Number(r.recebidos||0).toLocaleString('pt-BR');$('rUpdated').textContent=Number(r.atualizados||0).toLocaleString('pt-BR');$('rNoChange').textContent=Number(r.semAlteracao||0).toLocaleString('pt-BR');$('rErrors').textContent=Number(r.erros||0).toLocaleString('pt-BR');$('rLastSuccess').textContent=r.ultimoSucesso||'—'}
+function buildRows(){
+ const fuelMap=new Map(fuelData.map(x=>[norm(x.ordem),x]));
+ const rows=apiData.map(a=>{const f=fuelMap.get(a._ordem);const km=f&&a._hod!=null?a._hod-f.hodometroAbastecimento:null;let level='unmatched',label='Sem abastecimento';if(f){if(km<0||km>3000){level='issue';label='Inconsistência'}else if(km>700){level='attention';label='Atenção'}else{level='normal';label='Normal'}}return{a,f,km,level,label,matched:!!f}});
+ return rows;
+}
+function render(){
+ const rows=buildRows(); const q=norm($('search').value); const mf=$('matchFilter').value,sf=$('statusFilter').value,cf=$('commFilter').value;
+ const priority={issue:0,attention:1,unmatched:2,normal:3};
+ const ordered=[...rows].sort((a,b)=>(priority[a.level]??9)-(priority[b.level]??9)||(b.km??-Infinity)-(a.km??-Infinity)||a.a._ordem.localeCompare(b.a._ordem));
+ const filtered=ordered.filter(r=>{if(mf==='matched'&&!r.matched)return false;if(mf==='unmatched'&&r.matched)return false;if(sf!=='all'&&r.level!==sf)return false;if(cf!=='all'&&String(r.a.ignicao||'').toLowerCase()!==cf)return false;if(q){const hay=norm([r.a._ordem,r.a._placa].join(' '));if(!hay.includes(q))return false}return true});
+ const matched=rows.filter(r=>r.matched).length;
+ $('cAnalyzed').textContent=matched.toLocaleString('pt-BR');$('cApi').textContent=apiData.length.toLocaleString('pt-BR');
+ $('lIssue').textContent=rows.filter(r=>r.level==='issue').length.toLocaleString('pt-BR');
+ $('lAttention').textContent=rows.filter(r=>r.level==='attention').length.toLocaleString('pt-BR');
+ $('lUnmatched').textContent=rows.filter(r=>r.level==='unmatched').length.toLocaleString('pt-BR');
+ $('lNormal').textContent=rows.filter(r=>r.level==='normal').length.toLocaleString('pt-BR');
+ $('tbody').innerHTML=filtered.length?filtered.map(r=>`<tr class="row-${r.level}"><td><b>${r.a._ordem}</b></td><td>${r.a._placa||'—'}</td><td>${r.f?.dataAbastecimento||'—'}</td><td class="num">${fmt(r.f?.hodometroAbastecimento,0)}</td><td class="num"><b>${fmt(r.f?.litros,2)}</b></td><td class="num">${fmt(r.a._hod,3)}</td><td class="num"><b>${fmt(r.km,3)}</b></td><td>${r.a.datahora||'—'}</td><td>${r.a.ignicao||'—'}</td><td><span class="pill ${r.level==='normal'?'ok':r.level==='attention'?'warn':r.level==='issue'?'bad':'neutral'}"><span class="dot"></span>${r.label}</span></td></tr>`).join(''):`<tr><td colspan="10" class="empty">Nenhum registro encontrado com os filtros selecionados.</td></tr>`;
+}
+async function fetchAll(){
+ $('status').dataset.base='Atualizando abastecimentos e telemetria...';$('status').textContent=$('status').dataset.base;
+ const resultados=await Promise.allSettled([
+   fetch(APPS_SCRIPT_URL,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Apps Script HTTP '+r.status);return r.json()}),
+   fetch(API_URL,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('Brasilsat HTTP '+r.status);return r.json()})
+ ]);
+ const mensagens=[];
+ if(resultados[0].status==='fulfilled'){
+   const payload=resultados[0].value;
+   fuelData=parseFuel(payload);
+   reportSummary=payload.resumoHoje||{};
+   renderReportSummary();
+   mensagens.push(`${fuelData.length} abastecimentos`);
+ }else{
+   mensagens.push('falha na base de abastecimentos');
+ }
+ if(resultados[1].status==='fulfilled'){
+   apiData=parseApi(resultados[1].value);
+   mensagens.push(`${apiData.length} veículos na telemetria`);
+ }else{
+   mensagens.push('falha na API Brasilsat');
+ }
+ render();
+ const falhas=resultados.filter(x=>x.status==='rejected');
+ $('status').dataset.base=`Atualização concluída às ${new Date().toLocaleTimeString('pt-BR')}: ${mensagens.join(' • ')}${falhas.length?' • Verifique as integrações com falha.':''}`;
+ $('status').textContent=$('status').dataset.base;
+ if(falhas.length) console.error(falhas.map(x=>x.reason));
+}
+const AUTO_REFRESH_MS=5*60*1000;
+let nextRefreshAt=Date.now()+AUTO_REFRESH_MS;
+let countdownTimer=null;
+function updateCountdown(){
+ const remaining=Math.max(0,nextRefreshAt-Date.now());
+ const min=Math.floor(remaining/60000);
+ const sec=Math.floor((remaining%60000)/1000);
+ const base=$('status').dataset.base||'Aguardando atualização.';
+ $('status').textContent=`${base} Próxima atualização automática em ${min}:${String(sec).padStart(2,'0')}.`;
+}
+async function scheduledFetch(){
+ await fetchAll();
+ nextRefreshAt=Date.now()+AUTO_REFRESH_MS;
+ $('status').dataset.base=$('status').textContent;
+ updateCountdown();
+}
+$('btnApi').onclick=()=>{nextRefreshAt=Date.now()+AUTO_REFRESH_MS;scheduledFetch()};
+['search','matchFilter','statusFilter','commFilter'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
+renderReportSummary();
+render();
+scheduledFetch();
+setInterval(scheduledFetch,AUTO_REFRESH_MS);
+countdownTimer=setInterval(updateCountdown,1000);
+</script></body></html>
