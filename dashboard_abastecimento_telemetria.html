@@ -311,13 +311,13 @@ body{
 }
 
 /* ============ MAIORES RODAGENS ============ */
-.rodagens{margin-bottom:20px}
-.hbars{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:9px 26px}
-.hbar{display:grid;grid-template-columns:84px 1fr 82px;align-items:center;gap:10px;font-size:12px}
-.hbar .hb-label{font-family:var(--font-data);font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hbar .hb-track{height:9px;border-radius:99px;background:#0a1220;border:1px solid #182642;overflow:hidden}
+.rodagens{width:min(100%,1040px);margin:0 auto 20px;min-height:238px}
+.hbars{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;padding:2px 4px}
+.hbar{display:grid;grid-template-columns:72px minmax(130px,1fr) 70px;align-items:center;gap:10px;font-size:12px;padding:3px 0}
+.hbar .hb-label{font-family:var(--font-data);font-size:11.5px;font-weight:700;color:#e8edf5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbar .hb-track{height:11px;border-radius:99px;background:#0a1018;border:1px solid #263344;overflow:hidden;box-shadow:inset 0 1px 5px rgba(0,0,0,.45)}
 .hbar .hb-fill{height:100%;border-radius:99px;transition:width .5s ease}
-.hbar .hb-val{font-family:var(--font-data);font-size:11.5px;text-align:right;color:var(--text)}
+.hbar .hb-val{font-family:var(--font-data);font-size:11.5px;font-weight:700;text-align:right;color:#f3d18a}
 .hbEmpty{color:var(--faint);font-size:12px;padding:20px 0;text-align:center;width:100%;grid-column:1/-1}
 
 /* ============ PAINEL PRINCIPAL / TABELA ============ */
@@ -387,6 +387,45 @@ tbody td .ordem,tbody td .placa{display:inline-block;max-width:100%;overflow:hid
 .tFoot{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;font-size:11px;color:var(--faint);border-top:1px solid var(--line-soft)}
 .tFoot b{color:var(--muted);font-family:var(--font-data);font-weight:500}
 
+
+/* ============ VISÃO ANALÍTICA / DETALHES SOB DEMANDA ============ */
+.analyticsActions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btnSecondary{
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  font:600 12px var(--font-body);color:#e7edf6;
+  background:rgba(14,21,31,.82);border:1px solid #344156;border-radius:10px;
+  padding:9px 14px;transition:.15s;backdrop-filter:blur(6px)
+}
+.btnSecondary:hover{border-color:rgba(216,163,61,.55);color:#f4cc77;transform:translateY(-1px)}
+.btnSecondary svg{width:14px;height:14px}
+.clickableCard{cursor:pointer;transition:transform .16s,border-color .16s,box-shadow .16s}
+.clickableCard:hover{transform:translateY(-3px);border-color:rgba(216,163,61,.45)!important;box-shadow:0 20px 38px rgba(0,0,0,.28),0 0 0 1px rgba(216,163,61,.08)}
+.analysisRow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.chartList{width:100%;display:flex;flex-direction:column;gap:11px}
+.chartRow{display:grid;grid-template-columns:120px 1fr 62px;gap:12px;align-items:center;cursor:pointer;padding:4px 2px;border-radius:8px;transition:.14s}
+.chartRow:hover{background:rgba(255,255,255,.035)}
+.chartLabel{font-size:11px;color:#bfc8d5}
+.chartTrack{height:12px;border-radius:999px;background:#0a1119;border:1px solid #263143;overflow:hidden}
+.chartFill{height:100%;border-radius:999px;min-width:3px;transition:width .4s ease;box-shadow:0 0 12px color-mix(in srgb,var(--bar) 35%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--bar) 58%,#151b24),var(--bar))}
+.chartValue{text-align:right;font:700 11px var(--font-data);color:#f4f6fb}
+.chartEmpty{padding:32px;text-align:center;color:var(--faint);font-size:12px}
+
+.detailOverlay{position:fixed;inset:0;background:rgba(2,5,9,.58);backdrop-filter:blur(3px);z-index:80;opacity:0;pointer-events:none;transition:opacity .2s}
+.detailOverlay.open{opacity:1;pointer-events:auto}
+.detailDrawer{position:absolute;top:0;right:0;width:min(1180px,92vw);height:100%;background:linear-gradient(180deg,rgba(10,15,22,.99),rgba(7,11,17,.99));border-left:1px solid rgba(216,163,61,.28);box-shadow:-30px 0 70px rgba(0,0,0,.48);transform:translateX(102%);transition:transform .25s ease;display:flex;flex-direction:column}
+.detailOverlay.open .detailDrawer{transform:translateX(0)}
+.drawerTop{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;border-bottom:1px solid #273142;background:rgba(16,23,33,.96)}
+.drawerTitleWrap h3{margin:0;font:700 17px var(--font-display);color:#fff}
+.drawerTitleWrap p{margin:4px 0 0;color:#909cad;font-size:11px}
+.drawerClose{width:36px;height:36px;border-radius:10px;border:1px solid #344156;background:#141c27;color:#d7dfeb;font-size:22px;cursor:pointer;display:grid;place-items:center}
+.drawerClose:hover{border-color:#d8a33d;color:#f1c56a}
+.drawerContent{padding:14px;min-height:0;flex:1;display:flex;flex-direction:column}
+.drawerContent .mainPanel{height:100%;display:flex;flex-direction:column;margin:0}
+.drawerContent .tableWrap{max-height:none;flex:1}
+body.drawerOpen{overflow:hidden}
+
+@media(max-width:900px){.analysisRow{grid-template-columns:1fr}.detailDrawer{width:100vw}.chartRow{grid-template-columns:105px 1fr 52px}}
+
 /* ============ RESPONSIVO ============ */
 @media(max-width:1350px){.analyticsGrid{grid-template-columns:minmax(340px,1.1fr) minmax(210px,.62fr)}.statusPanel{grid-column:1/-1}.statusBars{min-height:245px}.statusBarTrack{height:150px}}
 @media(max-width:1150px){.analyticsGrid{grid-template-columns:1fr}.metricStack{grid-template-columns:repeat(3,1fr);grid-template-rows:1fr}.summary{grid-template-columns:repeat(2,minmax(210px,240px))}}
@@ -399,6 +438,7 @@ tbody td .ordem,tbody td .placa{display:inline-block;max-width:100%;overflow:hid
   .navItem span{display:none}
   .sideFoot{display:none}
 }
+@media(max-width:900px){.rodagens{max-width:100%}.hbars{grid-template-columns:1fr}}
 @media(max-width:720px){
   .main{padding:16px 14px 34px}
   .summary{grid-template-columns:1fr}
@@ -444,6 +484,10 @@ tbody td .ordem,tbody td .placa{display:inline-block;max-width:100%;overflow:hid
         <div class="lu-v"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="lastUpdate">—</span></div>
         <div class="lu-c" id="countdown"></div>
       </div>
+      <button class="btnSecondary" id="btnAllVehicles">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        Ver todos os veículos
+      </button>
       <button class="btnRefresh" id="btnApi">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v6h-6"/></svg>
         Atualizar agora
@@ -479,7 +523,7 @@ tbody td .ordem,tbody td .placa{display:inline-block;max-width:100%;overflow:hid
   <!-- ============ INDICADORES + STATUS GERAL ============ -->
   <h2 class="secTitle" id="secIndicadores">Indicadores</h2>
   <div class="analyticsGrid">
-    <div class="panel heroPanel">
+    <div class="panel heroPanel clickableCard" id="cardAllVehicles">
       <div class="pHead">
         <div class="pTitle">Veículos na telemetria</div>
         <div class="pHint">última consulta da Brasilsat</div>
@@ -494,7 +538,7 @@ tbody td .ordem,tbody td .placa{display:inline-block;max-width:100%;overflow:hid
     <div class="panel statusPanel">
       <div class="pHead">
         <div class="pTitle">Distribuição por status</div>
-        <div class="pHint">clique para filtrar</div>
+        <div class="pHint">clique para abrir detalhes</div>
       </div>
       <div class="pBody">
         <div class="statusBars" id="statusBars"></div>
@@ -508,7 +552,14 @@ tbody td .ordem,tbody td .placa{display:inline-block;max-width:100%;overflow:hid
     <div class="pBody"><div class="hbars" id="hbars"></div></div>
   </div>
 
-  <!-- ============ VISÃO GERAL DOS VEÍCULOS ============ -->
+  <!-- ============ DETALHES DOS VEÍCULOS ============ -->
+  <div class="detailOverlay" id="detailOverlay" aria-hidden="true">
+    <aside class="detailDrawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+      <div class="drawerTop">
+        <div class="drawerTitleWrap"><h3 id="drawerTitle">Detalhes dos veículos</h3><p id="drawerSubtitle">Registros filtrados conforme o indicador selecionado</p></div>
+        <button class="drawerClose" id="drawerClose" aria-label="Fechar">×</button>
+      </div>
+      <div class="drawerContent">
   <div class="mainPanel" id="secVeiculos">
     <div class="mainHead">
       <div class="pTitle">Visão geral dos veículos</div>
@@ -551,6 +602,9 @@ tbody td .ordem,tbody td .placa{display:inline-block;max-width:100%;overflow:hid
       <th style="width:12%">Status</th>
     </tr></thead><tbody id="tbody"></tbody></table></div>
     <div class="tFoot"><span>Exibindo <b id="fShown">0</b> de <b id="fTotal">0</b> veículos</span><span>Atualização automática a cada <b>5 min</b></span></div>
+  </div>
+      </div>
+    </aside>
   </div>
 
 </main>
@@ -600,13 +654,20 @@ function apiOrdem(item){
   return norm(frota.split(/\s+/)[0]||'');
 }
 function n(v){const x=Number(String(v??'').replace(',','.'));return Number.isFinite(x)?x:null}
+function parseApiDate(value){
+ const m=String(value||'').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+ if(!m)return null;
+ let year=Number(m[3]); if(year<100)year+=2000;
+ const d=new Date(year,Number(m[2])-1,Number(m[1]),Number(m[4]),Number(m[5]),Number(m[6]||0));
+ return Number.isNaN(d.getTime())?null:d;
+}
 function fmt(v,d=0){return v==null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
 function parseApi(payload){
   const arr=Array.isArray(payload)?payload:(Array.isArray(payload?.data)?payload.data:[]);
   return arr.map(x=>{
     const ordemOriginal=apiOrdem(x);
     return {...x,_ordem:ordemOriginal,_ordemKey:smartOrder(ordemOriginal),_aliases:orderAliases(ordemOriginal),
-      _placa:norm(x.placa||String(x.frota||'').split(/\s+/)[1]||''),_hod:n(x.hodometro)};
+      _placa:norm(x.placa||String(x.frota||'').split(/\s+/)[1]||''),_hod:n(x.hodometro),_dataCom:parseApiDate(x.datahora)};
   }).filter(x=>x._ordem);
 }
 function parseFuel(payload){
@@ -686,18 +747,60 @@ function buildRows(){
       else if(km>700){level='attention';label='Atenção'}
       else{level='normal';label='Normal'}
     }
-    return{a,f,km,level,label,matched:!!f,matchType:match.matchType};
+    const commAgeMin=a._dataCom?Math.max(0,(Date.now()-a._dataCom.getTime())/60000):null;
+    return{a,f,km,level,label,matched:!!f,matchType:match.matchType,commAgeMin};
   });
 }
 
 /* ================= ESTADO DE FILTROS (legenda clicável) ================= */
 const filterState={status:new Set(),comm:null,search:''};
+let detailFilter={type:'all',value:null};
 const STATUS_META={
  issue:{label:'Inconsistência',color:'#ff5a68'},
  attention:{label:'Atenção',color:'#f2b93f'},
  normal:{label:'Normal',color:'#2dd98f'},
  unmatched:{label:'Sem abastecimento',color:'#8391a5'}
 };
+function setDetailFilter(type,value=null){
+ detailFilter={type,value};
+ filterState.status.clear(); filterState.comm=null; filterState.search='';
+ if($('search'))$('search').value='';
+ if(type==='status'&&value)filterState.status.add(value);
+ if(type==='unmatched')filterState.status.add('unmatched');
+ if(type==='issue')filterState.status.add('issue');
+}
+function detailTitle(type,value){
+ if(type==='all')return['Todos os veículos','Visão completa da frota retornada pela telemetria'];
+ if(type==='matched')return['Veículos com abastecimento','Veículos que possuem cruzamento válido com a base de abastecimentos'];
+ if(type==='unmatched')return['Veículos sem abastecimento','Veículos da telemetria sem último abastecimento identificado'];
+ if(type==='issue')return['Inconsistências','Registros com diferença negativa ou excessiva de hodômetro'];
+ if(type==='status')return[STATUS_META[value]?.label||'Status','Veículos do status selecionado'];
+ if(type==='kmBand')return[`Faixa de rodagem: ${value.label}`,'Veículos classificados pela quilometragem após o abastecimento'];
+ if(type==='commBand')return[`Comunicação: ${value.label}`,'Veículos classificados pela idade da última posição'];
+ return['Detalhes dos veículos','Registros filtrados'];
+}
+function openDetail(type='all',value=null){
+ setDetailFilter(type,value);
+ const [title,subtitle]=detailTitle(type,value);
+ $('drawerTitle').textContent=title; $('drawerSubtitle').textContent=subtitle;
+ $('detailOverlay').classList.add('open'); $('detailOverlay').setAttribute('aria-hidden','false');
+ document.body.classList.add('drawerOpen'); render();
+}
+function closeDetail(){
+ $('detailOverlay').classList.remove('open'); $('detailOverlay').setAttribute('aria-hidden','true');
+ document.body.classList.remove('drawerOpen');
+}
+function matchesDetail(r){
+ const {type,value}=detailFilter;
+ if(type==='all')return true;
+ if(type==='matched')return r.matched;
+ if(type==='unmatched')return !r.matched;
+ if(type==='issue')return r.level==='issue';
+ if(type==='status')return r.level===value;
+ if(type==='kmBand')return r.km!=null&&value.test(r.km);
+ if(type==='commBand')return r.commAgeMin!=null&&value.test(r.commAgeMin);
+ return true;
+}
 function toggleStatus(v){
  const alreadyActive=filterState.status.has(v);
  filterState.status.clear();
@@ -711,6 +814,11 @@ document.querySelectorAll('.chip[data-filter]').forEach(ch=>{
 });
 $('clearFilters').addEventListener('click',clearFilters);
 $('search').addEventListener('input',e=>{filterState.search=e.target.value;render()});
+$('btnAllVehicles').addEventListener('click',()=>openDetail('all'));
+$('cardAllVehicles').addEventListener('click',()=>openDetail('all'));
+$('drawerClose').addEventListener('click',closeDetail);
+$('detailOverlay').addEventListener('click',e=>{if(e.target===$('detailOverlay'))closeDetail()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail()});
 
 /* ================= NAVEGAÇÃO LATERAL ================= */
 document.querySelectorAll('.navItem[data-goto]').forEach(item=>{
@@ -756,21 +864,21 @@ function renderMetricStack(rows){
 
   const cards=[
     {
-      label:'Com abastecimento', value:matched, sub:`${pc(matched,total)} do total`, color:'#55d88d',
+      detail:'matched', label:'Com abastecimento', value:matched, sub:`${pc(matched,total)} do total`, color:'#55d88d',
       icon:'<path d="M4 20V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v15"/><path d="M8 7h4M7 11h6"/><path d="M16 8h2l2 2v7a2 2 0 0 1-4 0v-4"/>'
     },
     {
-      label:'Sem abastecimento', value:unmatched, sub:`${pc(unmatched,total)} do total`, color:'#e2b04d',
+      detail:'unmatched', label:'Sem abastecimento', value:unmatched, sub:`${pc(unmatched,total)} do total`, color:'#e2b04d',
       icon:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.7 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L14.7 3.7a2 2 0 0 0-4.4 0Z"/>'
     },
     {
-      label:'Inconsistências', value:issues, sub:`${pc(issues,matched)} dos cruzados`, color:'#f26a73',
+      detail:'issue', label:'Inconsistências', value:issues, sub:`${pc(issues,matched)} dos cruzados`, color:'#f26a73',
       icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 17h.01"/>'
     }
   ];
 
   $('metricStack').innerHTML=cards.map(c=>`
-    <div class="metricMini" style="--mc:${c.color}">
+    <div class="metricMini clickableCard" data-detail="${c.detail}" style="--mc:${c.color}">
       <div class="mIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${c.icon}</svg></div>
       <div>
         <div class="mLabel">${c.label}</div>
@@ -778,6 +886,9 @@ function renderMetricStack(rows){
         <div class="mSub">${c.sub}</div>
       </div>
     </div>`).join('');
+  $('metricStack').querySelectorAll('[data-detail]').forEach(el=>{
+    el.addEventListener('click',()=>openDetail(el.dataset.detail));
+  });
 }
 
 function renderStatusBars(rows){
@@ -800,11 +911,38 @@ function renderStatusBars(rows){
   }).join('');
 
   $('statusBars').querySelectorAll('.statusBarItem').forEach(el=>{
-    el.addEventListener('click',()=>toggleStatus(el.dataset.value));
+    el.addEventListener('click',()=>openDetail('status',el.dataset.value));
   });
 }
 
 /* ================= GRÁFICOS (SVG nativo) ================= */
+
+function renderBandChart(id,rows,bands,valueGetter,detailType){
+ const counts=bands.map(b=>rows.filter(r=>{const v=valueGetter(r);return v!=null&&b.test(v)}).length);
+ const max=Math.max(...counts,1);
+ $(id).innerHTML=bands.map((b,i)=>`<div class="chartRow" data-index="${i}">
+   <div class="chartLabel">${b.label}</div>
+   <div class="chartTrack"><div class="chartFill" style="--bar:${b.color};width:${Math.max(2,counts[i]/max*100)}%"></div></div>
+   <div class="chartValue">${counts[i]}</div>
+ </div>`).join('');
+ $(id).querySelectorAll('.chartRow').forEach(el=>el.addEventListener('click',()=>openDetail(detailType,bands[Number(el.dataset.index)])));
+}
+function renderAnalyticalBands(rows){
+ const kmBands=[
+  {label:'0 a 150 km',color:'#55d88d',test:v=>v>=0&&v<150},
+  {label:'150 a 300 km',color:'#8ccf72',test:v=>v>=150&&v<300},
+  {label:'300 a 500 km',color:'#e2b04d',test:v=>v>=300&&v<500},
+  {label:'500 a 700 km',color:'#ed8d46',test:v=>v>=500&&v<700},
+  {label:'Acima de 700 km',color:'#f26a73',test:v=>v>=700}
+ ];
+ const commBands=[
+  {label:'Até 5 min',color:'#55d88d',test:v=>v<=5},
+  {label:'5 a 30 min',color:'#9bd05d',test:v=>v>5&&v<=30},
+  {label:'30 min a 2 h',color:'#e2b04d',test:v=>v>30&&v<=120},
+  {label:'2 a 24 h',color:'#ed8d46',test:v=>v>120&&v<=1440},
+  {label:'Acima de 24 h',color:'#f26a73',test:v=>v>1440}
+ ];
+}
 
 function renderBars(rows){
  const top=rows.filter(r=>r.km!=null&&r.km>=0).sort((a,b)=>b.km-a.km).slice(0,8);
@@ -834,6 +972,7 @@ function render(){
  const priority={issue:0,attention:1,unmatched:2,normal:3};
  const ordered=[...rows].sort((a,b)=>(priority[a.level]??9)-(priority[b.level]??9)||(b.km??-Infinity)-(a.km??-Infinity)||a.a._ordem.localeCompare(b.a._ordem));
  const filtered=ordered.filter(r=>{
+   if(!matchesDetail(r))return false;
    if(filterState.status.size&&!filterState.status.has(r.level))return false;
    if(filterState.comm&&String(r.a.ignicao||'').toLowerCase()!==filterState.comm)return false;
    if(q){const hay=norm([r.a._ordem,r.a._placa].join(' '));if(!hay.includes(q))return false}
@@ -866,6 +1005,7 @@ function render(){
  renderMetricStack(rows);
  renderStatusBars(rows);
  renderBars(rows);
+ renderAnalyticalBands(rows);
  renderStackBar(rows);
 
  /* tabela */
