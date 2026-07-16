@@ -73,7 +73,7 @@ body{
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(45,217,143,.45)}70%{box-shadow:0 0 0 6px rgba(45,217,143,0)}100%{box-shadow:0 0 0 0 rgba(45,217,143,0)}}
 
 /* ============ MAIN ============ */
-.main{padding:22px 24px 38px;min-width:0}
+.main{padding:22px 24px 38px;min-width:0;max-width:1580px;width:100%;margin:0 auto}
 .top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
 .title h1{margin:0;font-family:var(--font-display);font-weight:700;font-size:30px;letter-spacing:.15px;color:#f7f8fb}
 .title p{margin:6px 0 0;color:#aeb8c7;font-size:13px}
@@ -117,30 +117,191 @@ body{
 .sCard .s-sub b{font-family:var(--font-data);font-weight:500;color:var(--muted)}
 
 /* ============ INDICADORES + STATUS GERAL ============ */
-.midGrid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(310px,.9fr);gap:12px;margin-bottom:20px}
-.panel{background:linear-gradient(180deg,rgba(23,30,41,.98),rgba(15,21,30,.98));border:1px solid rgba(216,163,61,.18);
-  border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 18px 34px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.02)}
-.pHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border-bottom:1px solid #202734;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0))}
-.pTitle{font-family:var(--font-display);font-weight:600;font-size:13px;letter-spacing:.3px;color:#f1f5fb}
+.analyticsGrid{
+  display:grid;
+  grid-template-columns:minmax(360px,1.2fr) minmax(210px,.52fr) minmax(360px,1fr);
+  gap:14px;
+  margin-bottom:20px;
+  align-items:stretch;
+}
+.panel{
+  background:linear-gradient(180deg,rgba(23,30,41,.98),rgba(15,21,30,.98));
+  border:1px solid rgba(216,163,61,.18);
+  border-radius:var(--radius);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 18px 34px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.02);
+}
+.pHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:13px 14px;
+  border-bottom:1px solid #202734;
+  background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,0));
+}
+.pTitle{
+  font-family:var(--font-display);
+  font-weight:700;
+  font-size:13px;
+  letter-spacing:.55px;
+  color:#f3f5f8;
+  text-transform:uppercase;
+}
 .pHint{font-size:10.5px;color:#8390a1}
 .pBody{padding:14px;flex:1;display:flex;align-items:center;justify-content:center}
 
-.gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,175px));justify-content:start;gap:10px;width:100%}
-.gauge{display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;
-  background:#111d31;border:1px solid var(--line-soft);border-radius:12px;padding:15px 10px 13px}
-.gauge .g-l{font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:.2px}
-.gauge .g-sub{font-size:10px;font-weight:600}
-.gauge svg text{font-family:var(--font-data)}
+.heroPanel{min-height:360px}
+.heroGaugeWrap{
+  width:100%;
+  min-height:290px;
+  display:grid;
+  place-items:center;
+  position:relative;
+  overflow:hidden;
+}
+.heroGaugeWrap::before,
+.heroGaugeWrap::after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+}
+.heroGaugeWrap::before{
+  width:270px;height:270px;
+  border:1px solid rgba(216,163,61,.12);
+  box-shadow:0 0 55px rgba(216,163,61,.08), inset 0 0 45px rgba(216,163,61,.05);
+}
+.heroGaugeWrap::after{
+  width:228px;height:228px;
+  border:1px dashed rgba(216,163,61,.15);
+}
+.heroGauge{position:relative;z-index:2}
+.heroMeta{
+  position:absolute;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:#111821;
+  border:1px solid rgba(216,163,61,.18);
+  color:#c8d0dc;
+  font-size:11px;
+}
+.heroMeta b{color:#f2c56d;font-family:var(--font-data)}
 
-.donutWrap{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
-.donutList{display:flex;flex-direction:column;gap:7px;width:100%;max-width:230px}
-.dlItem{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);cursor:pointer;padding:5px 8px;border-radius:8px;transition:background .12s}
-.dlItem:hover{background:#ffffff08}
-.dlItem .sw{width:9px;height:9px;border-radius:50%;flex:none}
-.dlItem b{margin-left:auto;font-family:var(--font-data);font-weight:600;color:var(--text);font-size:12.5px}
-.dlItem.dim{opacity:.35}
-.donutSeg{cursor:pointer;transition:opacity .15s}
-.donutSeg.dim{opacity:.22}
+.metricStack{
+  display:grid;
+  grid-template-rows:repeat(3,1fr);
+  gap:12px;
+}
+.metricMini{
+  min-height:112px;
+  display:grid;
+  grid-template-columns:48px 1fr;
+  align-items:center;
+  gap:12px;
+  padding:14px;
+  border-radius:var(--radius);
+  background:linear-gradient(180deg,#171f2a,#101720);
+  border:1px solid #29313d;
+  box-shadow:0 14px 28px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.02);
+}
+.metricMini .mIcon{
+  width:44px;height:44px;border-radius:50%;
+  display:grid;place-items:center;
+  border:1px solid color-mix(in srgb,var(--mc) 38%,transparent);
+  background:color-mix(in srgb,var(--mc) 14%,#101720);
+  color:var(--mc);
+}
+.metricMini .mIcon svg{width:20px;height:20px}
+.metricMini .mLabel{
+  color:#b7c0cd;
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  font-weight:700;
+}
+.metricMini .mValue{
+  margin-top:4px;
+  font-family:var(--font-data);
+  font-size:29px;
+  line-height:1;
+  font-weight:700;
+  color:#fff;
+}
+.metricMini .mSub{
+  margin-top:5px;
+  font-size:10.5px;
+  color:var(--mc);
+  font-weight:600;
+}
+
+.statusPanel{min-height:360px}
+.statusBars{
+  width:100%;
+  min-height:290px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  gap:20px;
+  padding:16px 8px 6px;
+}
+.statusBarItem{
+  min-width:54px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  transition:opacity .15s,transform .15s;
+}
+.statusBarItem:hover{transform:translateY(-3px)}
+.statusBarItem.dim{opacity:.3}
+.statusBarValue{
+  font-family:var(--font-data);
+  font-size:12px;
+  font-weight:700;
+  color:#f4f6fb;
+}
+.statusBarTrack{
+  width:44px;
+  height:185px;
+  border-radius:8px 8px 5px 5px;
+  background:#0a1017;
+  border:1px solid #1f2733;
+  display:flex;
+  align-items:flex-end;
+  overflow:hidden;
+  box-shadow:inset 0 0 20px rgba(0,0,0,.45);
+}
+.statusBarFill{
+  width:100%;
+  min-height:4px;
+  border-radius:7px 7px 0 0;
+  transition:height .45s ease;
+  box-shadow:0 0 18px color-mix(in srgb,var(--bc) 45%,transparent);
+  background:linear-gradient(180deg,var(--bc),color-mix(in srgb,var(--bc) 60%,#05070b));
+}
+.statusBarLabel{
+  max-width:72px;
+  text-align:center;
+  color:#aeb7c5;
+  font-size:10px;
+  line-height:1.25;
+}
+.statusBarCount{
+  font-family:var(--font-data);
+  color:#fff;
+  font-size:12px;
+  font-weight:700;
+}
 
 /* ============ MAIORES RODAGENS ============ */
 .rodagens{margin-bottom:20px}
@@ -215,8 +376,8 @@ tbody tr.row-unmatched td:first-child{box-shadow:inset 3px 0 0 #8391a530}
 .tFoot b{color:var(--muted);font-family:var(--font-data);font-weight:500}
 
 /* ============ RESPONSIVO ============ */
-@media(max-width:1350px){.gauges{grid-template-columns:repeat(2,minmax(150px,1fr))}}
-@media(max-width:1150px){.midGrid{grid-template-columns:1fr}.summary{grid-template-columns:repeat(2,minmax(210px,240px))}}
+@media(max-width:1350px){.analyticsGrid{grid-template-columns:minmax(340px,1.1fr) minmax(210px,.62fr)}.statusPanel{grid-column:1/-1}.statusBars{min-height:245px}.statusBarTrack{height:150px}}
+@media(max-width:1150px){.analyticsGrid{grid-template-columns:1fr}.metricStack{grid-template-columns:repeat(3,1fr);grid-template-rows:1fr}.summary{grid-template-columns:repeat(2,minmax(210px,240px))}}
 @media(max-width:920px){
   .app{grid-template-columns:1fr}
   .sidebar{position:static;height:auto;flex-direction:row;align-items:center;padding:10px 14px;gap:10px;overflow-x:auto;border-right:none;border-bottom:1px solid #1d2532}
@@ -229,7 +390,7 @@ tbody tr.row-unmatched td:first-child{box-shadow:inset 3px 0 0 #8391a530}
 @media(max-width:720px){
   .main{padding:16px 14px 34px}
   .summary{grid-template-columns:1fr}
-  .gauges{grid-template-columns:1fr 1fr}
+  .metricStack{grid-template-columns:1fr;grid-template-rows:auto}.statusBars{gap:10px}.statusBarTrack{width:38px;height:130px}
   .hbars{grid-template-columns:1fr}
   .searchBox,.searchBox input{width:100%}
 }
@@ -301,14 +462,27 @@ tbody tr.row-unmatched td:first-child{box-shadow:inset 3px 0 0 #8391a530}
 
   <!-- ============ INDICADORES + STATUS GERAL ============ -->
   <h2 class="secTitle" id="secIndicadores">Indicadores</h2>
-  <div class="midGrid">
-    <div class="panel">
-      <div class="pHead"><div class="pTitle">Indicadores da frota</div><div class="pHint">calculados sobre a última consulta</div></div>
-      <div class="pBody"><div class="gauges" id="gauges"></div></div>
+  <div class="analyticsGrid">
+    <div class="panel heroPanel">
+      <div class="pHead">
+        <div class="pTitle">Veículos na telemetria</div>
+        <div class="pHint">última consulta da Brasilsat</div>
+      </div>
+      <div class="pBody">
+        <div class="heroGaugeWrap" id="heroGaugeWrap"></div>
+      </div>
     </div>
-    <div class="panel">
-      <div class="pHead"><div class="pTitle">Status geral</div><div class="pHint">clique para filtrar</div></div>
-      <div class="pBody"><div class="donutWrap" id="donutWrap"></div></div>
+
+    <div class="metricStack" id="metricStack"></div>
+
+    <div class="panel statusPanel">
+      <div class="pHead">
+        <div class="pTitle">Distribuição por status</div>
+        <div class="pHint">clique para filtrar</div>
+      </div>
+      <div class="pBody">
+        <div class="statusBars" id="statusBars"></div>
+      </div>
     </div>
   </div>
 
@@ -526,66 +700,91 @@ document.querySelectorAll('.navItem[data-goto]').forEach(item=>{
   if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
  });
 });
-/* ================= GAUGES (anéis de progresso) ================= */
-function ringGauge({value,total,color,label,sub}){
- const pct=total?value/total:0;
- const R=40,SW=9,C=2*Math.PI*R,len=Math.max(0,Math.min(1,pct))*C;
- return `<div class="gauge">
-  <svg width="104" height="104" viewBox="0 0 104 104" role="img" aria-label="${label}">
-   <circle r="${R}" cx="52" cy="52" fill="none" stroke="#131f36" stroke-width="${SW}"/>
-   <circle r="${R}" cx="52" cy="52" fill="none" stroke="${color}" stroke-width="${SW}" stroke-linecap="round"
-     stroke-dasharray="${len} ${C-len}" stroke-dashoffset="0" transform="rotate(-90 52 52)"
-     style="filter:drop-shadow(0 0 5px ${color}55)"/>
-   <text x="52" y="58" text-anchor="middle" fill="#e9eef7" font-size="23" font-weight="600">${value.toLocaleString('pt-BR')}</text>
-  </svg>
-  <div class="g-l">${label}</div>
-  <div class="g-sub" style="color:${color}">${sub}</div>
- </div>`;
+/* ================= INDICADORES ANALÍTICOS ================= */
+function renderHeroGauge(rows){
+  const total=rows.length;
+  const ignOn=rows.filter(r=>String(r.a.ignicao||'').toLowerCase()==='on').length;
+  const pct=total?ignOn/total:0;
+  const R=86,SW=13,C=2*Math.PI*R,len=Math.max(0,Math.min(1,pct))*C;
+  $('heroGaugeWrap').innerHTML=`
+    <svg class="heroGauge" width="260" height="260" viewBox="0 0 260 260" role="img" aria-label="Veículos na telemetria">
+      <defs>
+        <linearGradient id="heroRing" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#f1c56a"/>
+          <stop offset="55%" stop-color="#d8a33d"/>
+          <stop offset="100%" stop-color="#8f5f16"/>
+        </linearGradient>
+      </defs>
+      <circle r="${R}" cx="130" cy="130" fill="none" stroke="#171f2b" stroke-width="${SW}"/>
+      <circle r="${R}" cx="130" cy="130" fill="none" stroke="url(#heroRing)" stroke-width="${SW}" stroke-linecap="round"
+        stroke-dasharray="${len} ${C-len}" transform="rotate(-90 130 130)"
+        style="filter:drop-shadow(0 0 12px rgba(216,163,61,.35))"/>
+      <circle r="64" cx="130" cy="130" fill="#0d131b" stroke="rgba(216,163,61,.12)"/>
+      <text x="130" y="122" text-anchor="middle" fill="#f4f6fb" font-family="JetBrains Mono,monospace" font-size="48" font-weight="700">${total.toLocaleString('pt-BR')}</text>
+      <text x="130" y="148" text-anchor="middle" fill="#aeb8c7" font-family="Inter,sans-serif" font-size="12">veículos monitorados</text>
+    </svg>
+    <div class="heroMeta">Ignição ligada <b>${ignOn.toLocaleString('pt-BR')} (${total?Math.round(ignOn/total*100):0}%)</b></div>`;
 }
-function renderGauges(rows){
- const total=rows.length;
- const matched=rows.filter(r=>r.matched).length;
- const unmatched=total-matched;
- const issues=rows.filter(r=>r.level==='issue').length;
- const ignOn=rows.filter(r=>String(r.a.ignicao||'').toLowerCase()==='on').length;
- const pc=(v,t)=>t?Math.round(v/t*100)+'%':'—';
- $('gauges').innerHTML=
-  ringGauge({value:total,total:total,color:'#38bdf8',label:'Veículos na telemetria',sub:`Ignição ligada: ${pc(ignOn,total)}`})+
-  ringGauge({value:matched,total,color:'#2dd98f',label:'Com abastecimento',sub:`${pc(matched,total)} do total`})+
-  ringGauge({value:unmatched,total,color:'#8b7cf6',label:'Sem abastecimento',sub:`${pc(unmatched,total)} do total`})+
-  ringGauge({value:issues,total:matched,color:'#ff5a68',label:'Inconsistências',sub:`${pc(issues,matched)} dos cruzados`});
+
+function renderMetricStack(rows){
+  const total=rows.length;
+  const matched=rows.filter(r=>r.matched).length;
+  const unmatched=total-matched;
+  const issues=rows.filter(r=>r.level==='issue').length;
+  const pc=(v,t)=>t?Math.round(v/t*100)+'%':'—';
+
+  const cards=[
+    {
+      label:'Com abastecimento', value:matched, sub:`${pc(matched,total)} do total`, color:'#55d88d',
+      icon:'<path d="M4 20V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v15"/><path d="M8 7h4M7 11h6"/><path d="M16 8h2l2 2v7a2 2 0 0 1-4 0v-4"/>'
+    },
+    {
+      label:'Sem abastecimento', value:unmatched, sub:`${pc(unmatched,total)} do total`, color:'#e2b04d',
+      icon:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.7 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L14.7 3.7a2 2 0 0 0-4.4 0Z"/>'
+    },
+    {
+      label:'Inconsistências', value:issues, sub:`${pc(issues,matched)} dos cruzados`, color:'#f26a73',
+      icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 17h.01"/>'
+    }
+  ];
+
+  $('metricStack').innerHTML=cards.map(c=>`
+    <div class="metricMini" style="--mc:${c.color}">
+      <div class="mIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${c.icon}</svg></div>
+      <div>
+        <div class="mLabel">${c.label}</div>
+        <div class="mValue">${c.value.toLocaleString('pt-BR')}</div>
+        <div class="mSub">${c.sub}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderStatusBars(rows){
+  const order=['normal','attention','issue','unmatched'];
+  const counts=Object.fromEntries(order.map(k=>[k,rows.filter(r=>r.level===k).length]));
+  const max=Math.max(...Object.values(counts),1);
+  const active=filterState.status;
+
+  $('statusBars').innerHTML=order.map(k=>{
+    const h=Math.max(4,Math.round(counts[k]/max*100));
+    const dim=active.size&&!active.has(k)?'dim':'';
+    return `<div class="statusBarItem ${dim}" data-value="${k}">
+      <div class="statusBarValue">${rows.length?Math.round(counts[k]/rows.length*100):0}%</div>
+      <div class="statusBarTrack">
+        <div class="statusBarFill" style="--bc:${STATUS_META[k].color};height:${h}%"></div>
+      </div>
+      <div class="statusBarLabel">${STATUS_META[k].label}</div>
+      <div class="statusBarCount">${counts[k].toLocaleString('pt-BR')}</div>
+    </div>`;
+  }).join('');
+
+  $('statusBars').querySelectorAll('.statusBarItem').forEach(el=>{
+    el.addEventListener('click',()=>toggleStatus(el.dataset.value));
+  });
 }
 
 /* ================= GRÁFICOS (SVG nativo) ================= */
-function renderDonut(rows){
- const total=rows.length;
- const order=['normal','attention','issue','unmatched'];
- const counts=Object.fromEntries(order.map(k=>[k,rows.filter(r=>r.level===k).length]));
- const R=52,SW=16,C=2*Math.PI*R;
- let offset=0;
- const active=filterState.status;
- const segs=order.map(k=>{
-   const frac=total?counts[k]/total:0;
-   const len=frac*C;
-   const dim=active.size&&!active.has(k)?'dim':'';
-   const seg=`<circle class="donutSeg ${dim}" data-value="${k}" r="${R}" cx="70" cy="70" fill="none" stroke="${STATUS_META[k].color}" stroke-width="${SW}" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-offset}" transform="rotate(-90 70 70)"><title>${STATUS_META[k].label}: ${counts[k]}</title></circle>`;
-   offset+=len;
-   return seg;
- }).join('');
- const list=order.map(k=>{
-   const dim=active.size&&!active.has(k)?'dim':'';
-   return `<div class="dlItem ${dim}" data-value="${k}"><span class="sw" style="background:${STATUS_META[k].color}"></span>${STATUS_META[k].label}<b>${counts[k].toLocaleString('pt-BR')}</b></div>`;
- }).join('');
- $('donutWrap').innerHTML=`
-  <svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="Status geral">
-    <circle r="${R}" cx="70" cy="70" fill="none" stroke="#131f36" stroke-width="${SW}"/>
-    ${segs}
-    <text x="70" y="66" text-anchor="middle" fill="#e9eef7" font-family="JetBrains Mono,monospace" font-size="22" font-weight="600">${total.toLocaleString('pt-BR')}</text>
-    <text x="70" y="84" text-anchor="middle" fill="#5a6980" font-family="Inter,sans-serif" font-size="10">veículos</text>
-  </svg>
-  <div class="donutList">${list}</div>`;
- $('donutWrap').querySelectorAll('[data-value]').forEach(el=>el.addEventListener('click',()=>toggleStatus(el.dataset.value)));
-}
+
 function renderBars(rows){
  const top=rows.filter(r=>r.km!=null&&r.km>=0).sort((a,b)=>b.km-a.km).slice(0,8);
  if(!top.length){$('hbars').innerHTML='<div class="hbEmpty">Sem dados de rodagem para exibir.</div>';return}
@@ -642,8 +841,9 @@ function render(){
  $('clearFilters').hidden=!(filterState.status.size||filterState.comm||filterState.search);
 
  /* gráficos */
- renderGauges(rows);
- renderDonut(rows);
+ renderHeroGauge(rows);
+ renderMetricStack(rows);
+ renderStatusBars(rows);
  renderBars(rows);
  renderStackBar(rows);
 
