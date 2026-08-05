@@ -4489,7 +4489,7 @@ header h1{
   <footer><div class="wrap">Univale Transportes - Telemetria Operacional - CSC</div></footer>
 </div>
 <script>
-var SHEET_URL='https://docs.google.com/spreadsheets/d/11jw5uFKuKcOVE5Jxgf1MsCyOXZPYXra1/export?format=xlsx';
+var SHEET_URL='https://docs.google.com/spreadsheets/d/1Xrxllw6WOEq6qhVB8MYzqTz19dGmZKnc/export?format=xlsx';
 var SETOR_FIXO='';
 var DASHBOARD_VERSION='20260710-setor-lock-v2';
 var MESES=["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
@@ -4559,6 +4559,30 @@ function fmt(n){return Math.round(n).toLocaleString('pt-BR')}
 function fmtDec(n,d){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
 function kmPorEvento(km,ev){return ev?km/ev:0}
 function calcPerf(km,ev){if(!km||km<=0)return null;return (1-(ev/km))*100}
+// Ordenação dos rankings: performance, quantidade de eventos e, em caso de empate, maior KM.
+// Assim, dois registros com 0 eventos e 100% de performance são ordenados pelo maior percurso.
+function compareBestPerformance(a,b){
+  var pa=Number(a.perf!=null?a.perf:drvPerf(a));
+  var pb=Number(b.perf!=null?b.perf:drvPerf(b));
+  if(pb!==pa)return pb-pa;
+  var ea=Number(a.pts!=null?a.pts:a.ev)||0;
+  var eb=Number(b.pts!=null?b.pts:b.ev)||0;
+  if(ea!==eb)return ea-eb;
+  var ka=Number(a.km)||0, kb=Number(b.km)||0;
+  if(kb!==ka)return kb-ka;
+  return String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR');
+}
+function compareWorstPerformance(a,b){
+  var pa=Number(a.perf!=null?a.perf:drvPerf(a));
+  var pb=Number(b.perf!=null?b.perf:drvPerf(b));
+  if(pa!==pb)return pa-pb;
+  var ea=Number(a.pts!=null?a.pts:a.ev)||0;
+  var eb=Number(b.pts!=null?b.pts:b.ev)||0;
+  if(ea!==eb)return eb-ea;
+  var ka=Number(a.km)||0, kb=Number(b.km)||0;
+  if(kb!==ka)return kb-ka;
+  return String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR');
+}
 function evLabel(e){return EV_LABELS[e]||e}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]||c})}
 function nkey(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'')}
@@ -5193,9 +5217,9 @@ function render(){
   safeText('t10wSub','Considerando mínimo 250 km rodados em '+periodLabelShort()+'.');
   safeText('t10bSub','Considerando mínimo 250 km rodados em '+periodLabelShort()+'.');
   function rowFn(d,i){var perf=drvPerf(d);return'<tr><td class="rank">'+(i+1)+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+pPill(perf)+'</td><td>'+fmt(d.km)+'</td><td>'+fmt(d.pts)+'</td><td><span class="dtag">'+esc(d.dom)+'</span></td></tr>'}
-  var rw=D.drivers.filter(function(d){return d.km>250&&drvPerf(d)!=null}).sort(function(a,b){return drvPerf(a)-drvPerf(b)}).slice(0,10);
+  var rw=D.drivers.filter(function(d){return d.km>250&&drvPerf(d)!=null}).sort(compareWorstPerformance).slice(0,10);
   safeSet('top10w',rw.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>');
-  var rb=D.drivers.filter(function(d){return d.km>250&&drvPerf(d)!=null}).sort(function(a,b){return drvPerf(b)-drvPerf(a)}).slice(0,10);
+  var rb=D.drivers.filter(function(d){return d.km>250&&drvPerf(d)!=null}).sort(compareBestPerformance).slice(0,10);
   safeSet('top10b',rb.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>');
   renderDiag();
   setupTable(D);
@@ -5672,8 +5696,8 @@ function renderDiag(){
   var curVeh=aggregateVehiclesFromFleet(curMonthKey);
   var prevVeh=aggregateVehiclesFromFleet(prevMonthKey);
   var prevVehMap={};prevVeh.forEach(function(v){prevVehMap[v.nome]=v});
-  var bestVeh=curVeh.slice().sort(function(a,b){return b.perf-a.perf}).slice(0,5);
-  var worstVeh=curVeh.slice().sort(function(a,b){return a.perf-b.perf}).slice(0,5);
+  var bestVeh=curVeh.slice().sort(compareBestPerformance).slice(0,5);
+  var worstVeh=curVeh.slice().sort(compareWorstPerformance).slice(0,5);
   var fleetBestHtml=vehicleRankHtml('5 melhores veículos · '+esc(curLabel),bestVeh,prevVehMap,'good','Aguardando dados da frota para montar o ranking.');
   var fleetWorstHtml=vehicleRankHtml('5 piores veículos · '+esc(curLabel),worstVeh,prevVehMap,'alert','Aguardando dados da frota para montar o ranking.');
   var fluigHtmlMes=fluigCardHtml(cur,curLabel);
@@ -6105,8 +6129,8 @@ window.addEventListener('popstate',function(){syncSectorFromUrl(true)});
     safeText('fleetT10wSub','Considerando mínimo 250 km rodados em '+periodLabelShort()+'.');
     safeText('fleetT10bSub','Considerando mínimo 250 km rodados em '+periodLabelShort()+'.');
     var valid=F.vehicles.filter(function(d){return d.km>250&&fleetPerf(d)!=null;});
-    var rw=valid.slice().sort(function(a,b){return fleetPerf(a)-fleetPerf(b);}).slice(0,10);
-    var rb=valid.slice().sort(function(a,b){return fleetPerf(b)-fleetPerf(a);}).slice(0,10);
+    var rw=valid.slice().sort(compareWorstPerformance).slice(0,10);
+    var rb=valid.slice().sort(compareBestPerformance).slice(0,10);
     var empty='<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Aguardando dados da frota na consolidada.</td></tr>';
     safeSet('fleetTop10w',rw.map(fleetRowFn).join('')||empty);
     safeSet('fleetTop10b',rb.map(fleetRowFn).join('')||empty);
