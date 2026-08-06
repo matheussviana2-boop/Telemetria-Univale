@@ -4491,7 +4491,7 @@ header h1{
 <script>
 var SHEET_URL='https://docs.google.com/spreadsheets/d/1Xrxllw6WOEq6qhVB8MYzqTz19dGmZKnc/export?format=xlsx';
 var SETOR_FIXO='';
-var DASHBOARD_VERSION='20260710-setor-lock-v2';
+var DASHBOARD_VERSION='20260806-setores-dinamicos-aperam-v1';
 var MESES=["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
 var MESES_FULL={JAN:"Janeiro",FEV:"Fevereiro",MAR:"Março",ABR:"Abril",MAI:"Maio",JUN:"Junho",JUL:"Julho",AGO:"Agosto",SET:"Setembro",OUT:"Outubro",NOV:"Novembro",DEZ:"Dezembro"};
 var MONTH_ALIAS={JAN:'JAN',JANEIRO:'JAN',FEV:'FEV',FEVEREIRO:'FEV',MAR:'MAR',MARCO:'MAR',MARCO:'MAR',ABR:'ABR',ABRIL:'ABR',MAI:'MAI',MAIO:'MAI',JUN:'JUN',JUNHO:'JUN',JUL:'JUL',JULHO:'JUL',AGO:'AGO',AGOSTO:'AGO',SET:'SET',SETEMBRO:'SET',OUT:'OUT',OUTUBRO:'OUT',NOV:'NOV',NOVEMBRO:'NOV',DEZ:'DEZ',DEZEMBRO:'DEZ'};
@@ -4535,11 +4535,13 @@ var SLABELS={
   'GARAG_BAHIA':'Garagistas Bahia',
   'GARAG_MG':'Garagistas MG',
   'ENGEPACK':'Engepack',
-  'OXITENO':'Oxiteno'
+  'OXITENO':'Oxiteno',
+  'APERAM':'Aperam'
 };
-var SECTOR_ORDER=['BEMISA','CENIBRA','CIPALAM','ENGEPACK','FRET_BAHIA','LINHAS_BAHIA','LINHAS_MINAS','MUSA','OXITENO','TURIM','GARAG_BAHIA','GARAG_MG'];
+var SECTOR_ORDER=['APERAM','BEMISA','CENIBRA','CIPALAM','ENGEPACK','FRET_BAHIA','LINHAS_BAHIA','LINHAS_MINAS','MUSA','OXITENO','TURIM','GARAG_BAHIA','GARAG_MG'];
 var SECTOR_ALIAS={
   'ALL':'ALL','TODOS':'ALL','TODOSOSSETORES':'ALL',
+  'APERAM':'APERAM','APER':'APERAM','FRETAMENTOAPERAM':'APERAM','PERFORMANCEFROTAAPER':'APERAM','PERFORMANCEFROTAAPERAM':'APERAM','PERFORMANCEMOTORISTASAPER':'APERAM','PERFORMANCEMOTORISTASAPERAM':'APERAM','FROTAAPERAM':'APERAM','MOTORISTASAPERAM':'APERAM',
   'BEMISA':'BEMISA','FRETAMENTOBEMISA':'BEMISA','FRETAMENTOBEMISA':'BEMISA','FRETBEMISA':'BEMISA',
   'CENIBRA':'CENIBRA','FRETAMENTOCENIBRA':'CENIBRA','FRETCENIBRA':'CENIBRA',
   'CIPALAM':'CIPALAM',
@@ -4607,6 +4609,7 @@ function normalizeSectorCode(v){
   if(!raw)return '';
   var compact=nkey(raw);
   if(SECTOR_ALIAS[compact])return SECTOR_ALIAS[compact];
+  if(compact.indexOf('APERAM')>=0||compact==='APER'||compact.endsWith('APER'))return 'APERAM';
   if(compact.indexOf('BEMISA')>=0)return 'BEMISA';
   if(compact.indexOf('CENIBRA')>=0)return 'CENIBRA';
   if(compact.indexOf('CIPALAM')>=0)return 'CIPALAM';
@@ -4622,7 +4625,14 @@ function normalizeSectorCode(v){
   if(compact==='LINHAS')return 'LINHAS_MINAS';
   if(compact.indexOf('GARAGISTASBA')>=0||compact.indexOf('GARAGBA')>=0)return 'GARAG_BAHIA';
   if(compact.indexOf('GARAGISTASMG')>=0||compact.indexOf('GARAGISTASMINAS')>=0||compact.indexOf('GARAGMG')>=0)return 'GARAG_MG';
-  return raw.toUpperCase().replace(/\s+/g,'_');
+  // Novos negócios: remove os prefixos genéricos dos relatórios para que
+  // "Performance Frota X" e "Performance Motoristas X" virem o mesmo setor X.
+  var cleaned=compact
+    .replace(/^PERFORMANCE(MOTORISTAS?|FROTA|VEICULOS?|VEICULO)/,'')
+    .replace(/^(RELATORIO|TELEMETRIA|FROTA|MOTORISTAS?)/,'')
+    .replace(/(MOTORISTAS?|FROTA|VEICULOS?|VEICULO)$/,'');
+  if(cleaned==='APER'||cleaned==='APERAM')return 'APERAM';
+  return (cleaned||compact||raw).toUpperCase().replace(/\s+/g,'_');
 }
 function sectorSort(a,b){var ia=SECTOR_ORDER.indexOf(a),ib=SECTOR_ORDER.indexOf(b); if(ia<0)ia=999; if(ib<0)ib=999; return ia-ib||setorLabel(a).localeCompare(setorLabel(b),'pt-BR');}
 function detectEmbeddedBusiness(row){
