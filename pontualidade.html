@@ -55,8 +55,17 @@ header::after{
 header .spacer{flex:1}
 .header-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
 .stamp-block{text-align:right;line-height:1.3;padding-right:2px;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
-.chk{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,.85);cursor:default;user-select:none}
-.chk input{width:13px;height:13px;accent-color:#E5484D;cursor:default}
+.chk{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.85);cursor:default;user-select:none}
+.chk input{
+  -webkit-appearance:none;appearance:none;margin:0;flex:0 0 auto;
+  width:14px;height:14px;border-radius:3px;position:relative;
+  border:1.5px solid rgba(255,255,255,.6);background:rgba(255,255,255,.08);
+}
+.chk input:checked{background:#E5343B;border-color:#E5343B;box-shadow:0 0 0 1px rgba(255,255,255,.3) inset}
+.chk input:checked::after{
+  content:'';position:absolute;left:3px;top:-1px;width:4px;height:8px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);
+}
 .chk input:checked + span{color:#fff;font-weight:600}
 .stamp-date{font-size:11px;color:rgba(255,255,255,.76);font-weight:600;margin-top:2px}
 .stamp-date b{font-family:"IBM Plex Mono",monospace;color:#fff;font-weight:700;font-size:13px}
