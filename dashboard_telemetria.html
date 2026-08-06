@@ -4491,7 +4491,7 @@ header h1{
 <script>
 var SHEET_URL='https://docs.google.com/spreadsheets/d/1Xrxllw6WOEq6qhVB8MYzqTz19dGmZKnc/export?format=xlsx';
 var SETOR_FIXO='';
-var DASHBOARD_VERSION='20260806-setores-dinamicos-aperam-v1';
+var DASHBOARD_VERSION='20260806-setores-alfabeticos-v2';
 var MESES=["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
 var MESES_FULL={JAN:"Janeiro",FEV:"Fevereiro",MAR:"Março",ABR:"Abril",MAI:"Maio",JUN:"Junho",JUL:"Julho",AGO:"Agosto",SET:"Setembro",OUT:"Outubro",NOV:"Novembro",DEZ:"Dezembro"};
 var MONTH_ALIAS={JAN:'JAN',JANEIRO:'JAN',FEV:'FEV',FEVEREIRO:'FEV',MAR:'MAR',MARCO:'MAR',MARCO:'MAR',ABR:'ABR',ABRIL:'ABR',MAI:'MAI',MAIO:'MAI',JUN:'JUN',JUNHO:'JUN',JUL:'JUL',JULHO:'JUL',AGO:'AGO',AGOSTO:'AGO',SET:'SET',SETEMBRO:'SET',OUT:'OUT',OUTUBRO:'OUT',NOV:'NOV',NOVEMBRO:'NOV',DEZ:'DEZ',DEZEMBRO:'DEZ'};
@@ -4528,17 +4528,17 @@ var SLABELS={
   'BEMISA':'Fretamento Bemisa',
   'CENIBRA':'Fretamento Cenibra',
   'CIPALAM':'Cipalam',
-  'LINHAS_BAHIA':'Linhas BA',
-  'LINHAS_MINAS':'Linhas MG',
+  'LINHAS_BAHIA':'Linhas Ba',
+  'LINHAS_MINAS':'Linhas Mg',
   'MUSA':'Musa',
   'TURIM':'Turim Rodoviário',
   'GARAG_BAHIA':'Garagistas Bahia',
-  'GARAG_MG':'Garagistas MG',
+  'GARAG_MG':'Garagistas Mg',
   'ENGEPACK':'Engepack',
   'OXITENO':'Oxiteno',
   'APERAM':'Aperam'
 };
-var SECTOR_ORDER=['APERAM','BEMISA','CENIBRA','CIPALAM','ENGEPACK','FRET_BAHIA','LINHAS_BAHIA','LINHAS_MINAS','MUSA','OXITENO','TURIM','GARAG_BAHIA','GARAG_MG'];
+var SECTOR_ORDER=[]; // O filtro usa ordem alfabética pelo nome exibido.
 var SECTOR_ALIAS={
   'ALL':'ALL','TODOS':'ALL','TODOSOSSETORES':'ALL',
   'APERAM':'APERAM','APER':'APERAM','FRETAMENTOAPERAM':'APERAM','PERFORMANCEFROTAAPER':'APERAM','PERFORMANCEFROTAAPERAM':'APERAM','PERFORMANCEMOTORISTASAPER':'APERAM','PERFORMANCEMOTORISTASAPERAM':'APERAM','FROTAAPERAM':'APERAM','MOTORISTASAPERAM':'APERAM',
@@ -4634,7 +4634,7 @@ function normalizeSectorCode(v){
   if(cleaned==='APER'||cleaned==='APERAM')return 'APERAM';
   return (cleaned||compact||raw).toUpperCase().replace(/\s+/g,'_');
 }
-function sectorSort(a,b){var ia=SECTOR_ORDER.indexOf(a),ib=SECTOR_ORDER.indexOf(b); if(ia<0)ia=999; if(ib<0)ib=999; return ia-ib||setorLabel(a).localeCompare(setorLabel(b),'pt-BR');}
+function sectorSort(a,b){return setorLabel(a).localeCompare(setorLabel(b),'pt-BR',{sensitivity:'base'});}
 function detectEmbeddedBusiness(row){
   var preferred=[
     'GRUPO','GRUPO OPERACIONAL','GRUPO_OPERACIONAL','GRUPO/SETOR','SETOR/GRUPO',
@@ -4739,7 +4739,12 @@ function safeHref(url){
   if(/^www\./i.test(s))return 'https://'+s;
   return '';
 }
-function setorLabel(s){s=normalizeSectorCode(s);return s==='ALL'||!s?'Todos':(SLABELS[s]||String(s).replace(/_/g,' '))}
+function setorLabel(s){
+  s=normalizeSectorCode(s);
+  if(s==='ALL'||!s)return 'Todos';
+  if(SLABELS[s])return SLABELS[s];
+  return String(s).replace(/_/g,' ').toLocaleLowerCase('pt-BR').replace(/(^|\s)([a-záàâãéêíóôõúç])/g,function(_,esp,letra){return esp+letra.toLocaleUpperCase('pt-BR');});
+}
 function currentSetorRows(){var excl=['GARAG_BAHIA','GARAG_MG'];var setorAtual=normalizeSectorCode(STATE.setor||'ALL');return setorAtual&&setorAtual!=='ALL'?STATE.raw.filter(function(r){return normalizeSectorCode(r.SETOR)===setorAtual}):STATE.raw.filter(function(r){return excl.indexOf(normalizeSectorCode(r.SETOR))<0})}
 function monthFull(m){return MESES_FULL[m]||m||''}
 function periodRangeLabel(){if(STATE.scope!=='ALL')return monthFull(STATE.scope); if(!STATE.months.length)return 'Sem período'; return STATE.months.length===1?monthFull(STATE.months[0]):monthFull(STATE.months[0])+' a '+monthFull(STATE.months[STATE.months.length-1])}
