@@ -2198,15 +2198,17 @@ function setEvolutionModeUI(){
   const perfCheck=$('evo-check-performance');
   const eventCheck=$('evo-check-eventos');
   const kmCheck=$('evo-check-km');
+  const kmControl=document.querySelector('.km-check');
   if(perfCheck) perfCheck.checked=!!evolutionSeries.performance;
   if(eventCheck) eventCheck.checked=!!evolutionSeries.eventos;
-  if(kmCheck) kmCheck.checked=!!evolutionSeries.km;
+  if(kmCheck) kmCheck.checked=periodo!=='consolidado' && !!evolutionSeries.km;
+  if(kmControl) kmControl.style.display=periodo==='consolidado'?'none':'';
   const legend=$('evolution-legend');
   if(legend){
     const items=[];
     if(evolutionSeries.performance) items.push('<span class="legend-item"><span class="legend-swatch green"></span>Performance (%)</span>');
     if(evolutionSeries.eventos) items.push('<span class="legend-item"><span class="legend-swatch red bar"></span>Eventos (qtde)</span>');
-    if(evolutionSeries.km) items.push('<span class="legend-item"><span class="legend-swatch cyan"></span>Km rodada</span>');
+    if(periodo!=='consolidado' && evolutionSeries.km) items.push('<span class="legend-item"><span class="legend-swatch cyan"></span>Km rodada</span>');
     legend.innerHTML=items.join('');
   }
 }
@@ -2244,7 +2246,7 @@ function renderEvolutionChart(){
 
   const showPerf=!!evolutionSeries.performance;
   const showEvents=!!evolutionSeries.eventos;
-  const showKm=!!evolutionSeries.km;
+  const showKm=periodo!=='consolidado' && !!evolutionSeries.km;
   const activeCount=(showPerf?1:0)+(showEvents?1:0)+(showKm?1:0);
 
   const W=1200;
@@ -2591,7 +2593,7 @@ function syncEvolutionChecks(changed){
   evolutionSeries={
     performance:!!perf.checked,
     eventos:!!events.checked,
-    km:!!km.checked
+    km:periodo!=='consolidado' && !!km.checked
   };
   renderEvolutionChart();
 }
@@ -2605,6 +2607,11 @@ document.querySelectorAll('.toggle button').forEach(b=>{
     b.classList.add('on');
     periodo = b.dataset.p;
     $('mes-wrap').classList.toggle('hidden', periodo==='consolidado');
+    if(periodo==='consolidado'){
+      evolutionSeries.km=false;
+      const km=$('evo-check-km');
+      if(km) km.checked=false;
+    }
     render();
   });
 });
