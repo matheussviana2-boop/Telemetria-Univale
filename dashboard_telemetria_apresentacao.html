@@ -2293,11 +2293,15 @@ function renderEvolutionChart(){
     svg.innerHTML=out; return;
   }
 
-  const x=i=> series.length===1 ? ml+pw/2 : ml+(i/(series.length-1))*pw;
+  const plotInset = showEvents ? (activeCount>=3 ? 26 : 22) : 10;
+  const xStart = ml + plotInset;
+  const xEnd = W - mr - plotInset;
+  const x=i=> series.length===1 ? xStart+(xEnd-xStart)/2 : xStart+(i/(series.length-1))*(xEnd-xStart);
   const KM_STEPS=[50000,100000,200000,400000,500000,1000000,2000000,4000000,5000000,10000000];
   const EV_STEPS=[10000,20000,50000,100000,200000,400000,500000,1000000,2000000];
   const kmScale=buildNiceScale(Math.max(...series.map(s=>s.km),0)*1.04, 5, KM_STEPS);
-  const evScale=buildNiceScale(Math.max(...series.map(s=>s.ev),0)*1.06, 5, EV_STEPS);
+  const evHeadroom = periodo==='consolidado' ? (activeCount>=3 ? 1.35 : 1.18) : (activeCount>=3 ? 1.22 : 1.12);
+  const evScale=buildNiceScale(Math.max(...series.map(s=>s.ev),0)*evHeadroom, 5, EV_STEPS);
   const leftY = leftAxisType==='km'
     ? (v=> mt+ph-(Math.max(0,Math.min(kmScale.max,v))/kmScale.max)*ph)
     : leftAxisType==='performance'
@@ -2307,8 +2311,8 @@ function renderEvolutionChart(){
     ? (v=> mt+ph-(Math.max(0,Math.min(evScale.max,v))/evScale.max)*ph)
     : null;
   const perfFloor=Math.max(70, Math.floor(Math.min(...series.map(s=>s.perf),80)-5));
-  const perfBandTop=mt+12;
-  const perfBandBottom=mt+Math.max(26, ph*(periodo==='consolidado'?0.24:0.22));
+  const perfBandTop=mt+4;
+  const perfBandBottom=mt+Math.max(18, ph*(periodo==='consolidado'?0.16:0.15));
   const perfVisualY=v=>{
     const denom=(100-perfFloor)||1;
     const t=(Math.max(perfFloor,Math.min(100,v))-perfFloor)/denom;
@@ -2356,7 +2360,7 @@ function renderEvolutionChart(){
   });
 
   if(showEvents){
-    const barW=Math.min(28, Math.max(10, pw/(Math.max(series.length,1)*6.6)));
+    const barW=Math.min(22, Math.max(8, pw/(Math.max(series.length,1)*8.4)));
     evPts.forEach((p,i)=>{
       const bx=(p.x - barW/2), h=(mt+ph-p.y);
       out+=`<rect class="evo-bar" data-tip="1" data-kind="event-bar" data-month="${escHtml(monthNames[p.m]||p.m)}" data-perf="${p.perf.toFixed(2)}" data-km="${p.km}" data-ev="${p.ev}" x="${bx.toFixed(1)}" y="${p.y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="6" ry="6"/>`;
@@ -2369,7 +2373,8 @@ function renderEvolutionChart(){
     const kmArea=`${kmPath} L ${kmPts[kmPts.length-1].x.toFixed(1)} ${mt+ph} L ${kmPts[0].x.toFixed(1)} ${mt+ph} Z`;
     out+=`<path class="evo-km-area" d="${kmArea}"/><path class="evo-km-shadow" d="${kmPath}"/><path class="evo-km-line" d="${kmPath}"/>`;
     kmPts.forEach(p=>{
-      out+=`<text class="evo-value-km" x="${p.x}" y="${Math.max(mt+20,p.y-12)}">${fmtInt(p.km)}</text>`;
+      const kmLabelY = showPerf ? Math.max(mt+24,p.y-8) : Math.max(mt+20,p.y-12);
+      out+=`<text class="evo-value-km" x="${p.x}" y="${kmLabelY}">${fmtInt(p.km)}</text>`;
       out+=`<circle class="evo-km-halo" cx="${p.x}" cy="${p.y}" r="9"/><circle class="evo-km-dot" data-tip="1" data-kind="km" data-month="${escHtml(monthNames[p.m]||p.m)}" data-perf="${p.perf.toFixed(2)}" data-km="${p.km}" data-ev="${p.ev}" cx="${p.x}" cy="${p.y}" r="5.2"/>`;
     });
   }
@@ -2382,7 +2387,7 @@ function renderEvolutionChart(){
     }
     out+=`<path class="evo-shadow" d="${perfPath}"/><path class="evo-line" d="${perfPath}"/>`;
     perfPts.forEach(p=>{
-      out+=`<text class="evo-value" x="${p.x}" y="${Math.max(16,p.y-13)}">${fmtPct(p.perf)}</text>`;
+      out+=`<text class="evo-value" x="${p.x}" y="${Math.max(14,p.y-15)}">${fmtPct(p.perf)}</text>`;
       out+=`<circle class="evo-dot-halo" cx="${p.x}" cy="${p.y}" r="10"/><circle class="evo-dot" data-tip="1" data-kind="perf" data-month="${escHtml(monthNames[p.m]||p.m)}" data-perf="${p.perf.toFixed(2)}" data-km="${p.km}" data-ev="${p.ev}" cx="${p.x}" cy="${p.y}" r="5.8"/>`;
     });
   }
