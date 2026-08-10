@@ -2248,10 +2248,10 @@ function renderEvolutionChart(){
   const activeCount=(showPerf?1:0)+(showEvents?1:0)+(showKm?1:0);
 
   const W=1200;
-  const H=periodo==='consolidado' ? (activeCount>=3 ? 390 : 355) : (activeCount>=3 ? 350 : 330);
+  const H=periodo==='consolidado' ? (activeCount>=3 ? 430 : 385) : (activeCount>=3 ? 350 : 330);
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   if(wrap){
-    wrap.style.height=periodo==='consolidado' ? (activeCount>=3 ? '430px' : '400px') : (activeCount>=3 ? '385px' : '360px');
+    wrap.style.height=periodo==='consolidado' ? (activeCount>=3 ? '485px' : '435px') : (activeCount>=3 ? '385px' : '360px');
   }
 
   const leftAxisType = showKm ? 'km' : (showPerf ? 'performance' : 'eventos');
@@ -2301,9 +2301,9 @@ function renderEvolutionChart(){
   const EV_STEPS = Math.max(...series.map(s=>s.ev),0) >= 100000
     ? [100000,200000,300000,400000,500000,1000000,2000000]
     : [10000,20000,50000,100000,200000,400000,500000,1000000,2000000];
-  const kmScale=buildNiceScale(Math.max(...series.map(s=>s.km),0)*1.04, 5, KM_STEPS);
-  const evHeadroom = periodo==='consolidado' ? (activeCount>=3 ? 1.6 : 1.35) : (activeCount>=3 ? 1.6 : 1.28);
-  const evTickCount = Math.max(...series.map(s=>s.ev),0) >= 100000 ? 3 : 5;
+  const kmScale=buildNiceScale(Math.max(...series.map(s=>s.km),0)*1.04, periodo==='consolidado' ? 5 : 5, KM_STEPS);
+  const evHeadroom = periodo==='consolidado' ? (activeCount>=3 ? 1.85 : 1.5) : (activeCount>=3 ? 1.6 : 1.28);
+  const evTickCount = Math.max(...series.map(s=>s.ev),0) >= 100000 ? (periodo==='consolidado' ? 5 : 3) : 5;
   const evScale=buildNiceScale(Math.max(...series.map(s=>s.ev),0)*evHeadroom, evTickCount, EV_STEPS);
   const leftY = leftAxisType==='km'
     ? (v=> mt+ph-(Math.max(0,Math.min(kmScale.max,v))/kmScale.max)*ph)
