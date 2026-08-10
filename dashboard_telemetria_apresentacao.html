@@ -2298,10 +2298,13 @@ function renderEvolutionChart(){
   const xEnd = W - mr - plotInset;
   const x=i=> series.length===1 ? xStart+(xEnd-xStart)/2 : xStart+(i/(series.length-1))*(xEnd-xStart);
   const KM_STEPS=[50000,100000,200000,400000,500000,1000000,2000000,4000000,5000000,10000000];
-  const EV_STEPS=[10000,20000,50000,100000,200000,400000,500000,1000000,2000000];
+  const EV_STEPS = Math.max(...series.map(s=>s.ev),0) >= 100000
+    ? [100000,200000,300000,400000,500000,1000000,2000000]
+    : [10000,20000,50000,100000,200000,400000,500000,1000000,2000000];
   const kmScale=buildNiceScale(Math.max(...series.map(s=>s.km),0)*1.04, 5, KM_STEPS);
-  const evHeadroom = periodo==='consolidado' ? (activeCount>=3 ? 1.35 : 1.18) : (activeCount>=3 ? 1.22 : 1.12);
-  const evScale=buildNiceScale(Math.max(...series.map(s=>s.ev),0)*evHeadroom, 5, EV_STEPS);
+  const evHeadroom = periodo==='consolidado' ? (activeCount>=3 ? 1.6 : 1.35) : (activeCount>=3 ? 1.6 : 1.28);
+  const evTickCount = Math.max(...series.map(s=>s.ev),0) >= 100000 ? 3 : 5;
+  const evScale=buildNiceScale(Math.max(...series.map(s=>s.ev),0)*evHeadroom, evTickCount, EV_STEPS);
   const leftY = leftAxisType==='km'
     ? (v=> mt+ph-(Math.max(0,Math.min(kmScale.max,v))/kmScale.max)*ph)
     : leftAxisType==='performance'
