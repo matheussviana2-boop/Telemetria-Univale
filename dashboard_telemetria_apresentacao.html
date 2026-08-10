@@ -686,9 +686,15 @@ body::before{
   background:rgba(255,75,89,.22);
   box-shadow:0 0 8px rgba(255,75,89,.25),inset 0 0 7px rgba(255,75,89,.16);
 }
+.km-check input:checked + .evo-check-box{
+  border-color:rgba(39,237,246,.92);
+  background:rgba(39,237,246,.22);
+  box-shadow:0 0 8px rgba(39,237,246,.25),inset 0 0 7px rgba(39,237,246,.16);
+}
 .evo-check input:checked + .evo-check-box::after{transform:rotate(45deg) scale(1)}
 .performance-check:has(input:checked){color:#d7fbff;opacity:1;text-shadow:0 0 6px rgba(34,228,240,.28)}
 .events-check:has(input:checked){color:#ffd9dc;opacity:1;text-shadow:0 0 6px rgba(255,75,89,.25)}
+.km-check:has(input:checked){color:#d7fbff;opacity:1;text-shadow:0 0 6px rgba(39,237,246,.25)}
 @media(max-width:1080px){
   .evolution-head{display:flex;flex-direction:column}
   .evolution-side{display:flex;flex-direction:column;align-items:flex-start}
@@ -1598,6 +1604,11 @@ body::before{
                 <span class="evo-check-box" aria-hidden="true"></span>
                 <span>Eventos</span>
               </label>
+              <label class="evo-check km-check">
+                <input type="checkbox" id="evo-check-km">
+                <span class="evo-check-box" aria-hidden="true"></span>
+                <span>Km rodada</span>
+              </label>
             </div>
             <div class="evolution-badge" id="evolution-sector-label">TODOS OS SETORES</div>
           </div>
@@ -2141,7 +2152,7 @@ function sparkline(serie, trendDelta=null){
 }
 
 
-let evolutionMode='ambos';
+let evolutionSeries={performance:true,eventos:true,km:false};
 
 function niceMaxEvent(v){
   v=Number(v)||0;
@@ -2150,6 +2161,24 @@ function niceMaxEvent(v){
   for(const step of steps){ if(v<=step) return step; }
   const pow=Math.pow(10,Math.floor(Math.log10(v)));
   return Math.ceil(v/pow)*pow;
+}
+function getNiceStep(target, preferredSteps){
+  for(const step of preferredSteps){ if(target<=step) return step; }
+  const pow=Math.pow(10,Math.floor(Math.log10(target||1)));
+  return Math.ceil((target||1)/pow)*pow;
+}
+function buildNiceScale(maxValue, tickCount, preferredSteps){
+  maxValue=Math.max(0, Number(maxValue)||0);
+  tickCount=Math.max(1, Number(tickCount)||5);
+  if(maxValue<=0){
+    const step=getNiceStep(1, preferredSteps||[1,2,5,10]);
+    return {max:step*tickCount, step, ticks:Array.from({length:tickCount+1},(_,i)=>i*step)};
+  }
+  const step=getNiceStep(maxValue/tickCount, preferredSteps||[1,2,5,10]);
+  const max=Math.ceil(maxValue/step)*step;
+  const ticks=[];
+  for(let v=0; v<=max+step*.25; v+=step) ticks.push(v);
+  return {max, step, ticks};
 }
 function truncDec(v,d=2){const n=Number(v)||0, f=10**d; return (n>=0?Math.floor(n*f):Math.ceil(n*f))/f}
 function fmtPct(v){return truncDec(v,2).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'}
@@ -2166,30 +2195,19 @@ function smoothPath(points){
   return path;
 }
 function setEvolutionModeUI(){
-  const root=$('performance-evolution');
-  if(root){
-    root.classList.toggle('mode-events', evolutionMode==='eventos');
-  }
-  const title=$('evolution-title'), subtitle=$('evolution-subtitle');
-  if(title){
-    const consolidated = periodo==='consolidado';
-    if(evolutionMode==='eventos'){
-      title.textContent=consolidated?'Evolução Consolidada de Eventos':'Evolução de Eventos';
-      if(subtitle) subtitle.textContent=consolidated?'Acumulado progressivo de eventos no período (qtde)':'Tendência mensal de eventos (qtde)';
-    }else{
-      title.textContent=consolidated?'Evolução Consolidada de Performance':'Evolução de Performance';
-      if(subtitle) subtitle.textContent=consolidated?'Performance acumulada progressiva, ponderada por KM (%)':'Tendência mensal da performance operacional (%)';
-    }
-  }
   const perfCheck=$('evo-check-performance');
   const eventCheck=$('evo-check-eventos');
-  if(perfCheck) perfCheck.checked=evolutionMode!=='eventos';
-  if(eventCheck) eventCheck.checked=evolutionMode!=='performance';
+  const kmCheck=$('evo-check-km');
+  if(perfCheck) perfCheck.checked=!!evolutionSeries.performance;
+  if(eventCheck) eventCheck.checked=!!evolutionSeries.eventos;
+  if(kmCheck) kmCheck.checked=!!evolutionSeries.km;
   const legend=$('evolution-legend');
   if(legend){
-    if(evolutionMode==='performance') legend.innerHTML='<span class="legend-item"><span class="legend-swatch"></span>Performance (%)</span>';
-    else if(evolutionMode==='eventos') legend.innerHTML='<span class="legend-item"><span class="legend-swatch red"></span>Eventos (qtde)</span>';
-    else legend.innerHTML='<span class="legend-item"><span class="legend-swatch green"></span>Performance (%)</span><span class="legend-item"><span class="legend-swatch red bar"></span>Eventos (qtde)</span><span class="legend-item"><span class="legend-swatch cyan"></span>Km rodada</span>';
+    const items=[];
+    if(evolutionSeries.performance) items.push('<span class="legend-item"><span class="legend-swatch green"></span>Performance (%)</span>');
+    if(evolutionSeries.eventos) items.push('<span class="legend-item"><span class="legend-swatch red bar"></span>Eventos (qtde)</span>');
+    if(evolutionSeries.km) items.push('<span class="legend-item"><span class="legend-swatch cyan"></span>Km rodada</span>');
+    legend.innerHTML=items.join('');
   }
 }
 function bindEvolutionTooltip(){
@@ -2220,15 +2238,29 @@ function bindEvolutionTooltip(){
 }
 function renderEvolutionChart(){
   const svg=$('performance-chart');
+  const wrap=$('performance-chart-wrap');
   if(!svg || !DB || !DB.dados || !DB.dados[setor]) return;
   setEvolutionModeUI();
-  const W=1200,H=330;
-  const bothMode = evolutionMode==='ambos';
-  const ml = bothMode ? 54 : 62;
-  const mr = bothMode ? 78 : 48;
-  const mt = 26, mb = 46;
-  const sideInset = bothMode ? 34 : (evolutionMode==='eventos' ? 10 : 0);
+
+  const showPerf=!!evolutionSeries.performance;
+  const showEvents=!!evolutionSeries.eventos;
+  const showKm=!!evolutionSeries.km;
+  const activeCount=(showPerf?1:0)+(showEvents?1:0)+(showKm?1:0);
+
+  const W=1200;
+  const H=periodo==='consolidado' ? (activeCount>=3 ? 390 : 355) : (activeCount>=3 ? 350 : 330);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  if(wrap){
+    wrap.style.height=periodo==='consolidado' ? (activeCount>=3 ? '430px' : '400px') : (activeCount>=3 ? '385px' : '360px');
+  }
+
+  const leftAxisType = showKm ? 'km' : (showPerf ? 'performance' : 'eventos');
+  const rightAxisType = showEvents && leftAxisType!=='eventos' ? 'eventos' : null;
+  const leftPad = leftAxisType==='performance' ? 54 : 78;
+  const rightPad = rightAxisType==='eventos' ? 92 : 34;
+  const ml=leftPad, mr=rightPad, mt=34, mb=56;
   const pw=W-ml-mr, ph=H-mt-mb;
+
   const available=(DB.meses&&DB.meses.length?DB.meses:MESES_ALL).filter(m=>DB.dados[setor][m]);
   const months=MESES_ALL.filter(m=>available.includes(m));
   let cumulativeKm=0, cumulativeEv=0;
@@ -2246,135 +2278,118 @@ function renderEvolutionChart(){
   const monthNames={JAN:'Jan',FEV:'Fev',MAR:'Mar',ABR:'Abr',MAI:'Mai',JUN:'Jun',JUL:'Jul',AGO:'Ago',SET:'Set',OUT:'Out',NOV:'Nov',DEZ:'Dez'};
   const sectorText=(DB.labels&&DB.labels[setor])|| (setor==='TODOS'?'Todos os setores':setor.replaceAll('_',' '));
   const evolutionTitle=$('evolution-title');
-  if(evolutionTitle){
-    evolutionTitle.textContent='Evolução de Performance - '+sectorText;
-  }
+  if(evolutionTitle) evolutionTitle.textContent='Evolução de Performance - '+sectorText;
   const badge=$('evolution-sector-label');
-  if(badge){
-    badge.textContent=sectorText+' · '+(periodo==='consolidado'?'Consolidado':'Mensal');
-  }
+  if(badge) badge.textContent=sectorText+' · '+(periodo==='consolidado'?'Consolidado':'Mensal');
+
   let out=`<defs>
-    <linearGradient id="evoAreaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff7c" stop-opacity=".30"/><stop offset="1" stop-color="#3dff7c" stop-opacity="0"/></linearGradient>
+    <linearGradient id="evoAreaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3dff7c" stop-opacity=".26"/><stop offset="1" stop-color="#3dff7c" stop-opacity="0"/></linearGradient>
     <linearGradient id="evoAreaRedGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff4b59" stop-opacity=".34"/><stop offset="1" stop-color="#ff4b59" stop-opacity="0"/></linearGradient>
-    <linearGradient id="evoKmAreaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27edf6" stop-opacity=".13"/><stop offset="1" stop-color="#27edf6" stop-opacity="0"/></linearGradient>
+    <linearGradient id="evoKmAreaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27edf6" stop-opacity=".12"/><stop offset="1" stop-color="#27edf6" stop-opacity="0"/></linearGradient>
     <linearGradient id="evoBarGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff4b59" stop-opacity=".95"/><stop offset="1" stop-color="#62252d" stop-opacity=".28"/></linearGradient>
   </defs>`;
   if(!series.length){
     out+=`<text class="evo-empty" x="${W/2}" y="${H/2}">Sem dados mensais para o setor selecionado</text>`;
     svg.innerHTML=out; return;
   }
-  const xStart = ml + sideInset;
-  const xEnd = W - mr - sideInset;
-  const plotW = Math.max(120, xEnd - xStart);
-  const x=i=> series.length===1 ? xStart+plotW/2 : xStart+(i/(series.length-1))*plotW;
-  const perfY=v=> mt+ph-(Math.max(0,Math.min(100,v))/100)*ph;
-  const rawMaxEv=Math.max(...series.map(s=>s.ev),0);
-  const maxEv=niceMaxEvent(rawMaxEv);
-  /* No modo Ambos, acrescenta folga vertical para manter as barras dentro da nuvem de performance. */
-  const maxEvCombined=niceMaxEvent(rawMaxEv*1.38);
-  const evScaleMax=evolutionMode==='ambos' ? maxEvCombined : maxEv;
-  const evY=v=> mt+ph-(Math.max(0,Math.min(evScaleMax,v))/evScaleMax)*ph;
-  const perfPts=series.map((d,i)=>({x:x(i), y:perfY(d.perf), ...d}));
-  const evPts=series.map((d,i)=>({x:x(i), y:evY(d.ev), ...d}));
-  if(evolutionMode==='performance'){
+
+  const x=i=> series.length===1 ? ml+pw/2 : ml+(i/(series.length-1))*pw;
+  const KM_STEPS=[50000,100000,200000,400000,500000,1000000,2000000,4000000,5000000,10000000];
+  const EV_STEPS=[10000,20000,50000,100000,200000,400000,500000,1000000,2000000];
+  const kmScale=buildNiceScale(Math.max(...series.map(s=>s.km),0)*1.04, 5, KM_STEPS);
+  const evScale=buildNiceScale(Math.max(...series.map(s=>s.ev),0)*1.06, 5, EV_STEPS);
+  const leftY = leftAxisType==='km'
+    ? (v=> mt+ph-(Math.max(0,Math.min(kmScale.max,v))/kmScale.max)*ph)
+    : leftAxisType==='performance'
+      ? (v=> mt+ph-(Math.max(0,Math.min(100,v))/100)*ph)
+      : (v=> mt+ph-(Math.max(0,Math.min(evScale.max,v))/evScale.max)*ph);
+  const rightY = rightAxisType==='eventos'
+    ? (v=> mt+ph-(Math.max(0,Math.min(evScale.max,v))/evScale.max)*ph)
+    : null;
+  const perfFloor=Math.max(70, Math.floor(Math.min(...series.map(s=>s.perf),80)-5));
+  const perfBandTop=mt+12;
+  const perfBandBottom=mt+Math.max(26, ph*(periodo==='consolidado'?0.24:0.22));
+  const perfVisualY=v=>{
+    const denom=(100-perfFloor)||1;
+    const t=(Math.max(perfFloor,Math.min(100,v))-perfFloor)/denom;
+    return perfBandBottom - t*(perfBandBottom-perfBandTop);
+  };
+
+  const perfPts=showPerf ? series.map((d,i)=>({x:x(i), y:leftAxisType==='performance' ? leftY(d.perf) : perfVisualY(d.perf), ...d})) : [];
+  const kmPts=showKm ? series.map((d,i)=>({x:x(i), y:leftAxisType==='km' ? leftY(d.km) : leftY(d.km), ...d})) : [];
+  const evPts=showEvents ? series.map((d,i)=>({x:x(i), y:rightAxisType==='eventos' ? rightY(d.ev) : leftY(d.ev), ...d})) : [];
+
+  // Left axis and base grid
+  if(leftAxisType==='performance'){
     [0,20,40,60,80,100].forEach(v=>{
-      const y=perfY(v);
+      const y=leftY(v);
       out+=`<line class="evo-grid" x1="${ml}" y1="${y}" x2="${W-mr}" y2="${y}"/><text class="evo-label" x="${ml-14}" y="${y+4}" text-anchor="end">${v}%</text>`;
     });
-    out+=`<line class="evo-axis" x1="${ml}" y1="${mt}" x2="${ml}" y2="${mt+ph}"/><line class="evo-axis" x1="${ml}" y1="${mt+ph}" x2="${W-mr}" y2="${mt+ph}"/>`;
-    const path=smoothPath(perfPts), area=`${path} L ${perfPts[perfPts.length-1].x.toFixed(1)} ${mt+ph} L ${perfPts[0].x.toFixed(1)} ${mt+ph} Z`;
-    out+=`<path class="evo-area" d="${area}"/><path class="evo-shadow" d="${path}"/><path class="evo-line" d="${path}"/>`;
-    perfPts.forEach(p=>{
-      const labelY=Math.max(16,p.y-14);
-      out+=`<line class="evo-grid" x1="${p.x}" y1="${p.y+8}" x2="${p.x}" y2="${mt+ph}" opacity=".34"/>`;
-      out+=`<text class="evo-month" x="${p.x}" y="${mt+ph+28}" text-anchor="middle">${monthNames[p.m]||p.m}</text>`;
-      out+=`<text class="evo-value" x="${p.x}" y="${labelY}">${fmtPct(p.perf)}</text>`;
-      out+=`<circle class="evo-dot-halo" cx="${p.x}" cy="${p.y}" r="10"/><circle class="evo-dot" data-tip="1" data-kind="perf" data-month="${escHtml(monthNames[p.m]||p.m)}" data-perf="${p.perf.toFixed(2)}" cx="${p.x}" cy="${p.y}" r="5.8"/>`;
-    });
-  }else if(evolutionMode==='eventos'){
-    const ticks=5;
-    for(let i=0;i<=ticks;i++){
-      const v=(maxEv/ticks)*i, y=evY(v);
-      out+=`<line class="evo-grid-red" x1="${ml}" y1="${y}" x2="${W-mr}" y2="${y}"/><text class="evo-label-red" x="${ml-14}" y="${y+4}" text-anchor="end">${fmtInt(v)}</text>`;
-    }
-    out+=`<line class="evo-axis-red" x1="${ml}" y1="${mt}" x2="${ml}" y2="${mt+ph}"/><line class="evo-axis-red" x1="${ml}" y1="${mt+ph}" x2="${W-mr}" y2="${mt+ph}"/>`;
-    const path=smoothPath(evPts), area=`${path} L ${evPts[evPts.length-1].x.toFixed(1)} ${mt+ph} L ${evPts[0].x.toFixed(1)} ${mt+ph} Z`;
-    out+=`<path class="evo-area-red" d="${area}"/><path class="evo-shadow-red" d="${path}"/><path class="evo-line-red" d="${path}"/>`;
-    evPts.forEach(p=>{
-      const labelY=Math.max(16,p.y-14);
-      out+=`<line class="evo-grid-red" x1="${p.x}" y1="${p.y+8}" x2="${p.x}" y2="${mt+ph}" opacity=".32"/>`;
-      out+=`<text class="evo-month" x="${p.x}" y="${mt+ph+28}" text-anchor="middle">${monthNames[p.m]||p.m}</text>`;
-      out+=`<text class="evo-value-red" x="${p.x}" y="${labelY}">${fmtInt(p.ev)}</text>`;
-      out+=`<circle class="evo-dot-halo-red" cx="${p.x}" cy="${p.y}" r="10"/><circle class="evo-dot-red" data-tip="1" data-kind="event-line" data-month="${escHtml(monthNames[p.m]||p.m)}" data-ev="${p.ev}" cx="${p.x}" cy="${p.y}" r="5.8"/>`;
-    });
-  }else{
-    /* Modo combinado: KM no eixo esquerdo, eventos no eixo direito e performance sem eixo próprio. */
-    const rawMaxKm=Math.max(...series.map(s=>s.km),0);
-    const maxKm=niceMaxEvent(rawMaxKm*1.12);
-    const kmY=v=>mt+ph-(Math.max(0,Math.min(maxKm,v))/maxKm)*ph;
-    const kmPts=series.map((d,i)=>({x:x(i), y:kmY(d.km), ...d}));
-
-    /* Eixo esquerdo: KM rodada */
-    const kmTicks=6;
-    for(let i=0;i<=kmTicks;i++){
-      const v=(maxKm/kmTicks)*i, y=kmY(v);
+  }else if(leftAxisType==='km'){
+    kmScale.ticks.forEach(v=>{
+      const y=leftY(v);
       out+=`<line class="evo-grid" x1="${ml}" y1="${y}" x2="${W-mr}" y2="${y}"/><text class="evo-label-km" x="${ml-14}" y="${y+4}" text-anchor="end">${fmtInt(v)}</text>`;
-    }
-    out+=`<text class="evo-axis-title-km" x="${ml-4}" y="${mt-10}" text-anchor="end">Km rodada</text>`;
-
-    /* Eixo direito: Eventos */
-    const ticks=5;
-    for(let i=0;i<=ticks;i++){
-      const v=(evScaleMax/ticks)*i, y=evY(v);
-      out+=`<text class="evo-label-red" x="${W-mr+18}" y="${y+4}" text-anchor="start">${fmtInt(v)}</text>`;
-    }
-    out+=`<text class="evo-axis-title-events" x="${W-mr+18}" y="${mt-10}" text-anchor="start">Eventos (qtde)</text>`;
-    out+=`<line class="evo-axis-km" x1="${ml}" y1="${mt}" x2="${ml}" y2="${mt+ph}"/><line class="evo-axis" x1="${ml}" y1="${mt+ph}" x2="${W-mr}" y2="${mt+ph}"/><line class="evo-axis-red" x1="${W-mr}" y1="${mt}" x2="${W-mr}" y2="${mt+ph}"/>`;
-
-    /* Barras de eventos */
-    const barW=Math.min(28, Math.max(10, plotW/(Math.max(series.length,1)*8.2)));
-    const barLeft=perfPts[0].x;
-    const barRight=perfPts[perfPts.length-1].x;
-    const barStep=series.length===1 ? 0 : (barRight-barLeft-barW)/(series.length-1);
-    evPts.forEach((p,i)=>{
-      const bx=series.length===1 ? (barLeft+barRight-barW)/2 : (barLeft + i*barStep);
-      const barCenter=bx + barW/2;
-      const x0=bx.toFixed(1), y0=p.y.toFixed(1), h=(mt+ph-p.y).toFixed(1);
-      out+=`<rect class="evo-bar" data-tip="1" data-kind="event-bar" data-month="${escHtml(monthNames[p.m]||p.m)}" data-perf="${p.perf.toFixed(2)}" data-km="${p.km}" data-ev="${p.ev}" x="${x0}" y="${y0}" width="${barW.toFixed(1)}" height="${h}" rx="6" ry="6"/>`;
-      out+=`<text class="evo-value-red" x="${barCenter.toFixed(1)}" y="${Math.max(22,p.y-8)}">${fmtInt(p.ev)}</text>`;
     });
+    out+=`<text class="evo-axis-title-km" x="${ml-4}" y="${mt-10}" text-anchor="end">Km rodada</text>`;
+  }else{
+    evScale.ticks.forEach(v=>{
+      const y=leftY(v);
+      out+=`<line class="evo-grid-red" x1="${ml}" y1="${y}" x2="${W-mr}" y2="${y}"/><text class="evo-label-red" x="${ml-14}" y="${y+4}" text-anchor="end">${fmtInt(v)}</text>`;
+    });
+  }
+  out+=`<line class="evo-axis${leftAxisType==='eventos' ? '-red' : (leftAxisType==='km' ? '-km' : '')}" x1="${ml}" y1="${mt}" x2="${ml}" y2="${mt+ph}"/><line class="evo-axis" x1="${ml}" y1="${mt+ph}" x2="${W-mr}" y2="${mt+ph}"/>`;
 
-    /* Linha de KM rodada */
+  if(rightAxisType==='eventos'){
+    evScale.ticks.forEach(v=>{
+      const y=rightY(v);
+      out+=`<text class="evo-label-red" x="${W-mr+18}" y="${y+4}" text-anchor="start">${fmtInt(v)}</text>`;
+    });
+    out+=`<text class="evo-axis-title-events" x="${W-mr+18}" y="${mt-10}" text-anchor="start">Eventos (qtde)</text>`;
+    out+=`<line class="evo-axis-red" x1="${W-mr}" y1="${mt}" x2="${W-mr}" y2="${mt+ph}"/>`;
+  }
+
+  // Months / vertical guides
+  series.forEach((d,i)=>{
+    const px=x(i);
+    out+=`<line class="evo-grid" x1="${px}" y1="${mt}" x2="${px}" y2="${mt+ph}" opacity=".12"/>`;
+    out+=`<text class="evo-month" x="${px}" y="${mt+ph+28}" text-anchor="middle">${monthNames[d.m]||d.m}</text>`;
+  });
+
+  if(showEvents){
+    const barW=Math.min(28, Math.max(10, pw/(Math.max(series.length,1)*6.6)));
+    evPts.forEach((p,i)=>{
+      const bx=(p.x - barW/2), h=(mt+ph-p.y);
+      out+=`<rect class="evo-bar" data-tip="1" data-kind="event-bar" data-month="${escHtml(monthNames[p.m]||p.m)}" data-perf="${p.perf.toFixed(2)}" data-km="${p.km}" data-ev="${p.ev}" x="${bx.toFixed(1)}" y="${p.y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="6" ry="6"/>`;
+      out+=`<text class="evo-value-red" x="${p.x.toFixed(1)}" y="${Math.max(22,p.y-8)}">${fmtInt(p.ev)}</text>`;
+    });
+  }
+
+  if(showKm){
     const kmPath=smoothPath(kmPts);
     const kmArea=`${kmPath} L ${kmPts[kmPts.length-1].x.toFixed(1)} ${mt+ph} L ${kmPts[0].x.toFixed(1)} ${mt+ph} Z`;
     out+=`<path class="evo-km-area" d="${kmArea}"/><path class="evo-km-shadow" d="${kmPath}"/><path class="evo-km-line" d="${kmPath}"/>`;
-
-    /* Performance usa posição normalizada apenas para visualização, sem eixo percentual. */
-    const perfMin=Math.min(...series.map(s=>s.perf),80);
-    const perfFloor=Math.max(75, Math.floor(perfMin-5));
-    const perfCeil=100;
-    const perfVisualY=v=>{
-      const t=(Math.max(perfFloor,Math.min(perfCeil,v))-perfFloor)/(perfCeil-perfFloor || 1);
-      return mt+ph*(0.23 - t*0.17);
-    };
-    const perfVisualPts=series.map((d,i)=>({x:x(i),y:perfVisualY(d.perf),...d}));
-    const perfPath=smoothPath(perfVisualPts);
-    out+=`<path class="evo-shadow" d="${perfPath}"/><path class="evo-line" d="${perfPath}"/>`;
-
-    series.forEach((d,i)=>{
-      const px=x(i), kp=kmPts[i], pp=perfVisualPts[i];
-      out+=`<line class="evo-grid" x1="${px}" y1="${mt}" x2="${px}" y2="${mt+ph}" opacity=".12"/>`;
-      out+=`<text class="evo-month" x="${px}" y="${mt+ph+28}" text-anchor="middle">${monthNames[d.m]||d.m}</text>`;
-      out+=`<text class="evo-value-km" x="${kp.x}" y="${Math.max(mt+30,kp.y-12)}">${fmtInt(d.km)}</text>`;
-      out+=`<circle class="evo-km-halo" cx="${kp.x}" cy="${kp.y}" r="9"/><circle class="evo-km-dot" data-tip="1" data-kind="km" data-month="${escHtml(monthNames[d.m]||d.m)}" data-perf="${d.perf.toFixed(2)}" data-km="${d.km}" data-ev="${d.ev}" cx="${kp.x}" cy="${kp.y}" r="5.2"/>`;
-      out+=`<text class="evo-value" x="${pp.x}" y="${Math.max(16,pp.y-13)}">${fmtPct(d.perf)}</text>`;
-      out+=`<circle class="evo-dot-halo" cx="${pp.x}" cy="${pp.y}" r="10"/><circle class="evo-dot" data-tip="1" data-kind="perf-both" data-month="${escHtml(monthNames[d.m]||d.m)}" data-perf="${d.perf.toFixed(2)}" data-km="${d.km}" data-ev="${d.ev}" cx="${pp.x}" cy="${pp.y}" r="5.8"/>`;
+    kmPts.forEach(p=>{
+      out+=`<text class="evo-value-km" x="${p.x}" y="${Math.max(mt+20,p.y-12)}">${fmtInt(p.km)}</text>`;
+      out+=`<circle class="evo-km-halo" cx="${p.x}" cy="${p.y}" r="9"/><circle class="evo-km-dot" data-tip="1" data-kind="km" data-month="${escHtml(monthNames[p.m]||p.m)}" data-perf="${p.perf.toFixed(2)}" data-km="${p.km}" data-ev="${p.ev}" cx="${p.x}" cy="${p.y}" r="5.2"/>`;
     });
   }
+
+  if(showPerf){
+    const perfPath=smoothPath(perfPts);
+    if(leftAxisType==='performance'){
+      const area=`${perfPath} L ${perfPts[perfPts.length-1].x.toFixed(1)} ${mt+ph} L ${perfPts[0].x.toFixed(1)} ${mt+ph} Z`;
+      out+=`<path class="evo-area" d="${area}"/>`;
+    }
+    out+=`<path class="evo-shadow" d="${perfPath}"/><path class="evo-line" d="${perfPath}"/>`;
+    perfPts.forEach(p=>{
+      out+=`<text class="evo-value" x="${p.x}" y="${Math.max(16,p.y-13)}">${fmtPct(p.perf)}</text>`;
+      out+=`<circle class="evo-dot-halo" cx="${p.x}" cy="${p.y}" r="10"/><circle class="evo-dot" data-tip="1" data-kind="perf" data-month="${escHtml(monthNames[p.m]||p.m)}" data-perf="${p.perf.toFixed(2)}" data-km="${p.km}" data-ev="${p.ev}" cx="${p.x}" cy="${p.y}" r="5.8"/>`;
+    });
+  }
+
   svg.innerHTML=out;
   bindEvolutionTooltip();
 }
-
 
 
 function renderSectorPerformanceChart(){
@@ -2560,14 +2575,19 @@ $('mes').addEventListener('change', e=>{ mes=e.target.value; render(); });
 function syncEvolutionChecks(changed){
   const perf=$('evo-check-performance');
   const events=$('evo-check-eventos');
-  if(!perf || !events) return;
-  if(!perf.checked && !events.checked){
+  const km=$('evo-check-km');
+  if(!perf || !events || !km) return;
+  if(!perf.checked && !events.checked && !km.checked){
     changed.checked=true;
   }
-  evolutionMode=perf.checked && events.checked ? 'ambos' : (events.checked ? 'eventos' : 'performance');
+  evolutionSeries={
+    performance:!!perf.checked,
+    eventos:!!events.checked,
+    km:!!km.checked
+  };
   renderEvolutionChart();
 }
-['evo-check-performance','evo-check-eventos'].forEach(id=>{
+['evo-check-performance','evo-check-eventos','evo-check-km'].forEach(id=>{
   const el=$(id);
   if(el) el.addEventListener('change',()=>syncEvolutionChecks(el));
 });
