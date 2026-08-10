@@ -225,15 +225,16 @@ td.left .pt{margin:0}
     <span class="spacer"></span>
     <div class="header-actions">
       <div class="drops">
-        <button type="button" class="btn-todos" id="btnTodos" title="Selecione as planilhas de viagens, eventos e cartões (o sistema identifica qual é qual)">⇪ Carregar planilhas</button>
+        <button type="button" class="btn-todos" id="btnTodos" title="Selecione Viagens do Dia, Eventos, Cartões Mariana, Santa Bárbara e Compartilhados (o sistema identifica qual é qual)">⇪ Carregar planilhas</button>
         <input type="file" id="fileTodos" accept=".xlsx,.xls,.csv" multiple style="display:none">
         <button type="button" class="btn-limpar" id="btnLimpar" title="Remove tudo o que foi carregado, pra subir as planilhas de outro dia">Limpar dados</button>
       </div>
       <div class="stamp-block" id="statusBlock">
-        <label class="chk"><input type="checkbox" id="chkV" disabled><span class="box"></span><span class="lbl">Viagens</span></label>
+        <label class="chk"><input type="checkbox" id="chkV" disabled><span class="box"></span><span class="lbl">Viagens do Dia</span></label>
         <label class="chk"><input type="checkbox" id="chkE" disabled><span class="box"></span><span class="lbl">Eventos</span></label>
-        <label class="chk"><input type="checkbox" id="chkP1" disabled><span class="box"></span><span class="lbl">Cartões · Minas Centrais</span></label>
-        <label class="chk"><input type="checkbox" id="chkP2" disabled><span class="box"></span><span class="lbl">Cartões · Mariana</span></label>
+        <label class="chk"><input type="checkbox" id="chkP1" disabled><span class="box"></span><span class="lbl">Cartões · Mariana</span></label>
+        <label class="chk"><input type="checkbox" id="chkP2" disabled><span class="box"></span><span class="lbl">Cartões · Santa Bárbara</span></label>
+        <label class="chk"><input type="checkbox" id="chkP3" disabled><span class="box"></span><span class="lbl">Cartões · Compartilhados</span></label>
         <div class="stamp-date">Data do relatório: <b id="stamp">—</b></div>
       </div>
     </div>
@@ -243,7 +244,7 @@ td.left .pt{margin:0}
 <div class="wrap">
   <div id="msg"></div>
   <div class="empty-state" id="emptyState">
-    <p>Aguardando carregamento das planilhas <b>Viagens do dia</b>, <b>Eventos</b> e <b>Passagem de cartões</b>.</p>
+    <p>Aguardando carregamento das planilhas <b>Viagens do Dia</b>, <b>Eventos</b>, <b>Cartões Mariana</b>, <b>Cartões Santa Bárbara</b> e <b>Cartões Compartilhados</b>.</p>
   </div>
 
   <div class="toolbar" id="toolbar" style="display:none">
@@ -650,7 +651,7 @@ if(typeof module!=='undefined'&&module.exports){module.exports={normFrota:normFr
 <!-- ============ CORE:END ============ -->
 
 <script>
-var DADOS={viagens:null,eventos:null,nomeV:'',nomeE:'',passagens1:null,passagens2:null,nomeP1:'',nomeP2:''};
+var DADOS={viagens:null,eventos:null,nomeV:'',nomeE:'',passagens1:null,passagens2:null,passagens3:null,nomeP1:'',nomeP2:'',nomeP3:''};
 var RESULTADO=[];
 var ORDEM={col:'real0',dir:1};
 var PADRAO={tolerancia:5,tipoEvento:'entrada',passagem:'primeira'}; // sem filtro na tela por ora
@@ -693,11 +694,14 @@ function aplicarLinhas(alvo,linhas,nomeArquivo){
     DADOS.eventos=prepararEventos(linhas); DADOS.nomeE=nomeArquivo;
     $('chkE').checked=true;
   }else if(alvo==='passagens1'){
-    DADOS.passagens1=prepararPassagens(linhas,'Minas Centrais'); DADOS.nomeP1=nomeArquivo;
+    DADOS.passagens1=prepararPassagens(linhas,'Mariana'); DADOS.nomeP1=nomeArquivo;
     $('chkP1').checked=true;
   }else if(alvo==='passagens2'){
-    DADOS.passagens2=prepararPassagens(linhas,'Mariana'); DADOS.nomeP2=nomeArquivo;
+    DADOS.passagens2=prepararPassagens(linhas,'Santa Bárbara'); DADOS.nomeP2=nomeArquivo;
     $('chkP2').checked=true;
+  }else if(alvo==='passagens3'){
+    DADOS.passagens3=prepararPassagens(linhas,'Compartilhados'); DADOS.nomeP3=nomeArquivo;
+    $('chkP3').checked=true;
   }
 }
 /* data do relatório = data mais frequente entre as viagens carregadas (não a data de hoje) */
@@ -728,11 +732,24 @@ function receber(file,alvo,elDrop){
   });
 }
 /* botão "carregar tudo de uma vez": detecta o tipo de cada planilha pelo conteúdo
-   e encaixa automaticamente nos slots certos (viagens/eventos/cartões 1/cartões 2) */
+   e encaixa automaticamente nos slots certos (viagens/eventos/Mariana/Santa Bárbara/Compartilhados) */
+function slotPassagensPorNome(nomeArquivo){
+  var n=normTexto(nomeArquivo||'');
+  if(n.indexOf('MARIANA')>=0) return 'passagens1';
+  if(n.indexOf('SANTA BARBARA')>=0 || n.indexOf('SANTA BARB')>=0) return 'passagens2';
+  if(n.indexOf('COMPARTILH')>=0 || n.indexOf('COMPART')>=0) return 'passagens3';
+  return '';
+}
+function primeiroSlotPassagensLivre(){
+  if(!DADOS.passagens1) return 'passagens1';
+  if(!DADOS.passagens2) return 'passagens2';
+  if(!DADOS.passagens3) return 'passagens3';
+  return '';
+}
 function receberMultiplos(fileList){
   var arquivos=Array.prototype.slice.call(fileList);
   if(!arquivos.length) return;
-  var pendentes=arquivos.length, erros=[], passagensRecebidas=0;
+  var pendentes=arquivos.length, erros=[];
   arquivos.forEach(function(file){
     lerArquivo(file,function(err,linhas){
       pendentes--;
@@ -743,9 +760,12 @@ function receberMultiplos(fileList){
         if(tipo==='viagens'||tipo==='eventos'){
           aplicarLinhas(tipo,linhas,file.name);
         }else if(tipo==='passagens'){
-          var slot = passagensRecebidas===0 ? 'passagens1' : 'passagens2';
-          passagensRecebidas++;
-          aplicarLinhas(slot,linhas,file.name);
+          var slot=slotPassagensPorNome(file.name) || primeiroSlotPassagensLivre();
+          if(slot){
+            aplicarLinhas(slot,linhas,file.name);
+          }else{
+            erros.push(file.name+': já existem três planilhas de cartões carregadas (Mariana, Santa Bárbara e Compartilhados)');
+          }
         }else{
           erros.push(file.name+': não foi possível identificar o tipo da planilha (viagens, eventos ou cartões)');
         }
@@ -758,7 +778,7 @@ function receberMultiplos(fileList){
   });
 }
 function passagensCombinadas(){
-  return (DADOS.passagens1||[]).concat(DADOS.passagens2||[]);
+  return (DADOS.passagens1||[]).concat(DADOS.passagens2||[],DADOS.passagens3||[]);
 }
 
 function processar(){
@@ -802,8 +822,9 @@ function avisarDivergenciaDeData(){
     }
   }
   checar('Eventos',DADOS.nomeE,DADOS.eventos,function(e){return e.ts});
-  checar('Cartões · Minas Centrais',DADOS.nomeP1,DADOS.passagens1,function(p){return p.ts});
-  checar('Cartões · Mariana',DADOS.nomeP2,DADOS.passagens2,function(p){return p.ts});
+  checar('Cartões · Mariana',DADOS.nomeP1,DADOS.passagens1,function(p){return p.ts});
+  checar('Cartões · Santa Bárbara',DADOS.nomeP2,DADOS.passagens2,function(p){return p.ts});
+  checar('Cartões · Compartilhados',DADOS.nomeP3,DADOS.passagens3,function(p){return p.ts});
   if(problemas.length){
     msg('A planilha de <b>Viagens</b> está com data '+faixaTxt(intV)+'. As planilhas abaixo parecem ser de outro dia — confira se subiu o arquivo certo:<br>• '+problemas.join('<br>• '),true);
   }
@@ -1098,15 +1119,15 @@ function baixar(blob,nome){
 $('fileTodos').addEventListener('change',function(){ if(this.files.length) receberMultiplos(this.files); this.value=''; });
 $('btnTodos').addEventListener('click',function(){ $('fileTodos').click(); });
 $('btnLimpar').addEventListener('click',function(){
-  if(!DADOS.viagens&&!DADOS.eventos&&!DADOS.passagens1&&!DADOS.passagens2) return;
+  if(!DADOS.viagens&&!DADOS.eventos&&!DADOS.passagens1&&!DADOS.passagens2&&!DADOS.passagens3) return;
   if(!confirm('Isso vai apagar todas as planilhas carregadas (viagens, eventos e cartões) pra você subir os dados de outro dia. Continuar?')) return;
   limparTudo();
 });
 function limparTudo(){
-  DADOS={viagens:null,eventos:null,nomeV:'',nomeE:'',passagens1:null,passagens2:null,nomeP1:'',nomeP2:''};
+  DADOS={viagens:null,eventos:null,nomeV:'',nomeE:'',passagens1:null,passagens2:null,passagens3:null,nomeP1:'',nomeP2:'',nomeP3:''};
   RESULTADO=[];
   FILTROS.q=''; FILTROS.operadora=''; FILTROS.card='todos';
-  ['chkV','chkE','chkP1','chkP2'].forEach(function(id){ $(id).checked=false; });
+  ['chkV','chkE','chkP1','chkP2','chkP3'].forEach(function(id){ $(id).checked=false; });
   $('stamp').textContent='—';
   $('search').value='';
   $('filterOperadora').innerHTML='<option value="">Todas</option>';
