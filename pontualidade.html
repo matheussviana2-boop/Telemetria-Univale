@@ -358,7 +358,7 @@ function parseData(v){
 }
 function hhmm(d){ if(!d) return null;
   var p=function(n){return (n<10?'0':'')+n};
-  return p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+  return p(d.getHours())+':'+p(d.getMinutes());
 }
 function ddmm(d){ if(!d) return null;
   var p=function(n){return (n<10?'0':'')+n};
