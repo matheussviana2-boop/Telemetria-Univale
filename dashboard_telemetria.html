@@ -10,6 +10,8 @@
 <meta http-equiv="Expires" content="0">
 <title>Telemetria · Univale</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -189,6 +191,17 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f7fbfb}
 .controls input[type=search]{min-width:200px}
 .mot-controls{justify-content:space-between;align-items:center}
 .mot-controls-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mot-detail-toolbar{gap:12px}
+.mot-export-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+.export-btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);font-family:var(--sans);font-size:12px;font-weight:800;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 12px;border-radius:9px;cursor:pointer;box-shadow:0 1px 2px rgba(0,49,47,.04);transition:transform .15s ease,box-shadow .15s ease,background .15s ease,border-color .15s ease;color .15s ease}
+.export-btn svg{width:15px;height:15px;display:block;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.export-btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(0,49,47,.09)}
+.export-btn.excel{color:#087443;border-color:#bfe7d2;background:#f2fbf6}
+.export-btn.excel:hover{background:#e4f7ed;border-color:#9bd5b8}
+.export-btn.pdf{color:#b3001b;border-color:#f2c2ca;background:#fff5f7}
+.export-btn.pdf:hover{background:#fdecef;border-color:#eca7b3}
+.export-btn:disabled{opacity:.55;cursor:wait;transform:none;box-shadow:none}
+@media(max-width:700px){.mot-detail-toolbar{align-items:stretch}.mot-detail-toolbar .mot-controls-left,.mot-export-actions{width:100%}.mot-detail-toolbar .mot-controls-left input{width:100%}.mot-export-actions{margin-left:0}.export-btn{flex:1}}
 .perf-toggle-wrap{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .perf-toggle-label{font-size:13px;font-weight:700;color:var(--muted)}
 .perf-toggle{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px;box-shadow:var(--shadow)}
@@ -4402,8 +4415,20 @@ header h1{
 
       <!-- DETALHADO -->
       <div id="motDetalhado" style="display:none">
-        <div class="controls mot-controls" style="margin-top:8px">
-          <input type="search" id="q" placeholder="Buscar motorista...">
+        <div class="controls mot-controls mot-detail-toolbar" style="margin-top:8px">
+          <div class="mot-controls-left">
+            <input type="search" id="q" placeholder="Buscar motorista...">
+          </div>
+          <div class="mot-export-actions" aria-label="Exportar relação detalhada de motoristas">
+            <button type="button" class="export-btn excel" id="btnExportExcel" title="Exportar a relação exibida para Excel">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/><path d="M14 3v18"/><path d="M3 7l7 10"/><path d="M10 7L3 17"/></svg>
+              <span>Exportar Excel</span>
+            </button>
+            <button type="button" class="export-btn pdf" id="btnExportPdf" title="Exportar a relação exibida para PDF">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5"/><path d="M8.5 16v-5h2a1.5 1.5 0 0 1 0 3h-2"/><path d="M14 16v-5h1.5a2.5 2.5 0 0 1 0 5H14"/></svg>
+              <span>Exportar PDF</span>
+            </button>
+          </div>
         </div>
         <div class="cnt" id="cnt"></div>
         <div class="twrap"><table id="tbl"><thead><tr id="tblHead"></tr></thead><tbody id="tbody"></tbody></table></div>
@@ -5893,18 +5918,131 @@ function setupTable(D){
   document.querySelectorAll('#tbl th.s').forEach(function(th){th.addEventListener('click',function(){var k=th.dataset.k;if(TBL.sortK===k)TBL.sortDir*=-1;else{TBL.sortK=k;TBL.sortDir=(k==='nome')?1:-1};renderTable()})});
   renderTable()
 }
-function renderTable(){
-  var D=TBL.D;if(!D)return;
-  var q=document.getElementById('q').value.trim().toUpperCase();
-  var ep=EV_COLS;
+function getDetailedDriverRows(){
+  var D=TBL.D;if(!D)return[];
+  var qEl=document.getElementById('q');
+  var q=qEl?qEl.value.trim().toUpperCase():'';
   var rows=D.drivers.filter(function(d){return !q||d.nome.toUpperCase().indexOf(q)>=0});
   var k=TBL.sortK,dir=TBL.sortDir;
   rows.sort(function(a,b){
     var x,y;
     if(k==='activePerf'){x=drvPerf(a);y=drvPerf(b)}else{x=a[k];y=b[k]}
     if(x==null)x=-999999;if(y==null)y=-999999;
-    return typeof x==='string'?dir*x.localeCompare(y):dir*(x-y)
+    return typeof x==='string'?dir*x.localeCompare(y,'pt-BR'):dir*(x-y)
   });
+  return rows;
+}
+function exportSafeName(v){
+  return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').replace(/^_+|_+$/g,'').replace(/_+/g,'_');
+}
+function detailedExportMeta(){
+  var sector=STATE.setor&&STATE.setor!=='ALL'?setorLabel(STATE.setor):'Todos os setores';
+  var period=periodLabelCompact();
+  var qEl=document.getElementById('q');
+  var search=qEl?qEl.value.trim():'';
+  return{sector:sector,period:period,search:search,generated:new Date()};
+}
+function detailedExportBaseName(){
+  var meta=detailedExportMeta();
+  var parts=['motoristas_detalhado',exportSafeName(meta.sector),exportSafeName(meta.period)];
+  if(meta.search)parts.push('filtro_'+exportSafeName(meta.search).slice(0,28));
+  return parts.filter(Boolean).join('_');
+}
+function setExportBusy(busy){
+  ['btnExportExcel','btnExportPdf'].forEach(function(id){var b=document.getElementById(id);if(b)b.disabled=!!busy});
+}
+function exportDriversExcel(){
+  var rows=getDetailedDriverRows();
+  if(!rows.length){alert('Não há motoristas na relação atual para exportar.');return;}
+  if(typeof XLSX==='undefined'){alert('A biblioteca de Excel não foi carregada. Atualize a página e tente novamente.');return;}
+  setExportBusy(true);
+  try{
+    var meta=detailedExportMeta();
+    var headers=['#','Motorista','Performance (%)','KM','Eventos'].concat(EV_COLS);
+    var aoa=[
+      ['UNIVALE TRANSPORTES - TELEMETRIA OPERACIONAL'],
+      ['Relação detalhada de motoristas'],
+      ['Setor',meta.sector,'Período',meta.period],
+      ['Filtro de busca',meta.search||'Sem filtro','Exportado em',meta.generated.toLocaleString('pt-BR')],
+      [],
+      headers
+    ];
+    rows.forEach(function(d,i){
+      aoa.push([i+1,d.nome,drvPerf(d)==null?'':Number(drvPerf(d)),Number(d.km)||0,Number(d.pts)||0].concat(EV_COLS.map(function(e){return Number(d.ev[e]||0)})));
+    });
+    var ws=XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols']=[{wch:5},{wch:32},{wch:17},{wch:12},{wch:12}].concat(EV_COLS.map(function(e){return{wch:Math.max(13,Math.min(21,e.length+2))}}));
+    ws['!autofilter']={ref:'A6:'+XLSX.utils.encode_col(headers.length-1)+(rows.length+6)};
+    for(var r=7;r<=rows.length+6;r++){
+      var perfCell=ws['C'+r];if(perfCell&&typeof perfCell.v==='number')perfCell.z='0.00"%"';
+      var kmCell=ws['D'+r];if(kmCell)kmCell.z='#,##0';
+      var evCell=ws['E'+r];if(evCell)evCell.z='#,##0';
+    }
+    ws['!merges']=[XLSX.utils.decode_range('A1:O1'),XLSX.utils.decode_range('A2:O2')];
+    var wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Motoristas');
+    XLSX.writeFile(wb,detailedExportBaseName()+'.xlsx',{compression:true});
+  }catch(err){
+    console.error('Erro ao exportar Excel:',err);
+    alert('Não foi possível gerar o Excel. Tente novamente.');
+  }finally{setExportBusy(false)}
+}
+function exportDriversPdf(){
+  var rows=getDetailedDriverRows();
+  if(!rows.length){alert('Não há motoristas na relação atual para exportar.');return;}
+  if(!window.jspdf||!window.jspdf.jsPDF){alert('A biblioteca de PDF não foi carregada. Atualize a página e tente novamente.');return;}
+  setExportBusy(true);
+  try{
+    var jsPDF=window.jspdf.jsPDF;
+    var doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
+    if(typeof doc.autoTable!=='function'){throw new Error('AutoTable indisponível');}
+    var meta=detailedExportMeta();
+    var headers=['#','Motorista','Performance','KM','Eventos'].concat(EV_COLS);
+    var body=rows.map(function(d,i){
+      var perf=drvPerf(d);
+      return [i+1,d.nome,perf==null?'-':fmtDec(perf,2)+'%',fmt(d.km),fmt(d.pts)].concat(EV_COLS.map(function(e){return fmt(d.ev[e]||0)}));
+    });
+    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('UNIVALE TRANSPORTES - TELEMETRIA OPERACIONAL',24,28);
+    doc.setFontSize(11);doc.text('Relação detalhada de motoristas',24,45);
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(70);
+    var line='Setor: '+meta.sector+'   |   Período: '+meta.period+'   |   '+rows.length+' motoristas';
+    if(meta.search)line+='   |   Busca: '+meta.search;
+    doc.text(line,24,61,{maxWidth:790});
+    doc.setFontSize(7.5);doc.text('Exportado em '+meta.generated.toLocaleString('pt-BR'),24,74);
+    doc.autoTable({
+      startY:84,
+      head:[headers],
+      body:body,
+      theme:'grid',
+      margin:{left:18,right:18,bottom:22},
+      tableWidth:'auto',
+      styles:{font:'helvetica',fontSize:6.2,cellPadding:2.2,valign:'middle',overflow:'linebreak',lineColor:[220,232,232],lineWidth:.35,textColor:[20,35,35]},
+      headStyles:{fillColor:[0,161,155],textColor:[255,255,255],fontStyle:'bold',halign:'center',fontSize:6.1},
+      columnStyles:{
+        0:{cellWidth:22,halign:'center'},
+        1:{cellWidth:105,halign:'left'},
+        2:{cellWidth:52,halign:'center'},
+        3:{cellWidth:42,halign:'right'},
+        4:{cellWidth:42,halign:'right'}
+      },
+      didParseCell:function(data){if(data.section==='body'&&data.column.index>=5)data.cell.styles.halign='center';},
+      didDrawPage:function(data){
+        var page=doc.internal.getNumberOfPages();
+        doc.setFontSize(7);doc.setTextColor(110);
+        doc.text('Univale Transportes - CSC Telemetria',18,doc.internal.pageSize.height-8);
+        doc.text('Página '+page,doc.internal.pageSize.width-18,doc.internal.pageSize.height-8,{align:'right'});
+      }
+    });
+    doc.save(detailedExportBaseName()+'.pdf');
+  }catch(err){
+    console.error('Erro ao exportar PDF:',err);
+    alert('Não foi possível gerar o PDF. Tente novamente.');
+  }finally{setExportBusy(false)}
+}
+function renderTable(){
+  var D=TBL.D;if(!D)return;
+  var ep=EV_COLS;
+  var rows=getDetailedDriverRows();
   document.getElementById('cnt').textContent=rows.length+' motoristas';
   document.getElementById('tbody').innerHTML=rows.map(function(d,i){
     var perf=drvPerf(d);
@@ -5962,6 +6100,8 @@ function bindEvents(){
   document.getElementById('sectorSel').addEventListener('change',function(){if(STATE.lockedSetor){this.value=STATE.setor;return;}STATE.setor=normalizeSectorCode(this.value);STATE.selEvent=null;applySetor()});
   document.getElementById('monthSel').addEventListener('change',function(){STATE.scope=this.value;buildRender()});
   ['q'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',renderTable)});
+  var btnExportExcel=document.getElementById('btnExportExcel');if(btnExportExcel)btnExportExcel.addEventListener('click',exportDriversExcel);
+  var btnExportPdf=document.getElementById('btnExportPdf');if(btnExportPdf)btnExportPdf.addEventListener('click',exportDriversPdf);
   // toggle resumo/detalhado
   document.querySelectorAll('.perf-btn[data-view]').forEach(function(btn){
     btn.addEventListener('click',function(){setMotView(btn.dataset.view)});
