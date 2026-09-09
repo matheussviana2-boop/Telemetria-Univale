@@ -10,6 +10,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Telemetria · Univale</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -5901,6 +5902,8 @@ function renderDiag(){
     '<div id="diagConsolidadoView" class="diag-view-panel" style="display:none">'+consolidadoHtml+'</div>');
   setDiagView(STATE.diagView||'mensal',true);
 }
+var UNIVALE_LOGO_GREEN='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIcAAAATCAYAAAC6EB5fAAAFfElEQVR4nO2ZfWjWVRTHP3uprQ0b0guLSEoKgkqrudZaliyLsrdllKm0GgmVlcVopZbWWMWcBlrSH2layYog2igTtmb2gm/JKlsRRkRlL5qFSJtzr09/nHO557n7bcz2PFPG84Uf555z386999xzzn2eNKruZBDcDTwAnAY8A5wBlANdQNFgnVIYO0gfoq4cKATOAw4B7cBk4BLgqeSrlsKxxlDGMQkxCoD9Wu4BjgDXJ1mvFI4DDGYctcA4oFf5VtM2E7ggyXqlcBxgMOOYAfTr59Bl+JORPCSFMYwo45gKTNS6k4y8HfEamcqXJ1e1FI41oozjdiAb8RLZKvsIqAEytE8/YkBlCdBhc8B/rfQ+YIuRzwS+1HI94t1eAlYG/beacgkQC+rX6NgWNdrOfXaM64K6GLAXmBvI3gvGfNisxSGm4znUAxVafsWMtUFlnwdz2FfiXiOvDOZw3w8qWx+xhtXA44HM7W8dEIsyjlLk8DPxxrNMlQdvIACLIvofLUoDfrLSy4FpwALlpyEvJYA7gGKgBXjU9F0EXGH4OqX2dTUPKAjmvMHochdiVA7Nqss25acAZwEXKV8OPA3chjz/HV42a7FoMuU5qu/VwIM61jJgvNZfCXyhc/4E7FD5L8gZpAHLgReB2WZdNwP3Iy/NNxADvMzMW4oYr9v7G4FbgUuVrwKWhsZRBpyLJKKZQJbKW3SSLuUzlNoJE40epauU7jd1h4F84H3ly5RWIYfiMAHZXGsc+4B/grk6lW4B3onQZSfwtpZbgz4bgOe1fLbSe0zfbyPGa1Tap/rkKf8rsBC4ybSt1jntJZgAnKnlJ4A24C2j20bgVS07b7NLx+/Be+Qs5BW6Cb+XDm2hccwBToxYjEOvKbvDqx6i/UiQi9zW7xCXl2Pq0oFTtPwH8IiWx+M9TSXiVouIz51ygROCudy6nHudG6FPdsB3B31AwhOIQa9Fbnb4sluM3FKQnwWykINpAD7Rsaaa9h8C7wIfAF9F6AWwXanzHFanCtMuh/i15yCG6drPV/kOoCE0jkJVuB/ZsB5TNwufjPZom07gqkEUThQuVLo4kDsvVo24x9VGBuJFSvEHvV5pNgMvgDv4NMSF10fo0RvwboyPlb5u6vKQ8NWo/AJT14wYTwwxVHcGM3X+JuAz075Dv3l4tx9iolLnOZYq3Yc3HBCD7jD8QaVTkLDtUodiIM0ax3zk5nUiG+E+kBu4QhfSZeq68a50JKhVanOYcXjvEL6MXMIM3n0+hNxWh3zgZyQPaAPuVfkRM65Drim3Mjw4b3SNzu3GX6O0AX/wq3w3WoHHDP+jUnfD3Q+MLnGtRMLUa6bPbrzhAUwHnjN8DZLL5EfonWnK7cBfqtOnRv4kxL9WZiEeoRsxgG7EAHYjyU4F8Lu27cYfTh6S3PxfLFdlYsALwLMq70IycpC43mL6/El83rBOqdNjBfA3cA6y2ZPwXvB7xNicK61DYjFGtjJCz4MBf8iU3Y37BrnhCxFPcAviDVDewsn3IAnpOjP/NsTD9BD9orwYCU2ufROwJGizHUlibc7zG3JhHPYAp5txNiKethaIpZk/3g4o7cU/V3OBN/GbvhmJh+2B0ruAayMWcTQoI/42JBMzEA+ZZ+Yswf+205ykeQsYvmcaDoqJDxsjQQnxT/jpzsUsQTalk/hD7yXe0lzICVGYAOUaEzDGcLEpQrY1QpZoJNIwIHGGAQPX3+IMwb13M5Bs1ma0B0z5cDBAOhLD8pAfpFIYQ3DGcT4+h+jTDyQjt7G1Q9v1mfb9SGycnVRNUxh1pCPJWy4+XGTo50JOu2n/r9L+gHYDp5L6K39MwSWkRQw8cBAD2Rn0sUlVAT55zWZ04nYKo4T/AM0nWrsslfqdAAAAAElFTkSuQmCC';
+var UNIVALE_LOGO_WHITE='data:image/png;base64,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';
 var TBL={D:null,sortK:'activePerf',sortDir:-1};
 function renderMotEventCards(D){
   var ep=EV_COLS;
@@ -5926,9 +5929,21 @@ function getDetailedDriverRows(){
   var k=TBL.sortK,dir=TBL.sortDir;
   rows.sort(function(a,b){
     var x,y;
-    if(k==='activePerf'){x=drvPerf(a);y=drvPerf(b)}else{x=a[k];y=b[k]}
+    if(k==='activePerf'){
+      x=drvPerf(a);y=drvPerf(b);
+      if(x==null)x=-999999;if(y==null)y=-999999;
+      var perfCmp=dir*(x-y);
+      if(perfCmp!==0)return perfCmp;
+      // Em empate de performance (principalmente 100%), prioriza sempre quem rodou mais KM.
+      var kmCmp=(Number(b.km)||0)-(Number(a.km)||0);
+      if(kmCmp!==0)return kmCmp;
+      return String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR');
+    }
+    x=a[k];y=b[k];
     if(x==null)x=-999999;if(y==null)y=-999999;
-    return typeof x==='string'?dir*x.localeCompare(y,'pt-BR'):dir*(x-y)
+    var cmp=typeof x==='string'?dir*x.localeCompare(y,'pt-BR'):dir*(x-y);
+    if(cmp!==0)return cmp;
+    return String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR');
   });
   return rows;
 }
@@ -5951,37 +5966,101 @@ function detailedExportBaseName(){
 function setExportBusy(busy){
   ['btnExportExcel','btnExportPdf'].forEach(function(id){var b=document.getElementById(id);if(b)b.disabled=!!busy});
 }
-function exportDriversExcel(){
+async function exportDriversExcel(){
   var rows=getDetailedDriverRows();
   if(!rows.length){alert('Não há motoristas na relação atual para exportar.');return;}
-  if(typeof XLSX==='undefined'){alert('A biblioteca de Excel não foi carregada. Atualize a página e tente novamente.');return;}
+  if(typeof ExcelJS==='undefined'){alert('A biblioteca de Excel não foi carregada. Atualize a página e tente novamente.');return;}
   setExportBusy(true);
   try{
     var meta=detailedExportMeta();
-    var headers=['#','Motorista','Performance (%)','KM','Eventos'].concat(EV_COLS);
-    var aoa=[
-      ['UNIVALE TRANSPORTES - TELEMETRIA OPERACIONAL'],
-      ['Relação detalhada de motoristas'],
-      ['Setor',meta.sector,'Período',meta.period],
-      ['Filtro de busca',meta.search||'Sem filtro','Exportado em',meta.generated.toLocaleString('pt-BR')],
-      [],
-      headers
-    ];
-    rows.forEach(function(d,i){
-      aoa.push([i+1,d.nome,drvPerf(d)==null?'':Number(drvPerf(d)),Number(d.km)||0,Number(d.pts)||0].concat(EV_COLS.map(function(e){return Number(d.ev[e]||0)})));
-    });
-    var ws=XLSX.utils.aoa_to_sheet(aoa);
-    ws['!cols']=[{wch:5},{wch:32},{wch:17},{wch:12},{wch:12}].concat(EV_COLS.map(function(e){return{wch:Math.max(13,Math.min(21,e.length+2))}}));
-    ws['!autofilter']={ref:'A6:'+XLSX.utils.encode_col(headers.length-1)+(rows.length+6)};
-    for(var r=7;r<=rows.length+6;r++){
-      var perfCell=ws['C'+r];if(perfCell&&typeof perfCell.v==='number')perfCell.z='0.00"%"';
-      var kmCell=ws['D'+r];if(kmCell)kmCell.z='#,##0';
-      var evCell=ws['E'+r];if(evCell)evCell.z='#,##0';
+    var wb=new ExcelJS.Workbook();
+    wb.creator='Univale Transportes - Telemetria Operacional';
+    wb.created=meta.generated;
+    wb.modified=meta.generated;
+    var ws=wb.addWorksheet('Motoristas',{views:[{state:'frozen',ySplit:6,xSplit:0,showGridLines:false}]});
+
+    var DARK='006B50', MID='008F6A', TEAL='00A981', LIGHT='E8F7F1', LIGHT2='F4FBF8', GRID='CFE5DD', TEXT='16352F', MUTED='5E746F', WHITE='FFFFFF', PERF='BCEFD8';
+    var headers=['#','Motorista','Performance (%)','KM','Eventos'].concat(EV_COLS.map(function(e){return evLabel(e).replace(/<br>/g,' ')}));
+    var lastCol=headers.length;
+    var lastColLetter=ws.getColumn(lastCol).letter;
+
+    // Cabeçalho institucional
+    ws.mergeCells('A1:'+lastColLetter+'2');
+    var titleCell=ws.getCell('A1');
+    titleCell.value='RELAÇÃO DETALHADA DE MOTORISTAS';
+    titleCell.font={name:'Arial',size:18,bold:true,color:{argb:WHITE}};
+    titleCell.alignment={horizontal:'center',vertical:'middle'};
+    titleCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:DARK}};
+    ws.getRow(1).height=25;ws.getRow(2).height=25;
+    try{
+      var imgId=wb.addImage({base64:UNIVALE_LOGO_WHITE,extension:'png'});
+      ws.addImage(imgId,{tl:{col:0.18,row:0.32},ext:{width:190,height:27}});
+    }catch(imgErr){console.warn('Logo Excel não inserida:',imgErr)}
+
+    // Faixa de metadados
+    ws.mergeCells('A3:B3');ws.getCell('A3').value='SETOR';
+    ws.mergeCells('C3:D3');ws.getCell('C3').value=meta.sector;
+    ws.mergeCells('E3:F3');ws.getCell('E3').value='PERÍODO';
+    ws.mergeCells('G3:H3');ws.getCell('G3').value=meta.period;
+    ws.mergeCells('I3:J3');ws.getCell('I3').value='MOTORISTAS';
+    ws.mergeCells('K3:L3');ws.getCell('K3').value=rows.length;
+    ws.mergeCells('M3:'+lastColLetter+'3');ws.getCell('M3').value='EXPORTADO EM '+meta.generated.toLocaleString('pt-BR');
+    for(var c=1;c<=lastCol;c++){
+      var mc=ws.getCell(3,c);mc.fill={type:'pattern',pattern:'solid',fgColor:{argb:LIGHT}};mc.font={name:'Arial',size:9,bold:c%2===1,color:{argb:c%2===1?MID:TEXT}};mc.alignment={vertical:'middle',horizontal:'left'};
+      mc.border={bottom:{style:'thin',color:{argb:GRID}}};
     }
-    ws['!merges']=[XLSX.utils.decode_range('A1:O1'),XLSX.utils.decode_range('A2:O2')];
-    var wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,'Motoristas');
-    XLSX.writeFile(wb,detailedExportBaseName()+'.xlsx',{compression:true});
+    ws.getRow(3).height=20;
+    ws.mergeCells('A4:'+lastColLetter+'4');
+    ws.getCell('A4').value=meta.search?'Filtro de busca: '+meta.search:'Relação completa - sem filtro de busca';
+    ws.getCell('A4').font={name:'Arial',size:9,italic:true,color:{argb:MUTED}};
+    ws.getCell('A4').alignment={vertical:'middle'};ws.getRow(4).height=18;
+
+    // Agrupador de eventos
+    ws.mergeCells('F5:'+lastColLetter+'5');
+    ws.getCell('F5').value='EVENTOS POR TIPO';
+    ws.getCell('F5').font={name:'Arial',size:10,bold:true,color:{argb:WHITE}};
+    ws.getCell('F5').alignment={horizontal:'center',vertical:'middle'};
+    ws.getCell('F5').fill={type:'pattern',pattern:'solid',fgColor:{argb:MID}};
+    for(var c=1;c<=5;c++){
+      var hc=ws.getCell(5,c);hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:DARK}};
+      hc.border={bottom:{style:'thin',color:{argb:'73BCA5'}}};
+    }
+    ws.getRow(5).height=20;
+
+    // Cabeçalhos
+    headers.forEach(function(h,i){var cell=ws.getCell(6,i+1);cell.value=h;cell.font={name:'Arial',size:9,bold:true,color:{argb:WHITE}};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:DARK}};cell.alignment={horizontal:i===1?'left':'center',vertical:'middle',wrapText:true};cell.border={top:{style:'thin',color:{argb:'6CB49E'}},left:{style:'thin',color:{argb:'6CB49E'}},right:{style:'thin',color:{argb:'6CB49E'}},bottom:{style:'thin',color:{argb:'6CB49E'}}};});
+    ws.getRow(6).height=34;
+
+    // Dados
+    rows.forEach(function(d,i){
+      var r=7+i, perf=drvPerf(d), vals=[i+1,d.nome,perf==null?null:Number(perf)/100,Number(d.km)||0,Number(d.pts)||0].concat(EV_COLS.map(function(e){return Number(d.ev[e]||0)}));
+      vals.forEach(function(v,j){
+        var cell=ws.getCell(r,j+1);cell.value=v;cell.font={name:'Arial',size:9,color:{argb:TEXT},bold:j===1};cell.alignment={vertical:'middle',horizontal:j===1?'left':'center',wrapText:j===1};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:i%2===0?LIGHT2:WHITE}};cell.border={left:{style:'hair',color:{argb:GRID}},right:{style:'hair',color:{argb:GRID}},bottom:{style:'hair',color:{argb:GRID}}};
+      });
+      var pc=ws.getCell(r,3);pc.numFmt='0.00%';pc.font={name:'Arial',size:9,bold:true,color:{argb:'00643E'}};pc.fill={type:'pattern',pattern:'solid',fgColor:{argb:PERF}};
+      ws.getCell(r,4).numFmt='#,##0';ws.getCell(r,5).numFmt='#,##0';
+      for(var ec=6;ec<=lastCol;ec++)ws.getCell(r,ec).numFmt='0';
+      ws.getRow(r).height=19;
+    });
+
+    // Rodapé institucional
+    var footerRow=7+rows.length;
+    ws.mergeCells('A'+footerRow+':H'+footerRow);ws.getCell('A'+footerRow).value='UNIVALE TRANSPORTES  |  TELEMETRIA OPERACIONAL';
+    ws.mergeCells('I'+footerRow+':'+lastColLetter+footerRow);ws.getCell('I'+footerRow).value='DADOS EM TEMPO REAL  |  CONDUÇÃO RESPONSÁVEL, RESULTADOS SUSTENTÁVEIS';
+    for(var c=1;c<=lastCol;c++){var fc=ws.getCell(footerRow,c);fc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'E2F4EC'}};fc.font={name:'Arial',size:8,bold:c<=8,color:{argb:c<=8?DARK:MUTED}};fc.alignment={vertical:'middle',horizontal:c<=8?'left':'right'};fc.border={top:{style:'thin',color:{argb:'9FCFBE'}}};}
+    ws.getRow(footerRow).height=24;
+
+    // Larguras e configurações de impressão
+    var widths=[5,31,16,11,11].concat(EV_COLS.map(function(){return 14;}));
+    widths.forEach(function(w,i){ws.getColumn(i+1).width=w;});
+    ws.autoFilter={from:{row:6,column:1},to:{row:6,column:lastCol}};
+    ws.pageSetup={orientation:'landscape',paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:0.25,right:0.25,top:0.35,bottom:0.35,header:0.15,footer:0.15},printTitlesRow:'1:6'};
+    ws.headerFooter={oddFooter:'&LUNIVALE TRANSPORTES - TELEMETRIA OPERACIONAL&C&P de &N&R'+meta.period};
+    ws.properties.defaultRowHeight=18;
+
+    var buffer=await wb.xlsx.writeBuffer();
+    var blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=detailedExportBaseName()+'.xlsx';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url)},1500);
   }catch(err){
     console.error('Erro ao exportar Excel:',err);
     alert('Não foi possível gerar o Excel. Tente novamente.');
@@ -5997,41 +6076,55 @@ function exportDriversPdf(){
     var doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
     if(typeof doc.autoTable!=='function'){throw new Error('AutoTable indisponível');}
     var meta=detailedExportMeta();
-    var headers=['#','Motorista','Performance','KM','Eventos'].concat(EV_COLS);
-    var body=rows.map(function(d,i){
-      var perf=drvPerf(d);
-      return [i+1,d.nome,perf==null?'-':fmtDec(perf,2)+'%',fmt(d.km),fmt(d.pts)].concat(EV_COLS.map(function(e){return fmt(d.ev[e]||0)}));
-    });
-    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('UNIVALE TRANSPORTES - TELEMETRIA OPERACIONAL',24,28);
-    doc.setFontSize(11);doc.text('Relação detalhada de motoristas',24,45);
-    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(70);
-    var line='Setor: '+meta.sector+'   |   Período: '+meta.period+'   |   '+rows.length+' motoristas';
-    if(meta.search)line+='   |   Busca: '+meta.search;
-    doc.text(line,24,61,{maxWidth:790});
-    doc.setFontSize(7.5);doc.text('Exportado em '+meta.generated.toLocaleString('pt-BR'),24,74);
+    var DARK=[0,107,80], MID=[0,143,106], LIGHT=[232,247,241], LIGHT2=[246,251,249], GRID=[197,224,214], TEXT=[22,53,47], MUTED=[92,116,110], PERF=[188,239,216];
+    var pageW=doc.internal.pageSize.width,pageH=doc.internal.pageSize.height;
+    var eventHeaders=EV_COLS.map(function(e){return evLabel(e).replace(/<br>/g,' ')});
+    var head=[
+      [
+        {content:'#',rowSpan:2,styles:{valign:'middle'}},
+        {content:'Motorista',rowSpan:2,styles:{valign:'middle',halign:'left'}},
+        {content:'Performance\n(%)',rowSpan:2,styles:{valign:'middle'}},
+        {content:'KM',rowSpan:2,styles:{valign:'middle'}},
+        {content:'Eventos',rowSpan:2,styles:{valign:'middle'}},
+        {content:'Eventos por tipo',colSpan:eventHeaders.length,styles:{halign:'center',valign:'middle',fillColor:MID}}
+      ],
+      eventHeaders
+    ];
+    var body=rows.map(function(d,i){var perf=drvPerf(d);return[i+1,d.nome,perf==null?'-':fmtDec(perf,2)+'%',fmt(d.km),fmt(d.pts)].concat(EV_COLS.map(function(e){return fmt(d.ev[e]||0)}));});
+
+    function drawHeader(){
+      doc.setFillColor.apply(doc,DARK);doc.rect(0,0,pageW,62,'F');
+      try{doc.addImage(UNIVALE_LOGO_WHITE,'PNG',22,15,135,19);}catch(e){}
+      doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text('RELAÇÃO DETALHADA DE MOTORISTAS',pageW/2,27,{align:'center'});
+      doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(226,246,239);
+      var sub='Setor: '+meta.sector+'   |   Período: '+meta.period+'   |   '+rows.length+' motoristas';if(meta.search)sub+='   |   Busca: '+meta.search;
+      doc.text(sub,pageW/2,44,{align:'center',maxWidth:520});
+      doc.setFontSize(7.5);doc.text('Exportado em '+meta.generated.toLocaleString('pt-BR'),pageW-22,56,{align:'right'});
+    }
+    function drawFooter(){
+      var y=pageH-28;doc.setFillColor(233,247,241);doc.rect(0,y,pageW,28,'F');
+      doc.setDrawColor(151,205,185);doc.line(0,y,pageW,y);
+      try{doc.addImage(UNIVALE_LOGO_GREEN,'PNG',18,y+6,120,17);}catch(e){}
+      doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.setTextColor.apply(doc,MUTED);doc.text('TELEMETRIA OPERACIONAL',154,y+17);
+      doc.text('DADOS EM TEMPO REAL   |   CONDUÇÃO RESPONSÁVEL, RESULTADOS SUSTENTÁVEIS',pageW-18,y+17,{align:'right'});
+      doc.setTextColor(80,110,102);doc.setFontSize(6.5);doc.text('Página '+doc.internal.getNumberOfPages(),pageW-18,pageH-4,{align:'right'});
+    }
+    drawHeader();
     doc.autoTable({
-      startY:84,
-      head:[headers],
-      body:body,
-      theme:'grid',
-      margin:{left:18,right:18,bottom:22},
+      startY:72,head:head,body:body,theme:'grid',
+      margin:{left:16,right:16,top:72,bottom:38},
       tableWidth:'auto',
-      styles:{font:'helvetica',fontSize:6.2,cellPadding:2.2,valign:'middle',overflow:'linebreak',lineColor:[220,232,232],lineWidth:.35,textColor:[20,35,35]},
-      headStyles:{fillColor:[0,161,155],textColor:[255,255,255],fontStyle:'bold',halign:'center',fontSize:6.1},
-      columnStyles:{
-        0:{cellWidth:22,halign:'center'},
-        1:{cellWidth:105,halign:'left'},
-        2:{cellWidth:52,halign:'center'},
-        3:{cellWidth:42,halign:'right'},
-        4:{cellWidth:42,halign:'right'}
+      styles:{font:'helvetica',fontSize:5.8,cellPadding:2.5,valign:'middle',overflow:'linebreak',lineColor:GRID,lineWidth:.35,textColor:TEXT,minCellHeight:14},
+      headStyles:{fillColor:DARK,textColor:[255,255,255],fontStyle:'bold',halign:'center',fontSize:5.8,lineColor:[87,162,139],lineWidth:.45},
+      alternateRowStyles:{fillColor:LIGHT2},
+      columnStyles:{0:{cellWidth:20,halign:'center'},1:{cellWidth:120,halign:'left',fontStyle:'bold'},2:{cellWidth:55,halign:'center'},3:{cellWidth:42,halign:'center'},4:{cellWidth:42,halign:'center'}},
+      didParseCell:function(data){
+        if(data.section==='body'){
+          if(data.column.index>=5)data.cell.styles.halign='center';
+          if(data.column.index===2){data.cell.styles.fillColor=PERF;data.cell.styles.textColor=[0,100,62];data.cell.styles.fontStyle='bold';}
+        }
       },
-      didParseCell:function(data){if(data.section==='body'&&data.column.index>=5)data.cell.styles.halign='center';},
-      didDrawPage:function(data){
-        var page=doc.internal.getNumberOfPages();
-        doc.setFontSize(7);doc.setTextColor(110);
-        doc.text('Univale Transportes - CSC Telemetria',18,doc.internal.pageSize.height-8);
-        doc.text('Página '+page,doc.internal.pageSize.width-18,doc.internal.pageSize.height-8,{align:'right'});
-      }
+      didDrawPage:function(data){if(doc.internal.getNumberOfPages()>1)drawHeader();drawFooter();}
     });
     doc.save(detailedExportBaseName()+'.pdf');
   }catch(err){
