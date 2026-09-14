@@ -137,7 +137,6 @@ header .spacer{flex:1}
 .pass-num{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-weight:700;font-size:12.5px}
 .pass-total{color:#0284C7}
 .pass-pont{color:#15803D}
-.pass-final{color:#DC2626}
 
 .kpi{
   position:relative;background:linear-gradient(180deg,#FFFFFF 0%,#F6FBFA 100%);
@@ -281,16 +280,15 @@ td.left .pt{margin:0}
 
   <div class="kpis" id="kpis" style="display:none"></div>
   <div class="passenger-legend" id="passengerLegend" style="display:none" aria-label="Legenda dos indicadores de passageiros">
-    <div class="legend-item" title="Cada crachá é contado uma única vez na viagem, mesmo que o passageiro desembarque antes do final."><span id="legTotal"></span><span><b>Total transportados</b> · 1 por crachá</span></div>
-    <div class="legend-item" title="Quantidade estimada de passageiros que permaneciam a bordo no momento da pontualidade."><span id="legPont"></span><span><b>A bordo na pontualidade</b></span></div>
-    <div class="legend-item" title="Quantidade estimada de passageiros que permaneciam a bordo no final da viagem."><span id="legFinal"></span><span><b>A bordo no final</b></span></div>
+    <div class="legend-item" title="Conta cada RFID apenas uma vez. A janela começa 10 minutos antes do H.Real e segue até a saída da pontualidade. Nas viagens de volta, novos RFID ainda entram por até 10 minutos após a saída da pontualidade."><span id="legTotal"></span><span><b>Embarques únicos</b> · 1 por RFID</span></div>
+    <div class="legend-item" title="IDA: passageiros a bordo na chegada à pontualidade. VOLTA: passageiros a bordo na saída da pontualidade, somando apenas novos RFID detectados na tolerância de 10 minutos após a saída."><span id="legPont"></span><span><b>Referência na pontualidade</b> · regra muda por sentido</span></div>
   </div>
   <div class="tablewrap" id="tablewrap" style="display:none"><table id="tbl">
     <colgroup>
       <col style="width:78px"><col style="width:84px"><col style="width:160px"><col style="width:112px"><col style="width:92px"><col style="width:210px">
       <col style="width:140px"><col style="width:76px"><col style="width:86px"><col style="width:94px">
       <col style="width:140px"><col style="width:76px"><col style="width:172px"><col style="width:86px"><col style="width:94px">
-      <col style="width:98px"><col style="width:98px"><col style="width:98px">
+      <col style="width:112px"><col style="width:112px">
       <col style="width:260px">
     </colgroup>
     <thead></thead><tbody></tbody></table></div>
@@ -520,6 +518,15 @@ function ehIda(tipo){
   var t=normTexto(tipo);
   return t==='IDA' || t.indexOf('IDA')===0; // cobre variações tipo "Ida" vindas da planilha
 }
+function ehVolta(tipo){
+  var t=normTexto(tipo);
+  return t==='VOLTA' || t.indexOf('VOLTA')===0;
+}
+function sentidoViagem(tipo){
+  if(ehIda(tipo)) return 'ida';
+  if(ehVolta(tipo)) return 'volta';
+  return 'outro';
+}
 
 /* ---------- localizar linha de cabeçalho (alguns exports trazem um título na linha 1) ---------- */
 var VOCAB_CABECALHO=['ID','STATUS','CARRO','FROTA','VEICULO','CHAPA','PLACA','DATA','HORA','TIPO',
@@ -567,36 +574,68 @@ function linhasComCabecalhoAuto(matriz){
 }
 function cruzar(viagens,eventos,opt){
   opt=opt||{};
-  var tolMs=(opt.tolerancia==null?5:opt.tolerancia)*60000;
-  var filtroTipo=opt.tipoEvento||'entrada';           // entrada | saida | qualquer
-  var qual=opt.passagem||'primeira';                   // primeira | ultima
-  var apenasIda=opt.apenasIda!==false;                  // pontualidade só se aplica à ida (portaria de saída)
-  if(apenasIda) viagens=viagens.filter(function(t){return ehIda(t.tipo)});
+  // Escopo operacional definido: somente viagens de IDA e VOLTA. Viagens circulares permanecem fora do relatório.
+  viagens=viagens.filter(function(t){return ehIda(t.tipo)||ehVolta(t.tipo);});
+  // Esta tolerância é apenas para localizar os eventos da geofence de pontualidade.
+  // A tolerância dos crachás é tratada separadamente em calcularPassageiros().
+  var tolMs=(opt.toleranciaEvento==null?5:opt.toleranciaEvento)*60000;
   var porFrota={};
   for(var i=0;i<eventos.length;i++){
     var e=eventos[i];
-    if(filtroTipo!=='qualquer' && e.tipo!==filtroTipo) continue;
     (porFrota[e.frotaN]=porFrota[e.frotaN]||[]).push(e);
   }
   var res=[];
   for(var v=0;v<viagens.length;v++){
     var t=viagens[v];
+    var sentido=sentidoViagem(t.tipo);
     var lista=porFrota[t.carroN]||[];
     var achados=[];
-    if(t.real0 && t.fim){
-      var ini=t.real0.getTime()-tolMs, fim=t.fim.getTime()+tolMs;
+    if(t.real0){
+      var ini=t.real0.getTime()-tolMs;
+      var baseFim=t.fim ? t.fim.getTime() : (t.real1 ? t.real1.getTime() : t.real0.getTime());
+      var fim=baseFim+tolMs;
       for(var j=0;j<lista.length;j++){
         var ev=lista[j];
         if(ev.ts>=ini && ev.ts<=fim) achados.push(ev);
       }
       achados.sort(function(a,b){return a.ts-b.ts});
     }
-    var prin = achados.length ? (qual==='ultima'?achados[achados.length-1]:achados[0]) : null;
+
+    // Remove duplicidades exatas que alguns exports trazem para o mesmo evento.
+    var unicos=[], vistos={};
+    for(var a=0;a<achados.length;a++){
+      var k=achados[a].tipo+'|'+achados[a].ts+'|'+normTexto(achados[a].ponto);
+      if(vistos[k]) continue;
+      vistos[k]=1; unicos.push(achados[a]);
+    }
+    achados=unicos;
+
+    var entrada=null, saida=null;
+    for(var x=0;x<achados.length;x++){
+      if(achados[x].tipo==='entrada'){ entrada=achados[x]; break; }
+    }
+    if(entrada){
+      for(var y=0;y<achados.length;y++){
+        var evs=achados[y];
+        if(evs.tipo!=='saida' || evs.ts<entrada.ts) continue;
+        // Prioriza a saída da mesma geofence de pontualidade da entrada.
+        if(normTexto(evs.ponto)===normTexto(entrada.ponto)){ saida=evs; break; }
+        if(!saida) saida=evs;
+      }
+    }else{
+      for(var z=0;z<achados.length;z++){
+        if(achados[z].tipo==='saida'){ saida=achados[z]; break; }
+      }
+    }
+
+    // IDA usa a chegada/entrada na pontualidade como referência visual.
+    // VOLTA usa a saída da pontualidade, pois o verde representa quem está saindo dali.
+    var prin = sentido==='volta' ? (saida||entrada) : (entrada||saida);
     res.push({
-      viagem:t, passagens:achados, ponto:prin,
+      viagem:t, passagens:achados, ponto:prin, pontoEntrada:entrada, pontoSaida:saida, sentido:sentido,
       divergeMotorista: !!(prin && t.motorista && prin.motorista && !motoristaBate(t.motorista,prin.motorista)),
-      t1: prin ? dur(t.real0,prin.dt) : null,
-      t2: prin ? dur(prin.dt,t.fim) : null
+      t1: prin && t.real0 ? dur(t.real0,prin.dt) : null,
+      t2: prin && t.fim ? dur(prin.dt,t.fim) : null
     });
   }
   return res;
@@ -615,22 +654,34 @@ function resumoStatus(s){
   var t=String(s==null?'':s).replace(/\[.*?\]/g,'').trim();
   return t||'—';
 }
-/* ---------- passageiros por RFID ----------
-   Três conceitos separados para evitar ambiguidade:
-   1) Total transportados: cada crachá é contado uma única vez dentro da janela da viagem,
-      mesmo que apareça novamente para desembarque.
-   2) A bordo na pontualidade: usa a alternância 1ª leitura=embarque, 2ª=desembarque.
-   3) A bordo no final: aplica a mesma alternância até o H.Final.
-   A janela de associação da viagem permanece a regra atual (H.Real até H.Final/pontualidade). */
+/* ---------- passageiros por RFID: regras operacionais 09/2026 ----------
+   REGRA GERAL
+   - A janela do crachá começa 10 minutos antes do H.Real da viagem.
+   - Azul = EMBARQUES ÚNICOS: cada RFID conta uma única vez na viagem.
+
+   IDA
+   - Verde = passageiros a bordo quando o veículo ENTRA/CHEGA na pontualidade.
+   - O azul continua aceitando novos RFID enquanto o veículo permanece na pontualidade,
+     até o evento de SAÍDA da pontualidade.
+
+   VOLTA
+   - Até a SAÍDA da pontualidade, as leituras alternam o estado do RFID:
+     1ª leitura entra, 2ª sai, 3ª entra...
+   - Verde = saldo a bordo na saída da pontualidade.
+   - Proteção: durante 10 minutos APÓS a saída da pontualidade, somente RFID ainda
+     inéditos na viagem são somados (+1). Repetições nessa janela extra são ignoradas.
+   - Esses RFID inéditos da janela extra também entram no azul.
+*/
 function agruparCartoesDaViagem(carroN,tsIni,tsSup,passagens){
   var porCartao={};
   for(var i=0;i<passagens.length;i++){
     var p=passagens[i];
     if(p.carroN!==carroN) continue;
     if(p.ts<tsIni || p.ts>tsSup) continue;
-    var chave=p.cartao?('c:'+p.cartao):('s:'+i);
+    var chave=p.cartao?('c:'+String(p.cartao).trim()):('s:'+i);
     (porCartao[chave]=porCartao[chave]||[]).push(p.ts);
   }
+  for(var chave in porCartao) porCartao[chave].sort(function(a,b){return a-b});
   return porCartao;
 }
 function contarABordo(porCartao,tsCorte){
@@ -655,47 +706,75 @@ function contarTransportados(porCartao,tsCorte){
   }
   return n;
 }
-function movimentosAposPontualidade(porCartao,tsPont,tsFim){
-  if(tsPont==null || tsFim==null) return {embarques:null,desembarques:null};
-  var embarques=0, desembarques=0;
+function contarNovosAposCorte(porCartao,tsCorte,tsSup){
+  if(tsCorte==null || tsSup==null) return 0;
+  var n=0;
   for(var chave in porCartao){
     var lista=porCartao[chave];
-    for(var i=0;i<lista.length;i++){
-      var ts=lista[i];
-      if(ts<=tsPont || ts>tsFim) continue;
-      if(i%2===0) embarques++; else desembarques++;
-    }
+    if(!lista.length) continue;
+    // "Novo" significa que a primeira ocorrência desse RFID na viagem foi depois da saída.
+    if(lista[0]>tsCorte && lista[0]<=tsSup) n++;
   }
-  return {embarques:embarques,desembarques:desembarques};
+  return n;
 }
-function calcularPassageiros(resultado,passagens){
-  passagens=passagens||[];
+function calcularPassageiros(resultado,passagens,opt){
+  passagens=passagens||[]; opt=opt||{};
+  var tolInicioMs=(opt.toleranciaInicio==null?10:opt.toleranciaInicio)*60000;
+  var tolPosPontMs=(opt.toleranciaPosPont==null?10:opt.toleranciaPosPont)*60000;
   for(var i=0;i<resultado.length;i++){
     var r=resultado[i], v=r.viagem;
-    var tsIni = v.real0 ? v.real0.getTime() : null;
-    var tsPont = r.ponto ? r.ponto.ts : null;
-    var tsFim = v.fim ? v.fim.getTime() : (v.real1 ? v.real1.getTime() : null);
-    if(!passagens.length || tsIni==null){
+    var sentido=r.sentido||sentidoViagem(v.tipo);
+    var tsReal=v.real0 ? v.real0.getTime() : null;
+    if(!passagens.length || tsReal==null){
       r.passTransportados=null; r.passPontualidade=null; r.passFinal=null;
-      r.movAposPont={embarques:null,desembarques:null};
+      r.janelaRFID=null; r.extraPosPont=0;
       continue;
     }
-    var candidatos=[tsPont,tsFim].filter(function(t){return t!=null});
-    var tsSup = candidatos.length? Math.max.apply(null,candidatos) : null;
-    if(tsSup==null){
+    var tsIni=tsReal-tolInicioMs;
+    var tsEntrada=r.pontoEntrada ? r.pontoEntrada.ts : null;
+    var tsSaida=r.pontoSaida ? r.pontoSaida.ts : null;
+    var tsFim=v.fim ? v.fim.getTime() : (v.real1 ? v.real1.getTime() : null);
+
+    // Fallbacks servem apenas para não perder a apuração quando falta um dos eventos.
+    // As viagens sem evento continuam identificáveis pelo card "Sem pontualidade".
+    var tsRefVerde, tsFimAzul, tsSupAgrupamento, extra=0;
+    if(sentido==='volta'){
+      tsRefVerde=tsSaida!=null ? tsSaida : tsEntrada;
+      // A tolerância extra só existe quando há uma referência de pontualidade.
+      tsFimAzul=tsRefVerde!=null ? tsRefVerde+tolPosPontMs : tsFim;
+      tsSupAgrupamento=tsFimAzul;
+    }else{
+      tsRefVerde=tsEntrada!=null ? tsEntrada : tsSaida;
+      // Na ida, novos embarques feitos enquanto o veículo está parado na pontualidade
+      // continuam no azul até a saída do ponto. Se a saída faltar, usa a entrada; se
+      // não houver pontualidade, usa H.Final como fallback operacional.
+      tsFimAzul=tsSaida!=null ? tsSaida : (tsFim!=null ? tsFim : tsEntrada);
+      tsSupAgrupamento=tsFimAzul;
+    }
+
+    if(tsSupAgrupamento==null){
       r.passTransportados=null; r.passPontualidade=null; r.passFinal=null;
-      r.movAposPont={embarques:null,desembarques:null};
+      r.janelaRFID=null; r.extraPosPont=0;
       continue;
     }
-    var porCartao=agruparCartoesDaViagem(v.carroN,tsIni,tsSup,passagens);
-    r.passTransportados = contarTransportados(porCartao,tsFim!=null?tsFim:tsSup);
-    r.passPontualidade = contarABordo(porCartao,tsPont);
-    r.passFinal = contarABordo(porCartao,tsFim);
-    r.movAposPont = movimentosAposPontualidade(porCartao,tsPont,tsFim);
+    var porCartao=agruparCartoesDaViagem(v.carroN,tsIni,tsSupAgrupamento,passagens);
+    r.passTransportados=contarTransportados(porCartao,tsFimAzul);
+
+    if(sentido==='volta'){
+      var saldoSaida=contarABordo(porCartao,tsRefVerde);
+      extra=(tsRefVerde!=null && tsFimAzul!=null) ? contarNovosAposCorte(porCartao,tsRefVerde,tsFimAzul) : 0;
+      r.passPontualidade=saldoSaida==null ? null : saldoSaida+extra;
+    }else{
+      r.passPontualidade=contarABordo(porCartao,tsRefVerde);
+    }
+    // Campo legado mantido apenas para compatibilidade interna; o cartão vermelho foi removido da interface.
+    r.passFinal=null;
+    r.extraPosPont=extra;
+    r.janelaRFID={inicio:tsIni,fim:tsFimAzul,referencia:tsRefVerde};
   }
   return resultado;
 }
-if(typeof module!=='undefined'&&module.exports){module.exports={normFrota:normFrota,normTexto:normTexto,nomePonto:nomePonto,nomeMotorista:nomeMotorista,parseData:parseData,prepararEventos:prepararEventos,prepararViagens:prepararViagens,prepararPassagens:prepararPassagens,cruzar:cruzar,calcularPassageiros:calcularPassageiros,agruparCartoesDaViagem:agruparCartoesDaViagem,contarABordo:contarABordo,contarTransportados:contarTransportados,movimentosAposPontualidade:movimentosAposPontualidade,tipoPlanilha:tipoPlanilha,dur:dur,hhmm:hhmm,motoristaBate:motoristaBate,ehIda:ehIda,linhasComCabecalhoAuto:linhasComCabecalhoAuto};}
+if(typeof module!=='undefined'&&module.exports){module.exports={normFrota:normFrota,normTexto:normTexto,nomePonto:nomePonto,nomeMotorista:nomeMotorista,parseData:parseData,prepararEventos:prepararEventos,prepararViagens:prepararViagens,prepararPassagens:prepararPassagens,cruzar:cruzar,calcularPassageiros:calcularPassageiros,agruparCartoesDaViagem:agruparCartoesDaViagem,contarABordo:contarABordo,contarTransportados:contarTransportados,contarNovosAposCorte:contarNovosAposCorte,tipoPlanilha:tipoPlanilha,dur:dur,hhmm:hhmm,motoristaBate:motoristaBate,ehIda:ehIda,ehVolta:ehVolta,sentidoViagem:sentidoViagem,linhasComCabecalhoAuto:linhasComCabecalhoAuto};}
 </script>
 <!-- ============ CORE:END ============ -->
 
@@ -703,7 +782,7 @@ if(typeof module!=='undefined'&&module.exports){module.exports={normFrota:normFr
 var DADOS={viagens:null,eventos:null,nomeV:'',nomeE:'',passagens1:null,passagens2:null,passagens3:null,nomeP1:'',nomeP2:'',nomeP3:''};
 var RESULTADO=[];
 var ORDEM={col:'real0',dir:1};
-var PADRAO={tolerancia:5,tipoEvento:'entrada',passagem:'primeira'}; // sem filtro na tela por ora
+var PADRAO={toleranciaEvento:5,toleranciaInicio:10,toleranciaPosPont:10}; // geofence 5 min; RFID -10 min e VOLTA +10 min
 var FILTROS={q:'',grupo:'',card:'todos'};
 
 function $(id){return document.getElementById(id)}
@@ -833,7 +912,7 @@ function passagensCombinadas(){
 function processar(){
   RESULTADO=cruzar(DADOS.viagens,DADOS.eventos,PADRAO);
   var passagens=passagensCombinadas();
-  calcularPassageiros(RESULTADO,passagens);
+  calcularPassageiros(RESULTADO,passagens,PADRAO);
   avisarDivergenciaDeData();
   popularGrupos();
   ligarFiltros();
@@ -844,7 +923,6 @@ function processar(){
   $('passengerLegend').style.display='flex';
   $('legTotal').innerHTML=iconeCartao('#38BDF8');
   $('legPont').innerHTML=iconeCartao('#22C55E');
-  $('legFinal').innerHTML=iconeCartao('#EF4444');
   $('tablewrap').style.display='block';
   desenhar();
 }
@@ -932,6 +1010,8 @@ function filtradosBase(){
 }
 function filtrados(){
   var linhas=filtradosBase();
+  if(FILTROS.card==='ida') return linhas.filter(function(r){return ehIda(r.viagem.tipo);});
+  if(FILTROS.card==='volta') return linhas.filter(function(r){return ehVolta(r.viagem.tipo);});
   if(FILTROS.card==='com') return linhas.filter(function(r){return !!r.ponto;});
   if(FILTROS.card==='sem') return linhas.filter(function(r){return !r.ponto;});
   return linhas;
@@ -960,12 +1040,11 @@ var COLUNAS=[
   {k:'phora',    r:'H.Pontualidade', g:2, left:false, get:function(r){return r.ponto?r.ponto.ts:null}},
   {k:'fim',      r:'H.Real',     g:2, left:false, get:function(r){return r.viagem.fim}},
   {k:'res1',     r:'Situação',   g:2, left:false, get:function(r){return r.viagem.res1}},
-  {k:'passTotal',r:'<span class="colicon" title="Total transportados: cada crachá é contado uma única vez na viagem">'+iconeCartao('#38BDF8')+'</span>', g:3, left:false, get:function(r){return r.passTransportados}},
-  {k:'passPont', r:'<span class="colicon" title="A bordo na pontualidade: passageiros que permaneciam no veículo nesse momento">'+iconeCartao('#22C55E')+'</span>', g:3, left:false, get:function(r){return r.passPontualidade}},
-  {k:'passFim',  r:'<span class="colicon" title="A bordo no final: passe o mouse no número para ver embarques e desembarques após a pontualidade">'+iconeCartao('#EF4444')+'</span>', g:3, left:false, get:function(r){return r.passFinal}},
+  {k:'passTotal',r:'<span class="colicon" title="Embarques únicos: cada RFID é contado apenas uma vez na janela operacional da viagem">'+iconeCartao('#38BDF8')+'</span>', g:3, left:false, get:function(r){return r.passTransportados}},
+  {k:'passPont', r:'<span class="colicon" title="IDA: a bordo na chegada à pontualidade. VOLTA: a bordo na saída, com proteção de +10 min apenas para novos RFID">'+iconeCartao('#22C55E')+'</span>', g:3, left:false, get:function(r){return r.passPontualidade}},
   {k:'obs',      r:'Observação', g:4, left:true,  get:function(r){return r.viagem.obs}}
 ];
-var GRUPOS=[{r:'Viagem',n:6},{r:'Partida',n:4},{r:'Chegada',n:5},{r:'Passageiros',n:3},{r:'Observação',n:1}];
+var GRUPOS=[{r:'Viagem',n:6},{r:'Partida',n:4},{r:'Chegada',n:5},{r:'Passageiros',n:2},{r:'Observação',n:1}];
 
 function desenhar(){
   var base=filtradosBase();
@@ -981,18 +1060,23 @@ function desenhar(){
       return (x-y)*ORDEM.dir;
     });
   }
-  // KPIs clicáveis: os números consideram pesquisa e grupo, antes do filtro do card
-  var com=base.filter(function(r){return r.ponto}).length;
-  var sem=base.length-com;
-  var semJan=base.filter(function(r){return !r.ponto&&(!r.viagem.real0||!r.viagem.fim)}).length;
-  var pct=base.length?Math.round(com/base.length*1000)/10:0;
+  // KPIs clicáveis: pesquisa e Grupo são aplicados primeiro; os cards refinam o sentido/status.
+  var total=base.length;
+  var ida=base.filter(function(r){return ehIda(r.viagem.tipo);}).length;
+  var volta=base.filter(function(r){return ehVolta(r.viagem.tipo);}).length;
+  var com=base.filter(function(r){return !!r.ponto;}).length;
+  var sem=total-com;
+  var pct=total?Math.round(com/total*1000)/10:0;
   $('kpis').innerHTML=[
-    kpi('Viagens (ida)',base.length,(base.length===DADOS.viagens.length?'Exibindo todas as viagens do arquivo':'Filtrando '+base.length+' de '+DADOS.viagens.length+' viagens'),'todos'),
+    kpi('Todas as viagens',total,'Ida + volta','todos'),
+    kpi('Viagens de ida',ida,'Clique para mostrar somente as idas','ida'),
+    kpi('Viagens de volta',volta,'Clique para mostrar somente as voltas','volta'),
     kpi('Com pontualidade',com,pct+'% das viagens exibidas','com'),
-    kpi('Sem registro',sem,semJan?semJan+' sem horário real':'passagem não encontrada','sem')
+    kpi('Sem registro',sem,'pontualidade não encontrada','sem')
   ].join('');
   Array.prototype.forEach.call($('kpis').querySelectorAll('.kpi'),function(card){
     card.onclick=function(){FILTROS.card=card.getAttribute('data-filter')||'todos';desenhar();};
+    card.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){e.preventDefault();card.click();} };
   });
 
   // cabeçalho em dois níveis: bloco (Partida / Chegada) e coluna
@@ -1040,22 +1124,37 @@ function desenhar(){
         '<td class="t marca brk">'+(p? hhmm(p.dt)+'<span class="ptline"><span class="pt" title="'+esc(p.zona)+'">'+esc(p.ponto)+'</span></span>' : '<span class="dash">—</span>')+'</td>'+
         tdT(v.fim?hhmm(v.fim):null)+
         td(pill(v.res1))+
-        td(r.passTransportados==null?'<span class="dash">—</span>':'<span class="pass-num pass-total" title="Total de passageiros transportados na janela da viagem (1 por crachá)">'+r.passTransportados+'</span>')+
-        td(r.passPontualidade==null?'<span class="dash">—</span>':'<span class="pass-num pass-pont" title="Passageiros que permaneciam a bordo na pontualidade">'+r.passPontualidade+'</span>')+
-        td(r.passFinal==null?'<span class="dash">—</span>':'<span class="pass-num pass-final" title="'+esc(tituloPassFinal(r))+'">'+r.passFinal+'</span>')+
+        td(r.passTransportados==null?'<span class="dash">—</span>':'<span class="pass-num pass-total" title="'+esc(tituloPassTotal(r))+'">'+r.passTransportados+'</span>')+
+        td(r.passPontualidade==null?'<span class="dash">—</span>':'<span class="pass-num pass-pont" title="'+esc(tituloPassPont(r))+'">'+r.passPontualidade+'</span>')+
         tdW(v.obs?esc(v.obs):'<span class="dash">—</span>')+
       '</tr>');
     });
     $('tbl').tBodies[0].innerHTML=html.join('');
   }
 }
-function tituloPassFinal(r){
-  var m=r.movAposPont||{};
-  var partes=['A bordo no final: '+(r.passFinal==null?'—':r.passFinal)];
-  if(m.embarques!=null) partes.push('+'+m.embarques+' embarque'+(m.embarques===1?'':'s')+' após a pontualidade');
-  if(m.desembarques!=null) partes.push('-'+m.desembarques+' desembarque'+(m.desembarques===1?'':'s')+' após a pontualidade');
-  return partes.join(' | ');
+function hhmmTs(ts){return ts==null?'—':hhmm(new Date(ts));}
+function tituloPassTotal(r){
+  var j=r.janelaRFID||{};
+  var txt='Embarques únicos: '+(r.passTransportados==null?'—':r.passTransportados);
+  if(j.inicio!=null && j.fim!=null) txt+=' | Janela RFID: '+hhmmTs(j.inicio)+' até '+hhmmTs(j.fim);
+  if((r.sentido||sentidoViagem(r.viagem.tipo))==='volta') txt+=' | inclui proteção de +10 min após a saída da pontualidade para novos RFID';
+  else txt+=' | começa 10 min antes do H.Real e inclui embarques enquanto o veículo permanece na pontualidade';
+  return txt;
 }
+function tituloPassPont(r){
+  var sentido=r.sentido||sentidoViagem(r.viagem.tipo), j=r.janelaRFID||{};
+  if(sentido==='volta'){
+    var txt='VOLTA · passageiros considerados a bordo na saída da pontualidade';
+    if(j.referencia!=null) txt+=' ('+hhmmTs(j.referencia)+')';
+    if(r.extraPosPont) txt+=' | +'+r.extraPosPont+' novo'+(r.extraPosPont===1?' RFID':'s RFID')+' na proteção de 10 min';
+    return txt;
+  }
+  var txt2='IDA · passageiros que chegaram a bordo na pontualidade';
+  if(j.referencia!=null) txt2+=' ('+hhmmTs(j.referencia)+')';
+  txt2+=' | embarques feitos depois da chegada, enquanto o veículo está parado no ponto, entram somente no azul';
+  return txt2;
+}
+
 function kpi(l,v,s,f){return '<div class="kpi '+(FILTROS.card===f?'active':'')+'" data-filter="'+f+'" role="button" tabindex="0"><div class="kpi-l">'+l+'</div><div class="kpi-v">'+v+'</div><div class="kpi-s">'+s+'</div></div>'}
 function td(h){return '<td>'+h+'</td>'}
 function tdL(h){return '<td class="left">'+h+'</td>'}
@@ -1083,7 +1182,7 @@ async function exportarExcel(){
     {label:'PARTIDA',     cols:4, cor:'FF176D67', sub:'FF1D5D58'},
     {label:'CHEGADA',     cols:5, cor:'FF1D7B74', sub:'FF246B65'},
     {label:'PONTUALIDADE',cols:1, cor:'FF23857D', sub:'FF2A756F'},
-    {label:'PASSAGEIROS', cols:3, cor:'FF0E6B62', sub:'FF135F57'},
+    {label:'PASSAGEIROS', cols:2, cor:'FF0E6B62', sub:'FF135F57'},
     {label:'OBSERVAÇÃO',  cols:1, cor:'FF286F6A', sub:'FF315F5B'}
   ];
   var totalCols=grupos.reduce(function(s,g){return s+g.cols},0);
@@ -1101,8 +1200,8 @@ async function exportarExcel(){
   var headers=['ID Viagem','Carro','Placa','Motorista','Operadora','Linha','Viagem','Tipo','Data',
     'Ponto','H.Prog','H.Real','Situação',
     'Ponto','H.Prog','H.Pontualidade','H.Real','Situação',
-    'Ponto de pontualidade','Total Transportados','A bordo Pontualidade','A bordo P.Final','Observação'];
-  var esquerda={9:1,10:1,4:1,7:1,14:1,19:1,23:1}; // colunas (1-based) com texto mais longo: alinhadas à esquerda
+    'Ponto de pontualidade','Embarques Únicos','A bordo Pontualidade','Observação'];
+  var esquerda={9:1,10:1,4:1,7:1,14:1,19:1,22:1}; // colunas (1-based) com texto mais longo: alinhadas à esquerda
 
   var col=1;
   grupos.forEach(function(g){
@@ -1122,8 +1221,8 @@ async function exportarExcel(){
     {ini:10,fim:13,cor:grupos[1].sub},
     {ini:14,fim:18,cor:grupos[2].sub},
     {ini:19,fim:19,cor:grupos[3].sub},
-    {ini:20,fim:22,cor:grupos[4].sub},
-    {ini:23,fim:23,cor:grupos[5].sub}
+    {ini:20,fim:21,cor:grupos[4].sub},
+    {ini:22,fim:22,cor:grupos[5].sub}
   ];
   headers.forEach(function(h,i){
     var ci=i+1, faixa=faixas.filter(function(f){return ci>=f.ini&&ci<=f.fim})[0];
@@ -1133,7 +1232,7 @@ async function exportarExcel(){
     cell.font={color:{argb:'FFFFFFFF'},bold:true,size:10};
     cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
     cell.border={bottom:{style:'thin',color:{argb:'FF8CB7B2'}}};
-    if([10,14,19,20,23].indexOf(ci)>=0) cell.border.left={style:'medium',color:{argb:'FFB9D9D5'}};
+    if([10,14,19,20,22].indexOf(ci)>=0) cell.border.left={style:'medium',color:{argb:'FFB9D9D5'}};
   });
   ws.getRow(3).height=28;
 
@@ -1145,13 +1244,13 @@ async function exportarExcel(){
       v.real0?ddmm(v.real0):(v.prog0?ddmm(v.prog0):''),
       v.ponto0,v.prog0?hhmm(v.prog0):'',v.real0?hhmm(v.real0):'',resumoStatus(v.res0),
       v.ponto1,v.prog1?hhmm(v.prog1):'',p?hhmm(p.dt):'',v.fim?hhmm(v.fim):'',resumoStatus(v.res1),
-      p?p.ponto:'',r.passTransportados==null?'':r.passTransportados,r.passPontualidade==null?'':r.passPontualidade,r.passFinal==null?'':r.passFinal,v.obs||''];
+      p?p.ponto:'',r.passTransportados==null?'':r.passTransportados,r.passPontualidade==null?'':r.passPontualidade,v.obs||''];
     vals.forEach(function(val,ci){
       var cell=ws.getCell(rowIdx,ci+1);
       cell.value=val;
-      cell.alignment={vertical:'middle',horizontal:esquerda[ci+1]?'left':'center',wrapText:ci===22};
+      cell.alignment={vertical:'middle',horizontal:esquerda[ci+1]?'left':'center',wrapText:ci===21};
       cell.border={bottom:{style:'thin',color:{argb:'FFD8E4E2'}}};
-      if([10,14,19,20,23].indexOf(ci+1)>=0) cell.border.left={style:'thin',color:{argb:'FFA9C9C5'}};
+      if([10,14,19,20,22].indexOf(ci+1)>=0) cell.border.left={style:'thin',color:{argb:'FFA9C9C5'}};
       if(idx%2===1) cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF3F9F8'}};
     });
     [12,17].forEach(function(ci){ // Situação partida / Situação chegada
@@ -1162,13 +1261,12 @@ async function exportarExcel(){
         cell.font={color:{argb:c.font},bold:true};
       }
     });
-    // mantém no Excel a mesma leitura visual dos três indicadores de passageiros
+    // mantém no Excel a mesma leitura visual dos dois indicadores de passageiros
     if(vals[19]!=='' ) ws.getCell(rowIdx,20).font={color:{argb:'FF0284C7'},bold:true};
     if(vals[20]!=='' ) ws.getCell(rowIdx,21).font={color:{argb:'FF15803D'},bold:true};
-    if(vals[21]!=='' ) ws.getCell(rowIdx,22).font={color:{argb:'FFDC2626'},bold:true};
   });
 
-  var larguras=[10,9,11,20,16,9,26,7,11, 15,9,9,11, 15,9,12,9,11, 26, 14,14,12, 45];
+  var larguras=[10,9,11,20,16,9,26,7,11, 15,9,9,11, 15,9,12,9,11, 26, 14,14,45];
   larguras.forEach(function(w,i){ ws.getColumn(i+1).width=w; });
 
   var buf=await wb.xlsx.writeBuffer();
