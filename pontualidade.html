@@ -259,12 +259,12 @@ td.left .pt{margin:0}
     <div class="filters">
       <div class="field grow">
         <label for="search">Pesquisa rápida</label>
-        <input type="search" id="search" placeholder="Pesquisar por carro, motorista ou linha...">
+        <input type="search" id="search" placeholder="Pesquisar por carro, motorista, linha ou grupo...">
       </div>
       <div class="field">
-        <label for="filterOperadora">Operadora</label>
-        <select id="filterOperadora">
-          <option value="">Todas</option>
+        <label for="filterGrupo">Grupo</label>
+        <select id="filterGrupo">
+          <option value="">Todos</option>
         </select>
       </div>
       <button class="btn ghost" id="btnClearFilters" type="button">Limpar filtros</button>
@@ -503,6 +503,7 @@ function prepararViagens(linhas){
       ponto1:nomePonto(r[c.p1]), prog1:pfim, real1:parseData(r[c.real1]), res1:String(r[c.res1]==null?'':r[c.res1]),
       fim:fim, motorista:nomeMotorista(r[c.mot]),
       operadora:String(r[c.oper]==null?'':r[c.oper]).trim(),
+      grupo:c.grupo?String(r[c.grupo]==null?'':r[c.grupo]).trim():'',
       linha:String(r[c.linha]==null?'':r[c.linha]).trim(),
       itinerario:String(r[c.it]==null?'':r[c.it]).trim(),
       tipo:String(r[c.tipo]==null?'':r[c.tipo]).trim(),
@@ -523,7 +524,7 @@ function ehIda(tipo){
 /* ---------- localizar linha de cabeçalho (alguns exports trazem um título na linha 1) ---------- */
 var VOCAB_CABECALHO=['ID','STATUS','CARRO','FROTA','VEICULO','CHAPA','PLACA','DATA','HORA','TIPO',
   'H.PROG','H.REAL','ZONA/PONTO','RECEBIDA EM','REGISTRADA EM','CODIGO CARTAO','CARTAO','NOME',
-  'OPERADORA','MOTORISTA','LINHA','ITINERARIO','PONTO','RES.PARTIDA','RES.CHEGADA','H.FINAL','OBS'];
+  'OPERADORA','GRUPO','MOTORISTA','LINHA','ITINERARIO','PONTO','RES.PARTIDA','RES.CHEGADA','H.FINAL','OBS'];
 function pareceCabecalho(linha){
   var n=0;
   for(var i=0;i<linha.length;i++){
@@ -703,7 +704,7 @@ var DADOS={viagens:null,eventos:null,nomeV:'',nomeE:'',passagens1:null,passagens
 var RESULTADO=[];
 var ORDEM={col:'real0',dir:1};
 var PADRAO={tolerancia:5,tipoEvento:'entrada',passagem:'primeira'}; // sem filtro na tela por ora
-var FILTROS={q:'',operadora:'',card:'todos'};
+var FILTROS={q:'',grupo:'',card:'todos'};
 
 function $(id){return document.getElementById(id)}
 function msg(txt,erro){
@@ -834,7 +835,7 @@ function processar(){
   var passagens=passagensCombinadas();
   calcularPassageiros(RESULTADO,passagens);
   avisarDivergenciaDeData();
-  popularOperadoras();
+  popularGrupos();
   ligarFiltros();
   $('emptyState').style.display='none';
   $('toolbar').style.display='flex';
@@ -881,21 +882,21 @@ function avisarDivergenciaDeData(){
     msg('A planilha de <b>Viagens</b> está com data '+faixaTxt(intV)+'. As planilhas abaixo parecem ser de outro dia — confira se subiu o arquivo certo:<br>• '+problemas.join('<br>• '),true);
   }
 }
-function popularOperadoras(){
-  var sel=$('filterOperadora');
-  var atual=FILTROS.operadora||'';
+function popularGrupos(){
+  var sel=$('filterGrupo');
+  var atual=FILTROS.grupo||'';
   var vals=[];
   RESULTADO.forEach(function(r){
-    var op=String(r.viagem.operadora==null?'':r.viagem.operadora).trim();
-    if(op && vals.indexOf(op)<0) vals.push(op);
+    var grupo=String(r.viagem.grupo==null?'':r.viagem.grupo).trim();
+    if(grupo && vals.indexOf(grupo)<0) vals.push(grupo);
   });
   vals.sort(function(a,b){return a.localeCompare(b,'pt-BR')});
-  sel.innerHTML='<option value="">Todas</option>'+vals.map(function(op){
-    var selected = normTexto(op)===atual ? ' selected' : '';
-    return '<option value="'+esc(op)+'"'+selected+'>'+esc(op)+'</option>';
+  sel.innerHTML='<option value="">Todos</option>'+vals.map(function(grupo){
+    var selected = normTexto(grupo)===atual ? ' selected' : '';
+    return '<option value="'+esc(grupo)+'"'+selected+'>'+esc(grupo)+'</option>';
   }).join('');
-  if(atual && !vals.some(function(op){return normTexto(op)===atual;})){
-    FILTROS.operadora='';
+  if(atual && !vals.some(function(grupo){return normTexto(grupo)===atual;})){
+    FILTROS.grupo='';
     sel.value='';
   }
 }
@@ -906,24 +907,24 @@ function ligarFiltros(){
     FILTROS.q=this.value||'';
     desenhar();
   });
-  $('filterOperadora').addEventListener('change',function(){
-    FILTROS.operadora=normTexto(this.value||'');
+  $('filterGrupo').addEventListener('change',function(){
+    FILTROS.grupo=normTexto(this.value||'');
     desenhar();
   });
   $('btnClearFilters').addEventListener('click',function(){
-    FILTROS.q=''; FILTROS.operadora=''; FILTROS.card='todos';
+    FILTROS.q=''; FILTROS.grupo=''; FILTROS.card='todos';
     $('search').value='';
-    $('filterOperadora').value='';
+    $('filterGrupo').value='';
     desenhar();
   });
 }
 function filtradosBase(){
   var q=normTexto(FILTROS.q||'');
-  var op=FILTROS.operadora||'';
+  var grupo=FILTROS.grupo||'';
   return RESULTADO.filter(function(r){
-    if(op && normTexto(r.viagem.operadora)!==op) return false;
+    if(grupo && normTexto(r.viagem.grupo)!==grupo) return false;
     if(q){
-      var alvo=[r.viagem.carro,r.viagem.motorista,r.viagem.linha,r.viagem.itinerario].map(normTexto).join(' | ');
+      var alvo=[r.viagem.carro,r.viagem.motorista,r.viagem.linha,r.viagem.itinerario,r.viagem.grupo].map(normTexto).join(' | ');
       if(alvo.indexOf(q)<0) return false;
     }
     return true;
@@ -980,7 +981,7 @@ function desenhar(){
       return (x-y)*ORDEM.dir;
     });
   }
-  // KPIs clicáveis: os números consideram pesquisa e operadora, antes do filtro do card
+  // KPIs clicáveis: os números consideram pesquisa e grupo, antes do filtro do card
   var com=base.filter(function(r){return r.ponto}).length;
   var sem=base.length-com;
   var semJan=base.filter(function(r){return !r.ponto&&(!r.viagem.real0||!r.viagem.fim)}).length;
@@ -1191,11 +1192,11 @@ $('btnLimpar').addEventListener('click',function(){
 function limparTudo(){
   DADOS={viagens:null,eventos:null,nomeV:'',nomeE:'',passagens1:null,passagens2:null,passagens3:null,nomeP1:'',nomeP2:'',nomeP3:''};
   RESULTADO=[];
-  FILTROS.q=''; FILTROS.operadora=''; FILTROS.card='todos';
+  FILTROS.q=''; FILTROS.grupo=''; FILTROS.card='todos';
   ['chkV','chkE','chkP1','chkP2','chkP3'].forEach(function(id){ $(id).checked=false; });
   $('stamp').textContent='—';
   $('search').value='';
-  $('filterOperadora').innerHTML='<option value="">Todas</option>';
+  $('filterGrupo').innerHTML='<option value="">Todos</option>';
   $('toolbar').style.display='none';
   $('bar').style.display='none';
   $('kpis').style.display='none';
