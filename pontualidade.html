@@ -131,6 +131,14 @@ header .spacer{flex:1}
 
 /* ---------- kpis ---------- */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,340px));justify-content:center;gap:14px;background:none;border:0;overflow:visible;margin-bottom:16px}
+.passenger-legend{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:-2px 0 12px}
+.passenger-legend .legend-item{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid #D9E8E5;border-radius:10px;padding:7px 10px;box-shadow:0 5px 14px rgba(10,46,44,.045);font-size:11.5px;color:var(--steel)}
+.passenger-legend .legend-item b{color:var(--ink);font-weight:700}
+.pass-num{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-weight:700;font-size:12.5px}
+.pass-total{color:#0284C7}
+.pass-pont{color:#15803D}
+.pass-final{color:#DC2626}
+
 .kpi{
   position:relative;background:linear-gradient(180deg,#FFFFFF 0%,#F6FBFA 100%);
   padding:14px 16px 12px;border:1px solid #D9E8E5;border-radius:14px;text-align:center;
@@ -149,7 +157,7 @@ header .spacer{flex:1}
 
 /* ---------- tabela ---------- */
 .tablewrap{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:auto;max-height:70vh}
-table{border-collapse:separate;border-spacing:0;font-size:13px;line-height:1.25;table-layout:fixed;width:1960px;max-width:none;margin:0 auto}
+table{border-collapse:separate;border-spacing:0;font-size:13px;line-height:1.25;table-layout:fixed;width:2058px;max-width:none;margin:0 auto}
 thead th{
   position:sticky;z-index:2;background:#105B56;color:#F1FBFA;text-align:center;
   padding:8px 8px;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;font-weight:600;white-space:nowrap;
@@ -272,12 +280,17 @@ td.left .pt{margin:0}
   </div>
 
   <div class="kpis" id="kpis" style="display:none"></div>
+  <div class="passenger-legend" id="passengerLegend" style="display:none" aria-label="Legenda dos indicadores de passageiros">
+    <div class="legend-item" title="Cada crachá é contado uma única vez na viagem, mesmo que o passageiro desembarque antes do final."><span id="legTotal"></span><span><b>Total transportados</b> · 1 por crachá</span></div>
+    <div class="legend-item" title="Quantidade estimada de passageiros que permaneciam a bordo no momento da pontualidade."><span id="legPont"></span><span><b>A bordo na pontualidade</b></span></div>
+    <div class="legend-item" title="Quantidade estimada de passageiros que permaneciam a bordo no final da viagem."><span id="legFinal"></span><span><b>A bordo no final</b></span></div>
+  </div>
   <div class="tablewrap" id="tablewrap" style="display:none"><table id="tbl">
     <colgroup>
       <col style="width:78px"><col style="width:84px"><col style="width:160px"><col style="width:112px"><col style="width:92px"><col style="width:210px">
       <col style="width:140px"><col style="width:76px"><col style="width:86px"><col style="width:94px">
       <col style="width:140px"><col style="width:76px"><col style="width:172px"><col style="width:86px"><col style="width:94px">
-      <col style="width:98px"><col style="width:98px">
+      <col style="width:98px"><col style="width:98px"><col style="width:98px">
       <col style="width:260px">
     </colgroup>
     <thead></thead><tbody></tbody></table></div>
@@ -601,19 +614,20 @@ function resumoStatus(s){
   var t=String(s==null?'':s).replace(/\[.*?\]/g,'').trim();
   return t||'—';
 }
-/* ---------- cruzamento de passageiros (embarque/desembarque por RFID) ----------
-   Cada cartão pode passar mais de uma vez na mesma viagem: a 1ª passagem é o embarque,
-   a 2ª é o desembarque, a 3ª um novo embarque, e assim por diante (alternância).
-   Um passageiro só é contado como "a bordo" num instante T se, até T, ele tiver um
-   número ÍMPAR de passagens (embarcou e ainda não desembarcou). Isso evita contar
-   a mesma pessoa 2x (embarque + desembarque) como se fossem 2 passageiros. */
+/* ---------- passageiros por RFID ----------
+   Três conceitos separados para evitar ambiguidade:
+   1) Total transportados: cada crachá é contado uma única vez dentro da janela da viagem,
+      mesmo que apareça novamente para desembarque.
+   2) A bordo na pontualidade: usa a alternância 1ª leitura=embarque, 2ª=desembarque.
+   3) A bordo no final: aplica a mesma alternância até o H.Final.
+   A janela de associação da viagem permanece a regra atual (H.Real até H.Final/pontualidade). */
 function agruparCartoesDaViagem(carroN,tsIni,tsSup,passagens){
   var porCartao={};
   for(var i=0;i<passagens.length;i++){
     var p=passagens[i];
     if(p.carroN!==carroN) continue;
     if(p.ts<tsIni || p.ts>tsSup) continue;
-    var chave=p.cartao?('c:'+p.cartao):('s:'+i); // sem código de cartão: trata como passageiro isolado (sempre "a bordo" após a 1ª passagem)
+    var chave=p.cartao?('c:'+p.cartao):('s:'+i);
     (porCartao[chave]=porCartao[chave]||[]).push(p.ts);
   }
   return porCartao;
@@ -625,9 +639,33 @@ function contarABordo(porCartao,tsCorte){
     var lista=porCartao[chave];
     var count=0;
     for(var i=0;i<lista.length;i++){ if(lista[i]<=tsCorte) count++; }
-    if(count%2===1) n++; // número ímpar de passagens até aqui = embarcado e ainda não desembarcou
+    if(count%2===1) n++;
   }
   return n;
+}
+function contarTransportados(porCartao,tsCorte){
+  if(tsCorte==null) return null;
+  var n=0;
+  for(var chave in porCartao){
+    var lista=porCartao[chave];
+    for(var i=0;i<lista.length;i++){
+      if(lista[i]<=tsCorte){ n++; break; }
+    }
+  }
+  return n;
+}
+function movimentosAposPontualidade(porCartao,tsPont,tsFim){
+  if(tsPont==null || tsFim==null) return {embarques:null,desembarques:null};
+  var embarques=0, desembarques=0;
+  for(var chave in porCartao){
+    var lista=porCartao[chave];
+    for(var i=0;i<lista.length;i++){
+      var ts=lista[i];
+      if(ts<=tsPont || ts>tsFim) continue;
+      if(i%2===0) embarques++; else desembarques++;
+    }
+  }
+  return {embarques:embarques,desembarques:desembarques};
 }
 function calcularPassageiros(resultado,passagens){
   passagens=passagens||[];
@@ -636,17 +674,27 @@ function calcularPassageiros(resultado,passagens){
     var tsIni = v.real0 ? v.real0.getTime() : null;
     var tsPont = r.ponto ? r.ponto.ts : null;
     var tsFim = v.fim ? v.fim.getTime() : (v.real1 ? v.real1.getTime() : null);
-    if(!passagens.length || tsIni==null){ r.passPontualidade=null; r.passFinal=null; continue; }
+    if(!passagens.length || tsIni==null){
+      r.passTransportados=null; r.passPontualidade=null; r.passFinal=null;
+      r.movAposPont={embarques:null,desembarques:null};
+      continue;
+    }
     var candidatos=[tsPont,tsFim].filter(function(t){return t!=null});
     var tsSup = candidatos.length? Math.max.apply(null,candidatos) : null;
-    if(tsSup==null){ r.passPontualidade=null; r.passFinal=null; continue; }
+    if(tsSup==null){
+      r.passTransportados=null; r.passPontualidade=null; r.passFinal=null;
+      r.movAposPont={embarques:null,desembarques:null};
+      continue;
+    }
     var porCartao=agruparCartoesDaViagem(v.carroN,tsIni,tsSup,passagens);
+    r.passTransportados = contarTransportados(porCartao,tsFim!=null?tsFim:tsSup);
     r.passPontualidade = contarABordo(porCartao,tsPont);
     r.passFinal = contarABordo(porCartao,tsFim);
+    r.movAposPont = movimentosAposPontualidade(porCartao,tsPont,tsFim);
   }
   return resultado;
 }
-if(typeof module!=='undefined'&&module.exports){module.exports={normFrota:normFrota,normTexto:normTexto,nomePonto:nomePonto,nomeMotorista:nomeMotorista,parseData:parseData,prepararEventos:prepararEventos,prepararViagens:prepararViagens,prepararPassagens:prepararPassagens,cruzar:cruzar,calcularPassageiros:calcularPassageiros,agruparCartoesDaViagem:agruparCartoesDaViagem,contarABordo:contarABordo,tipoPlanilha:tipoPlanilha,dur:dur,hhmm:hhmm,motoristaBate:motoristaBate,ehIda:ehIda,linhasComCabecalhoAuto:linhasComCabecalhoAuto};}
+if(typeof module!=='undefined'&&module.exports){module.exports={normFrota:normFrota,normTexto:normTexto,nomePonto:nomePonto,nomeMotorista:nomeMotorista,parseData:parseData,prepararEventos:prepararEventos,prepararViagens:prepararViagens,prepararPassagens:prepararPassagens,cruzar:cruzar,calcularPassageiros:calcularPassageiros,agruparCartoesDaViagem:agruparCartoesDaViagem,contarABordo:contarABordo,contarTransportados:contarTransportados,movimentosAposPontualidade:movimentosAposPontualidade,tipoPlanilha:tipoPlanilha,dur:dur,hhmm:hhmm,motoristaBate:motoristaBate,ehIda:ehIda,linhasComCabecalhoAuto:linhasComCabecalhoAuto};}
 </script>
 <!-- ============ CORE:END ============ -->
 
@@ -792,6 +840,10 @@ function processar(){
   $('toolbar').style.display='flex';
   $('bar').style.display='flex';
   $('kpis').style.display='grid';
+  $('passengerLegend').style.display='flex';
+  $('legTotal').innerHTML=iconeCartao('#38BDF8');
+  $('legPont').innerHTML=iconeCartao('#22C55E');
+  $('legFinal').innerHTML=iconeCartao('#EF4444');
   $('tablewrap').style.display='block';
   desenhar();
 }
@@ -907,11 +959,12 @@ var COLUNAS=[
   {k:'phora',    r:'H.Pontualidade', g:2, left:false, get:function(r){return r.ponto?r.ponto.ts:null}},
   {k:'fim',      r:'H.Real',     g:2, left:false, get:function(r){return r.viagem.fim}},
   {k:'res1',     r:'Situação',   g:2, left:false, get:function(r){return r.viagem.res1}},
-  {k:'passPont', r:'<span class="colicon" title="Passageiros a bordo até o ponto de pontualidade">'+iconeCartao('#22C55E')+'</span>', g:2, left:false, get:function(r){return r.passPontualidade}},
-  {k:'passFim',  r:'<span class="colicon" title="Passageiros a bordo até o ponto final">'+iconeCartao('#EF4444')+'</span>',        g:2, left:false, get:function(r){return r.passFinal}},
-  {k:'obs',      r:'Observação', g:3, left:true,  get:function(r){return r.viagem.obs}}
+  {k:'passTotal',r:'<span class="colicon" title="Total transportados: cada crachá é contado uma única vez na viagem">'+iconeCartao('#38BDF8')+'</span>', g:3, left:false, get:function(r){return r.passTransportados}},
+  {k:'passPont', r:'<span class="colicon" title="A bordo na pontualidade: passageiros que permaneciam no veículo nesse momento">'+iconeCartao('#22C55E')+'</span>', g:3, left:false, get:function(r){return r.passPontualidade}},
+  {k:'passFim',  r:'<span class="colicon" title="A bordo no final: passe o mouse no número para ver embarques e desembarques após a pontualidade">'+iconeCartao('#EF4444')+'</span>', g:3, left:false, get:function(r){return r.passFinal}},
+  {k:'obs',      r:'Observação', g:4, left:true,  get:function(r){return r.viagem.obs}}
 ];
-var GRUPOS=[{r:'Viagem',n:6},{r:'Partida',n:4},{r:'Chegada',n:7},{r:'Observação',n:1}];
+var GRUPOS=[{r:'Viagem',n:6},{r:'Partida',n:4},{r:'Chegada',n:5},{r:'Passageiros',n:3},{r:'Observação',n:1}];
 
 function desenhar(){
   var base=filtradosBase();
@@ -947,7 +1000,7 @@ function desenhar(){
   }).join('');
   var th=COLUNAS.map(function(c){
     var seta = ORDEM.col===c.k ? (ORDEM.dir>0?' ▲':' ▼') : '';
-    var start=(c.k==='ponto0'||c.k==='ponto1'||c.k==='obs')?' group-start':''; return '<th class="sub g'+c.g+start+'" data-k="'+c.k+'">'+c.r+seta+'</th>';
+    var start=(c.k==='ponto0'||c.k==='ponto1'||c.k==='passTotal'||c.k==='obs')?' group-start':''; return '<th class="sub g'+c.g+start+'" data-k="'+c.k+'">'+c.r+seta+'</th>';
   }).join('');
   $('tbl').tHead.innerHTML='<tr>'+thg+'</tr><tr>'+th+'</tr>';
   // trava a 2ª linha do cabeçalho exatamente abaixo da 1ª, seja qual for a fonte carregada
@@ -986,13 +1039,21 @@ function desenhar(){
         '<td class="t marca brk">'+(p? hhmm(p.dt)+'<span class="ptline"><span class="pt" title="'+esc(p.zona)+'">'+esc(p.ponto)+'</span></span>' : '<span class="dash">—</span>')+'</td>'+
         tdT(v.fim?hhmm(v.fim):null)+
         td(pill(v.res1))+
-        td(r.passPontualidade==null?'<span class="dash">—</span>':r.passPontualidade)+
-        td(r.passFinal==null?'<span class="dash">—</span>':r.passFinal)+
+        td(r.passTransportados==null?'<span class="dash">—</span>':'<span class="pass-num pass-total" title="Total de passageiros transportados na janela da viagem (1 por crachá)">'+r.passTransportados+'</span>')+
+        td(r.passPontualidade==null?'<span class="dash">—</span>':'<span class="pass-num pass-pont" title="Passageiros que permaneciam a bordo na pontualidade">'+r.passPontualidade+'</span>')+
+        td(r.passFinal==null?'<span class="dash">—</span>':'<span class="pass-num pass-final" title="'+esc(tituloPassFinal(r))+'">'+r.passFinal+'</span>')+
         tdW(v.obs?esc(v.obs):'<span class="dash">—</span>')+
       '</tr>');
     });
     $('tbl').tBodies[0].innerHTML=html.join('');
   }
+}
+function tituloPassFinal(r){
+  var m=r.movAposPont||{};
+  var partes=['A bordo no final: '+(r.passFinal==null?'—':r.passFinal)];
+  if(m.embarques!=null) partes.push('+'+m.embarques+' embarque'+(m.embarques===1?'':'s')+' após a pontualidade');
+  if(m.desembarques!=null) partes.push('-'+m.desembarques+' desembarque'+(m.desembarques===1?'':'s')+' após a pontualidade');
+  return partes.join(' | ');
 }
 function kpi(l,v,s,f){return '<div class="kpi '+(FILTROS.card===f?'active':'')+'" data-filter="'+f+'" role="button" tabindex="0"><div class="kpi-l">'+l+'</div><div class="kpi-v">'+v+'</div><div class="kpi-s">'+s+'</div></div>'}
 function td(h){return '<td>'+h+'</td>'}
@@ -1021,7 +1082,7 @@ async function exportarExcel(){
     {label:'PARTIDA',     cols:4, cor:'FF176D67', sub:'FF1D5D58'},
     {label:'CHEGADA',     cols:5, cor:'FF1D7B74', sub:'FF246B65'},
     {label:'PONTUALIDADE',cols:1, cor:'FF23857D', sub:'FF2A756F'},
-    {label:'PASSAGEIROS', cols:2, cor:'FF0E6B62', sub:'FF135F57'},
+    {label:'PASSAGEIROS', cols:3, cor:'FF0E6B62', sub:'FF135F57'},
     {label:'OBSERVAÇÃO',  cols:1, cor:'FF286F6A', sub:'FF315F5B'}
   ];
   var totalCols=grupos.reduce(function(s,g){return s+g.cols},0);
@@ -1039,8 +1100,8 @@ async function exportarExcel(){
   var headers=['ID Viagem','Carro','Placa','Motorista','Operadora','Linha','Viagem','Tipo','Data',
     'Ponto','H.Prog','H.Real','Situação',
     'Ponto','H.Prog','H.Pontualidade','H.Real','Situação',
-    'Ponto de pontualidade','Passageiros Pontualidade','Passageiros P.Final','Observação'];
-  var esquerda={9:1,10:1,4:1,7:1,14:1,19:1,22:1}; // colunas (1-based) com texto mais longo: alinhadas à esquerda
+    'Ponto de pontualidade','Total Transportados','A bordo Pontualidade','A bordo P.Final','Observação'];
+  var esquerda={9:1,10:1,4:1,7:1,14:1,19:1,23:1}; // colunas (1-based) com texto mais longo: alinhadas à esquerda
 
   var col=1;
   grupos.forEach(function(g){
@@ -1060,8 +1121,8 @@ async function exportarExcel(){
     {ini:10,fim:13,cor:grupos[1].sub},
     {ini:14,fim:18,cor:grupos[2].sub},
     {ini:19,fim:19,cor:grupos[3].sub},
-    {ini:20,fim:21,cor:grupos[4].sub},
-    {ini:22,fim:22,cor:grupos[5].sub}
+    {ini:20,fim:22,cor:grupos[4].sub},
+    {ini:23,fim:23,cor:grupos[5].sub}
   ];
   headers.forEach(function(h,i){
     var ci=i+1, faixa=faixas.filter(function(f){return ci>=f.ini&&ci<=f.fim})[0];
@@ -1071,7 +1132,7 @@ async function exportarExcel(){
     cell.font={color:{argb:'FFFFFFFF'},bold:true,size:10};
     cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
     cell.border={bottom:{style:'thin',color:{argb:'FF8CB7B2'}}};
-    if([10,14,19,20,22].indexOf(ci)>=0) cell.border.left={style:'medium',color:{argb:'FFB9D9D5'}};
+    if([10,14,19,20,23].indexOf(ci)>=0) cell.border.left={style:'medium',color:{argb:'FFB9D9D5'}};
   });
   ws.getRow(3).height=28;
 
@@ -1083,13 +1144,13 @@ async function exportarExcel(){
       v.real0?ddmm(v.real0):(v.prog0?ddmm(v.prog0):''),
       v.ponto0,v.prog0?hhmm(v.prog0):'',v.real0?hhmm(v.real0):'',resumoStatus(v.res0),
       v.ponto1,v.prog1?hhmm(v.prog1):'',p?hhmm(p.dt):'',v.fim?hhmm(v.fim):'',resumoStatus(v.res1),
-      p?p.ponto:'',r.passPontualidade==null?'':r.passPontualidade,r.passFinal==null?'':r.passFinal,v.obs||''];
+      p?p.ponto:'',r.passTransportados==null?'':r.passTransportados,r.passPontualidade==null?'':r.passPontualidade,r.passFinal==null?'':r.passFinal,v.obs||''];
     vals.forEach(function(val,ci){
       var cell=ws.getCell(rowIdx,ci+1);
       cell.value=val;
-      cell.alignment={vertical:'middle',horizontal:esquerda[ci+1]?'left':'center',wrapText:ci===21};
+      cell.alignment={vertical:'middle',horizontal:esquerda[ci+1]?'left':'center',wrapText:ci===22};
       cell.border={bottom:{style:'thin',color:{argb:'FFD8E4E2'}}};
-      if([10,14,19,20,22].indexOf(ci+1)>=0) cell.border.left={style:'thin',color:{argb:'FFA9C9C5'}};
+      if([10,14,19,20,23].indexOf(ci+1)>=0) cell.border.left={style:'thin',color:{argb:'FFA9C9C5'}};
       if(idx%2===1) cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF3F9F8'}};
     });
     [12,17].forEach(function(ci){ // Situação partida / Situação chegada
@@ -1100,9 +1161,13 @@ async function exportarExcel(){
         cell.font={color:{argb:c.font},bold:true};
       }
     });
+    // mantém no Excel a mesma leitura visual dos três indicadores de passageiros
+    if(vals[19]!=='' ) ws.getCell(rowIdx,20).font={color:{argb:'FF0284C7'},bold:true};
+    if(vals[20]!=='' ) ws.getCell(rowIdx,21).font={color:{argb:'FF15803D'},bold:true};
+    if(vals[21]!=='' ) ws.getCell(rowIdx,22).font={color:{argb:'FFDC2626'},bold:true};
   });
 
-  var larguras=[10,9,11,20,16,9,26,7,11, 15,9,9,11, 15,9,12,9,11, 26, 14,10, 45];
+  var larguras=[10,9,11,20,16,9,26,7,11, 15,9,9,11, 15,9,12,9,11, 26, 14,14,12, 45];
   larguras.forEach(function(w,i){ ws.getColumn(i+1).width=w; });
 
   var buf=await wb.xlsx.writeBuffer();
@@ -1135,6 +1200,7 @@ function limparTudo(){
   $('bar').style.display='none';
   $('kpis').style.display='none';
   $('kpis').innerHTML='';
+  $('passengerLegend').style.display='none';
   $('tablewrap').style.display='none';
   var tb=document.querySelector('#tbl tbody'); if(tb) tb.innerHTML='';
   $('emptyState').style.display='block';
