@@ -114,6 +114,14 @@ td.acoes{text-align:right}td.acoes .btn{margin-left:4px}
 td.det{white-space:normal;min-width:260px;color:#365f62;font-size:11.5px}
 .check{display:flex;align-items:center;gap:7px;font-size:12px;color:#2b5357;font-weight:600}
 @media(max-width:980px){.tabs button{padding:0 9px}.head-actions input{width:140px}}
+.menu{width:min(620px,100%);padding:24px;display:grid;gap:16px}
+.menu-head{display:flex;align-items:center;gap:16px}.menu-head img{width:140px;height:50px;object-fit:contain}
+.menu-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.menu-card{display:grid;gap:6px;align-content:start;padding:18px;border:1px solid #d8e9e7;border-radius:14px;background:linear-gradient(180deg,#fff,#f4fbfa);text-decoration:none;color:#123c43;transition:.15s;min-height:150px}
+.menu-card:hover{border-color:var(--green);box-shadow:0 10px 24px rgba(0,159,154,.14);transform:translateY(-2px)}
+.menu-card b{font-size:15px}.menu-card span{font-size:12px;color:#456a6e;line-height:1.4;font-weight:500}
+.menu-card .mc-ico{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:#dff5f2;color:#008d88;font-size:20px;font-weight:800}
+@media(max-width:600px){.menu-cards{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -145,7 +153,7 @@ td.det{white-space:normal;min-width:260px;color:#365f62;font-size:11.5px}
 <header class="topbar">
   <div class="brand"><img class="logo-univale" alt="Univale"><div class="brand-copy"><strong>Editor de Rotas</strong></div></div>
   <nav class="tabs" id="tabs"><button type="button" data-tab="rotas" class="active">Rotas</button><button type="button" data-tab="usuarios" class="so-admin">Usuários</button><button type="button" data-tab="log" class="so-admin">Histórico</button></nav>
-  <div class="user-chip"><span class="who" id="who"></span><button class="btn btn-light btn-sm" id="minha-senha" type="button">Minha senha</button><button class="btn btn-light btn-sm" id="sair" type="button">Sair</button><a class="link-btn" id="ver-apresentacao" target="_blank" rel="noopener">Abrir apresentação ↗</a></div>
+  <div class="user-chip"><span class="who" id="who"></span><a class="btn btn-light btn-sm" id="menu-inicio" href="#" style="display:inline-flex;align-items:center;text-decoration:none">Menu</a><button class="btn btn-light btn-sm" id="minha-senha" type="button">Minha senha</button><button class="btn btn-light btn-sm" id="sair" type="button">Sair</button><a class="link-btn" id="ver-apresentacao" target="_blank" rel="noopener">Abrir apresentação ↗</a></div>
 </header>
 
 <div class="ed-workspace" id="ed-rotas">
@@ -205,8 +213,20 @@ td.det{white-space:normal;min-width:260px;color:#365f62;font-size:11.5px}
   <div class="field"><label for="l-senha">Senha</label><input id="l-senha" name="senha" type="password" autocomplete="current-password"></div>
   <div class="login-erro" id="login-erro" hidden></div>
   <button class="btn btn-primary" type="submit">Entrar</button>
-  <a class="login-link" href="./">Ver apresentação das rotas</a>
+  <a class="login-link" id="link-apresentacao" href="?view=apresentacao">Ver apresentação das rotas</a>
 </form></div>
+</template>
+
+<template id="tpl-menu">
+<div class="login-wrap"><div class="panel menu">
+  <div class="menu-head"><img class="logo-univale" alt="Univale"><div><div class="section-title" id="menu-ola">Olá</div><div class="section-sub" id="menu-perfil"></div></div></div>
+  <div class="section-kicker">Visualizador de Rotas</div>
+  <div class="menu-cards">
+    <a class="menu-card" id="card-apresentacao" href="#"><span class="mc-ico">◎</span><b>Apresentação de rotas</b><span>Ver as rotas no mapa como o cliente vê.</span></a>
+    <a class="menu-card" id="card-editor" href="#"><span class="mc-ico">✎</span><b>Editor de rotas</b><span id="menu-editor-sub">Importar KML, editar e excluir rotas.</span></a>
+  </div>
+  <a class="login-link" href="#" id="menu-sair">Sair</a>
+</div></div>
 </template>
 
 <template id="tpl-trocar">
@@ -821,7 +841,9 @@ function renderLog() {
 const API_URL = 'https://script.google.com/macros/s/AKfycbzkJK_ETR1I7frkpcbmqJdqIlN3P-kq885S-MtErG6ZR0smaDw-hJKbopeXoX-VCagRLw/exec';
 /* ======================================================== */
 
-const MODO_EDITOR = new URLSearchParams(location.search).get('view') === 'editor' || location.hash === '#editor';
+const VIEW = () => new URLSearchParams(location.search).get('view') || (location.hash === '#editor' ? 'editor' : '');
+const link = v => location.pathname + (v ? '?view=' + v : '');
+function destino() { return VIEW() === 'editor' ? abrirEditor() : abrirMenu(); }
 const SESSAO = 'univale-rotas-sessao';
 
 function lerSessao() { try { return JSON.parse(sessionStorage.getItem(SESSAO) || 'null'); } catch (e) { return null; } }
@@ -846,7 +868,7 @@ async function apiEditor(corpo) {
     throw e;
   }
 }
-async function sairEditor() { try { await apiEditor({ acao: 'sair' }); } catch (e) {} gravarSessao(null); telaLogin(); }
+async function sairEditor() { try { await apiEditor({ acao: 'sair' }); } catch (e) {} gravarSessao(null); history.replaceState(null, '', link('')); telaLogin(); }
 function montar(idTemplate) {
   document.querySelectorAll('.modal-bg,.busy,.toast').forEach(x => x.remove());
   const root = document.getElementById('app-root');
@@ -859,6 +881,7 @@ function telaLogin(msg) {
   montar('tpl-login');
   const f = document.getElementById('login-form');
   mostrarErro('login-erro', msg || '');
+  document.getElementById('link-apresentacao').href = link('apresentacao');
   f.addEventListener('submit', async ev => {
     ev.preventDefault();
     const login = f.login.value.trim(), senha = f.senha.value;
@@ -867,7 +890,7 @@ function telaLogin(msg) {
     try {
       const r = await api({ acao: 'login', login, senha });
       gravarSessao({ token: r.token, usuario: r.usuario });
-      r.trocarSenha ? telaTrocarSenha() : abrirEditor();
+      r.trocarSenha ? telaTrocarSenha() : destino();
     } catch (e) { mostrarErro('login-erro', e.message); f.querySelector('button').disabled = false; }
   });
 }
@@ -881,7 +904,7 @@ function telaTrocarSenha() {
     if (nova.length < 8) return mostrarErro('troca-erro', 'A nova senha precisa ter pelo menos 8 caracteres.');
     if (nova !== conf) return mostrarErro('troca-erro', 'As senhas não conferem.');
     f.querySelector('button').disabled = true; mostrarErro('troca-erro', '');
-    try { await apiEditor({ acao: 'trocarSenha', senhaAtual: atual, novaSenha: nova }); abrirEditor(); }
+    try { await apiEditor({ acao: 'trocarSenha', senhaAtual: atual, novaSenha: nova }); destino(); }
     catch (e) { mostrarErro('troca-erro', e.message); f.querySelector('button').disabled = false; }
   });
 }
@@ -892,18 +915,45 @@ async function abrirEditor() {
     if (eu.trocarSenha) return telaTrocarSenha();
     gravarSessao({ ...lerSessao(), usuario: eu.usuario });
     montar('tpl-editor');
-    iniciarEditor({ rotas, usuario: eu.usuario, email: eu.usuario.nome + ' · ' + eu.usuario.perfil, urlApresentacao: location.pathname });
+    iniciarEditor({ rotas, usuario: eu.usuario, email: eu.usuario.nome + ' · ' + eu.usuario.perfil, urlApresentacao: link('apresentacao') });
+    const m = document.getElementById('menu-inicio'); if (m) m.href = link('');
   } catch (e) { if (!/Sessão expirada|Troque sua senha/i.test(e.message)) telaLogin('Não foi possível abrir o editor: ' + e.message); }
+}
+async function abrirMenu() {
+  if (!lerSessao()) return telaLogin();
+  try {
+    const eu = await apiEditor({ acao: 'eu' });
+    if (eu.trocarSenha) return telaTrocarSenha();
+    gravarSessao({ ...lerSessao(), usuario: eu.usuario });
+    montar('tpl-menu');
+    const u = eu.usuario;
+    document.getElementById('menu-ola').textContent = 'Olá, ' + u.nome.split(' ')[0];
+    document.getElementById('menu-perfil').textContent = u.login + ' · ' + u.perfil;
+    document.getElementById('menu-editor-sub').textContent = u.perfil === 'ADMIN' ? 'Importar KML, editar e excluir rotas, gerenciar usuários e ver o histórico.' : 'Importar KML, editar e excluir rotas.';
+    document.getElementById('card-apresentacao').href = link('apresentacao');
+    document.getElementById('card-editor').href = link('editor');
+    document.getElementById('menu-sair').addEventListener('click', ev => { ev.preventDefault(); sairEditor(); });
+  } catch (e) { if (!/Sessão expirada|Troque sua senha/i.test(e.message)) telaLogin('Não foi possível entrar: ' + e.message); }
 }
 async function abrirApresentacao() {
   montar('tpl-apresentacao');
+  if (lerSessao()) {
+    const nav = document.querySelector('.topbar .nav');
+    const a = document.createElement('a'); a.className = 'link-btn'; a.href = link(''); a.textContent = '← Menu'; a.style.marginLeft = '14px';
+    if (nav) nav.appendChild(a);
+  }
   try { iniciarApresentacao(await api()); }
   catch (e) {
     iniciarApresentacao([]);
     document.getElementById('empty-state').textContent = 'Não foi possível carregar as rotas. Tente novamente em instantes.';
   }
 }
-MODO_EDITOR ? abrirEditor() : abrirApresentacao();
+(function iniciar() {
+  const v = VIEW();
+  if (v === 'apresentacao') return abrirApresentacao();
+  if (v === 'editor') return abrirEditor();
+  return lerSessao() ? abrirMenu() : telaLogin();
+})();
 
 </script>
 </body>
