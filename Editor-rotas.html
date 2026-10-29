@@ -138,7 +138,7 @@ td.det{white-space:normal;min-width:260px;color:#365f62;font-size:11.5px}
 <div class="divider"></div>
 <div class="metrics">
 <div class="metric"><span class="metric-icon">↗</span><div class="metric-copy"><small>Distância</small><span>Percurso aproximado</span></div><strong id="distance">0 km</strong></div>
-<div class="metric"><span class="metric-icon">◷</span><div class="metric-copy"><small>Tempo</small><span>Duração estimada</span></div><strong id="duration">0 min</strong></div>
+
 </div>
 <div class="fleet-showcase" id="fleet-backdrop" aria-label="Frota Univale em alternância automática"></div>
 </aside>
@@ -176,7 +176,7 @@ td.det{white-space:normal;min-width:260px;color:#365f62;font-size:11.5px}
     <section class="panel list-panel">
       <div class="list-head"><strong id="lista-titulo">Rotas salvas</strong><input type="search" id="busca" placeholder="Buscar por código, nome, sentido..."></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Código</th><th>Nome</th><th>Sentido</th><th>Dias / horário</th><th style="text-align:right">Distância</th><th style="text-align:right">Tempo</th><th>Atualizado</th><th></th></tr></thead>
+        <thead><tr><th>Código</th><th>Nome</th><th>Sentido</th><th>Dias / horário</th><th style="text-align:right">Distância</th><th>Atualizado</th><th></th></tr></thead>
         <tbody id="tabela"></tbody>
       </table></div>
     </section>
@@ -462,7 +462,6 @@ function show(i) {
   el('route-direction').textContent = sentido;
   el('route-time').textContent = r.horario || '--:--';
   el('distance').textContent = Rotas.fmtKm(r.distancia);
-  el('duration').textContent = Rotas.fmtMin(r.minutos);
   el('map-title').textContent = [r.codigo, r.nome].filter(Boolean).join(' · ');
   el('map-subtitle').textContent = [sentido, r.horario].filter(Boolean).join(' · ');
   mapa.desenhar(coordsDe(r));
@@ -513,7 +512,7 @@ const msgErro = e => (e && e.message ? e.message : String(e)).replace(/^(Excepti
 function mostrarNoMapa(r, coords) {
   mapa.desenhar(coords || Rotas.decodificar(r.trajeto));
   el('map-title').textContent = [r.codigo, r.nome].filter(Boolean).join(' · ') || 'Rota';
-  el('map-subtitle').textContent = [r.sentido !== 'ROTA' ? r.sentido : '', r.horario, Rotas.fmtKm(r.distancia), Rotas.fmtMin(r.minutos)].filter(Boolean).join(' · ');
+  el('map-subtitle').textContent = [r.sentido !== 'ROTA' ? r.sentido : '', r.horario, Rotas.fmtKm(r.distancia)].filter(Boolean).join(' · ');
 }
 
 /* ---------- importação */
@@ -568,8 +567,7 @@ function renderFila() {
         <div class="field"><label>Código</label><input data-campo="codigo" value="${esc(i.codigo)}"></div>
         <div class="field"><label>Dias / horário</label><input data-campo="horario" value="${esc(i.horario)}" placeholder="seg a sex 06:55" maxlength="80"></div>
         <div class="field full"><label>Nome</label><input data-campo="nome" value="${esc(i.nome)}"></div>
-        <div class="field"><label>Sentido</label><select data-campo="sentido">${Rotas.SENTIDOS.map(s => `<option ${s === i.sentido ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
-        <div class="field"><label>Tempo (min)</label><input data-campo="minutos" type="number" min="0" value="${esc(i.minutos)}"></div>
+        <div class="field full"><label>Sentido</label><select data-campo="sentido">${Rotas.SENTIDOS.map(s => `<option ${s === i.sentido ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
       </div>
       <div class="stats">${Rotas.fmtKm(i.distancia)} · ${i.registros} pontos${i.data ? ' · coletado em ' + esc(i.data) : ''}</div>
       ${i.dupFila ? `<div class="dup">Outro arquivo desta importação gera o mesmo nome. Ajuste o nome ou horário para não se confundirem.</div>` : ''}
@@ -646,10 +644,10 @@ function renderTabela() {
   el('tabela').innerHTML = lista.length ? lista.map(r => `
     <tr data-id="${esc(r.id)}" class="${r.id === selecionada ? 'sel' : ''}">
       <td><b>${esc(r.codigo)}</b></td><td class="nome">${esc(r.nome)}</td><td><span class="tag">${esc(r.sentido)}</span></td><td>${esc(r.horario || '—')}</td>
-      <td class="num">${Rotas.fmtKm(r.distancia)}</td><td class="num">${Rotas.fmtMin(r.minutos)}</td>
+      <td class="num">${Rotas.fmtKm(r.distancia)}</td>
       <td class="muted">${esc(r.atualizado || '')}</td>
       <td class="acoes"><button class="btn btn-light btn-sm" data-acao="ver">Ver</button><button class="btn btn-light btn-sm" data-acao="editar">Editar</button><button class="btn btn-danger btn-sm" data-acao="excluir">Excluir</button></td>
-    </tr>`).join('') : `<tr><td colspan="8" class="muted" style="padding:18px">${rotas.length ? 'Nenhuma rota encontrada para a busca.' : 'Nenhuma rota salva ainda. Importe arquivos KML ao lado.'}</td></tr>`;
+    </tr>`).join('') : `<tr><td colspan="7" class="muted" style="padding:18px">${rotas.length ? 'Nenhuma rota encontrada para a busca.' : 'Nenhuma rota salva ainda. Importe arquivos KML ao lado.'}</td></tr>`;
 }
 el('tabela').addEventListener('click', e => {
   const b = e.target.closest('button[data-acao]'); const tr = e.target.closest('tr[data-id]'); if (!tr) return;
@@ -678,7 +676,6 @@ function abrirEdicao(r) {
       <div class="field"><label>Dias / horário</label><input id="e-horario" value="${esc(r.horario)}" placeholder="seg a sex 06:55" maxlength="80"></div>
       <div class="field full"><label>Nome</label><input id="e-nome" value="${esc(r.nome)}"></div>
       <div class="field"><label>Sentido</label><select id="e-sentido">${Rotas.SENTIDOS.map(s => `<option ${s === r.sentido ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
-      <div class="field"><label>Tempo (min)</label><input id="e-minutos" type="number" min="0" value="${esc(r.minutos)}"></div>
       <div class="field"><label>Distância (km)</label><input id="e-distancia" type="number" min="0" step="0.1" value="${esc(r.distancia)}"></div>
       <div class="field"><label>Trajeto</label><label class="btn btn-light btn-sm" style="display:grid;place-items:center;height:32px">Trocar por novo KML<input id="e-kml" type="file" accept=".kml" hidden></label></div>
     </div>
@@ -690,7 +687,6 @@ function abrirEdicao(r) {
     try {
       novo = Rotas.lerKml(await lerArquivo(f), f.name);
       m.querySelector('#e-distancia').value = novo.distancia;
-      if (novo.minutos) m.querySelector('#e-minutos').value = novo.minutos;
       m.querySelector('#e-info').textContent = `Novo trajeto: ${f.name} (${novo.registros} pontos, ${Rotas.fmtKm(novo.distancia)}). Será aplicado ao salvar.`;
       mostrarNoMapa({ ...r, ...novo, codigo: r.codigo, nome: r.nome, sentido: r.sentido, horario: r.horario }, novo.coords);
     } catch (err) { novo = null; aviso('KML inválido: ' + msgErro(err), true); }
@@ -699,7 +695,7 @@ function abrirEdicao(r) {
     const dados = {
       id: r.id, codigo: m.querySelector('#e-codigo').value.trim(), nome: m.querySelector('#e-nome').value.trim(),
       sentido: m.querySelector('#e-sentido').value, horario: normalizarHorario(m.querySelector('#e-horario').value),
-      minutos: Math.max(0, Math.round(Number(m.querySelector('#e-minutos').value) || 0)),
+      minutos: novo ? novo.minutos : r.minutos,
       distancia: Math.max(0, Number(m.querySelector('#e-distancia').value) || 0),
       data: novo ? (novo.data || r.data) : r.data, registros: novo ? novo.registros : r.registros,
       trajeto: novo ? novo.trajeto : r.trajeto
