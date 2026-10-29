@@ -132,7 +132,7 @@ td.det{white-space:normal;min-width:260px;color:#365f62;font-size:11.5px}
 <header class="topbar"><div class="brand"><img class="logo-univale" alt="Univale"><div class="brand-copy"><strong>Visualizador de Rotas</strong></div></div><div class="nav"><span>Fretamento</span><i>|</i><span>Urbano</span><i>|</i><span>Turismo</span></div></header>
 <div class="workspace">
 <aside class="panel sidebar">
-<div><div class="section-kicker">Apresentador KML</div><div class="section-title">Linha / Rota</div><div class="section-sub">Selecione um percurso para apresentação.</div></div>
+<div><div class="section-kicker">Apresentador KML</div><div class="section-title">Linha / Rota</div></div>
 <div class="selector"><label for="route">Escolha a rota</label><div class="select-wrap"><select id="route"></select></div></div>
 <div class="route-summary"><div class="route-code" id="route-code">--</div><div class="route-name" id="route-name">Carregando...</div><div class="route-pills"><span class="pill" id="route-direction">Rota</span><span class="pill time" id="route-time">--:--</span></div></div>
 <div class="divider"></div>
@@ -158,7 +158,7 @@ td.det{white-space:normal;min-width:260px;color:#365f62;font-size:11.5px}
 
 <div class="ed-workspace" id="ed-rotas">
   <aside class="panel ed-side">
-    <div><div class="section-kicker">Importar KML</div><div class="section-title">Novas rotas</div><div class="section-sub">Envie um ou vários arquivos .kml. O nome do arquivo preenche código, nome, sentido e horário. Confira antes de salvar.</div></div>
+    <div><div class="section-kicker">Importar KML</div><div class="section-title">Novas rotas</div></div>
     <label class="drop" id="drop">
       <span class="ico">+</span><b>Selecionar arquivos KML</b><span>ou arraste e solte aqui</span>
       <input type="file" id="arquivos" accept=".kml" multiple>
@@ -208,7 +208,7 @@ td.det{white-space:normal;min-width:260px;color:#365f62;font-size:11.5px}
 <template id="tpl-login">
 <div class="login-wrap"><form class="panel login" id="login-form" autocomplete="on">
   <img class="logo-univale" alt="Univale">
-  <div><div class="section-kicker">Editor de rotas</div><div class="section-title">Acesso da operação</div><div class="section-sub">Entre com seu e-mail e senha.</div></div>
+  <div><div class="section-kicker">Editor de rotas</div><div class="section-title">Acesso da operação</div></div>
   <div class="field"><label for="l-login">E-mail</label><input id="l-login" name="login" type="email" autocomplete="username" maxlength="120"></div>
   <div class="field"><label for="l-senha">Senha</label><input id="l-senha" name="senha" type="password" autocomplete="current-password"></div>
   <div class="login-erro" id="login-erro" hidden></div>
@@ -222,7 +222,7 @@ td.det{white-space:normal;min-width:260px;color:#365f62;font-size:11.5px}
 <template id="tpl-trocar">
 <div class="login-wrap"><form class="panel login" id="troca-form" autocomplete="off">
   <img class="logo-univale" alt="Univale">
-  <div><div class="section-kicker">Editor de rotas</div><div class="section-title">Defina sua senha</div><div class="section-sub" id="troca-sub">Por segurança, troque a senha provisória antes de continuar.</div></div>
+  <div><div class="section-kicker">Editor de rotas</div><div class="section-title">Defina sua senha</div></div>
   <div class="field"><label for="t-atual">Senha atual (provisória)</label><input id="t-atual" type="password" autocomplete="current-password"></div>
   <div class="field"><label for="t-nova">Nova senha</label><input id="t-nova" type="password" autocomplete="new-password" placeholder="Mínimo de 8 caracteres"></div>
   <div class="field"><label for="t-conf">Confirme a nova senha</label><input id="t-conf" type="password" autocomplete="new-password"></div>
@@ -919,7 +919,7 @@ async function abrirMenu() {
     const u = eu.usuario;
     document.getElementById('menu-ola').textContent = 'Olá, ' + u.nome.split(' ')[0];
     document.getElementById('menu-perfil').textContent = u.login + ' · ' + u.perfil;
-    document.getElementById('menu-editor-sub').textContent = u.perfil === 'ADMIN' ? 'Importar KML, editar e excluir rotas, gerenciar usuários e ver o histórico.' : 'Importar KML, editar e excluir rotas.';
+    (document.getElementById('menu-editor-sub')||{}).textContent = u.perfil === 'ADMIN' ? 'Importar KML, editar e excluir rotas, gerenciar usuários e ver o histórico.' : 'Importar KML, editar e excluir rotas.';
     document.getElementById('card-apresentacao').href = link('apresentacao');
     document.getElementById('card-editor').href = link('editor');
     document.getElementById('menu-sair').addEventListener('click', ev => { ev.preventDefault(); sairEditor(); });
