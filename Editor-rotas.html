@@ -176,7 +176,7 @@ td.det{white-space:normal;min-width:260px;color:#365f62;font-size:11.5px}
     <section class="panel list-panel">
       <div class="list-head"><strong id="lista-titulo">Rotas salvas</strong><input type="search" id="busca" placeholder="Buscar por código, nome, sentido..."></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Código</th><th>Nome</th><th>Sentido</th><th>Horário</th><th style="text-align:right">Distância</th><th style="text-align:right">Tempo</th><th>Atualizado</th><th></th></tr></thead>
+        <thead><tr><th>Código</th><th>Nome</th><th>Sentido</th><th>Dias / horário</th><th style="text-align:right">Distância</th><th style="text-align:right">Tempo</th><th>Atualizado</th><th></th></tr></thead>
         <tbody id="tabela"></tbody>
       </table></div>
     </section>
@@ -286,15 +286,48 @@ const Rotas = (function () {
     return SENTIDOS.includes(s) ? s : 'ROTA';
   }
 
+  const MINUSCULAS = ['DA', 'DE', 'DO', 'DAS', 'DOS', 'E'];
+  function titulo(t) {
+    return String(t || '').toLowerCase().split(' ').filter(Boolean)
+      .map((w, i) => i > 0 && MINUSCULAS.includes(w.toUpperCase()) ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+  const SENT_ABREV = { CHE: 'CHEGADA', CHEGADA: 'CHEGADA', SAI: 'SAÍDA', SAIDA: 'SAÍDA', 'SAÍDA': 'SAÍDA', RET: 'RETORNO', RETORNO: 'RETORNO' };
+
+  // Padrão Univale: "M.C.O-13 - AZURITA - 084_KML_PADRAO_SEG_SEX_CHE_0655.kml"
+  //   -> código "M.C.O 13", nome "Azurita", sentido CHEGADA, horário "seg a sex 06:55"
+  //   vários grupos ("..._SEG_SEG_CHE_1855__SAB_DOM_CHE_0655") viram "seg a seg 18:55 / sáb a dom 06:55"
+  const DIAS = { SEG: 'seg', TER: 'ter', QUA: 'qua', QUI: 'qui', SEX: 'sex', SAB: 'sáb', 'SÁB': 'sáb', DOM: 'dom' };
+  function lerPadraoUnivale(s) {
+    const m = s.match(/^([A-Z](?:\.[A-Z])*)\s*-?\s*(\d+)\s*-\s*(.+?)\s*-\s*\d+\s*KML\b(.*)$/);
+    if (!m) return null;
+    const resto = m[4].replace(/\bPADRAO\b/g, ' ');
+    const sentidos = [], grupos = [];
+    const re = /((?:\b(?:SEG|TER|QUA|QUI|SEX|SAB|SÁB|DOM)\b\s*)*)\b(CHE|CHEGADA|SAI|SAIDA|SAÍDA|RET|RETORNO)\b((?:\s+\d{3,4}\b)+)/g;
+    let x;
+    while ((x = re.exec(resto))) {
+      const sent = SENT_ABREV[x[2]]; if (!sentidos.includes(sent)) sentidos.push(sent);
+      const d = x[1].trim().split(/\s+/).filter(Boolean).map(t => DIAS[t]);
+      const dias = d.length === 2 ? d[0] + ' a ' + d[1] : d.join(', ');
+      const horas = x[3].trim().split(/\s+/).map(h => { h = h.padStart(4, '0'); return h.slice(0, 2) + ':' + h.slice(2); })
+        .filter(h => +h.slice(0, 2) < 24 && +h.slice(3) < 60);
+      if (horas.length) grupos.push((dias ? dias + ' ' : '') + horas.join(' e '));
+    }
+    return { codigo: m[1] + ' ' + m[2], nome: titulo(m[3]), sentido: sentidos[0] || 'ROTA', horario: grupos.join(' / ') };
+  }
+
+
   // "MC-02 SANTANENSE CHEGADA 06-55.kml" -> código, nome, sentido, horário
   function lerNomeArquivo(nomeArquivo) {
     const s = String(nomeArquivo || '').replace(/\.km[lz]$/i, '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase();
+    const padrao = lerPadraoUnivale(s);
+    if (padrao) return padrao;
     const m = s.match(/^(\S+)\s*(.*?)\s*(?:\b(SA[IÍ]DA|CHEGADA|RETORNO)\b)?\s*(\d{1,2})[-:hH.](\d{2})$/);
-    if (m) return { codigo: m[1], nome: m[2].trim(), sentido: normSentido(m[3]), horario: m[4].padStart(2, '0') + ':' + m[5] };
+    if (m) return { codigo: m[1], nome: titulo(m[2].trim()), sentido: normSentido(m[3]), horario: m[4].padStart(2, '0') + ':' + m[5] };
     const g = s.match(/^(\S+)\s*(.*)$/) || [];
     const sent = (s.match(/\b(SA[IÍ]DA|CHEGADA|RETORNO)\b/) || [])[1];
-    return { codigo: g[1] || s, nome: (g[2] || '').replace(/\b(SA[IÍ]DA|CHEGADA|RETORNO)\b/, '').trim(), sentido: normSentido(sent), horario: '' };
+    return { codigo: g[1] || s, nome: titulo((g[2] || '').replace(/\b(SA[IÍ]DA|CHEGADA|RETORNO)\b/, '').trim()), sentido: normSentido(sent), horario: '' };
   }
+
 
   function lerTuplas(txt) {
     return String(txt).trim().split(/\s+/).map(t => t.split(',').map(Number))
@@ -357,9 +390,11 @@ const Rotas = (function () {
     };
   }
 
+  // Padrão de nome: "M.C.O 13 - Azurita - chegada - 06:55"
   function rotulo(r) {
-    return [r.codigo, r.nome, [r.sentido !== 'ROTA' ? r.sentido : '', r.horario].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+    return [r.codigo, r.nome, r.sentido !== 'ROTA' ? r.sentido.toLowerCase() : '', r.horario].filter(Boolean).join(' - ');
   }
+
   function fmtKm(n) { return Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' km'; }
   function fmtMin(n) { n = Number(n || 0); return n >= 60 ? Math.floor(n / 60) + 'h' + (n % 60 ? ' ' + n % 60 + 'min' : '') : n + ' min'; }
   function chave(r) { return [String(r.codigo).toUpperCase(), r.sentido, r.horario].join('|'); }
@@ -507,8 +542,10 @@ async function importar(files) {
 
 function atualizarDuplicadas() {
   const existentes = {}; rotas.forEach(r => existentes[Rotas.chave(r)] = r);
+  const naFila = {}; fila.forEach(i => { if (!i.erro) naFila[Rotas.chave(i)] = (naFila[Rotas.chave(i)] || 0) + 1; });
   fila.forEach(i => {
     if (i.erro) return;
+    i.dupFila = naFila[Rotas.chave(i)] > 1;
     const ex = existentes[Rotas.chave(i)];
     i.existente = ex ? ex.id : null;
     if (i.substituir == null) i.substituir = true;
@@ -529,12 +566,13 @@ function renderFila() {
       <div class="file">${esc(i.arquivo)}</div>
       <div class="fields">
         <div class="field"><label>Código</label><input data-campo="codigo" value="${esc(i.codigo)}"></div>
-        <div class="field"><label>Horário</label><input data-campo="horario" value="${esc(i.horario)}" placeholder="hh:mm" maxlength="5"></div>
+        <div class="field"><label>Dias / horário</label><input data-campo="horario" value="${esc(i.horario)}" placeholder="seg a sex 06:55" maxlength="80"></div>
         <div class="field full"><label>Nome</label><input data-campo="nome" value="${esc(i.nome)}"></div>
         <div class="field"><label>Sentido</label><select data-campo="sentido">${Rotas.SENTIDOS.map(s => `<option ${s === i.sentido ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
         <div class="field"><label>Tempo (min)</label><input data-campo="minutos" type="number" min="0" value="${esc(i.minutos)}"></div>
       </div>
       <div class="stats">${Rotas.fmtKm(i.distancia)} · ${i.registros} pontos${i.data ? ' · coletado em ' + esc(i.data) : ''}</div>
+      ${i.dupFila ? `<div class="dup">Outro arquivo desta importação gera o mesmo nome. Ajuste o nome ou horário para não se confundirem.</div>` : ''}
       ${i.existente ? `<label class="dup"><input type="checkbox" data-campo="substituir" ${i.substituir ? 'checked' : ''}> Já existe uma rota igual. Substituir a existente</label>` : ''}
       <div class="row-actions"><button class="btn btn-light btn-sm" data-acao="ver">Ver no mapa</button><button class="btn btn-light btn-sm" data-acao="remover">Remover</button></div>
     </div>`).join('');
@@ -551,8 +589,8 @@ el('fila').addEventListener('change', e => {
   const campo = e.target.dataset.campo; if (!['codigo', 'sentido', 'horario'].includes(campo)) return;
   const item = fila.find(i => i.uid == e.target.closest('.qitem').dataset.uid); if (!item) return;
   if (campo === 'horario') item.horario = normalizarHorario(item.horario) || item.horario;
-  const antes = !!item.existente; atualizarDuplicadas();
-  if (antes !== !!item.existente || campo === 'horario') renderFila();
+  const antes = !!item.existente + '|' + !!item.dupFila; atualizarDuplicadas();
+  if (antes !== !!item.existente + '|' + !!item.dupFila || campo === 'horario') renderFila();
 });
 el('fila').addEventListener('click', e => {
   const b = e.target.closest('button[data-acao]'); if (!b) return;
@@ -563,8 +601,19 @@ el('fila').addEventListener('click', e => {
 el('limpar-fila').addEventListener('click', () => { fila = []; renderFila(); });
 
 function normalizarHorario(h) {
-  const m = String(h || '').trim().match(/^(\d{1,2})[:hH.\-]?(\d{2})$/);
-  return m && +m[1] < 24 && +m[2] < 60 ? m[1].padStart(2, '0') + ':' + m[2] : '';
+  // Aceita só horários ("6:55", "06:55 / 18:55") ou dias + horários ("seg a sex 06:55 / sáb a dom 07:20")
+  const t = String(h || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  if (!t) return '';
+  const partes = t.split(/\s*\/\s*/);
+  const out = [];
+  for (const p of partes) {
+    const m = p.match(/^((?:[a-zçáéíóúâêôãõ]+[ ,]*?)*?)\s*((?:\d{1,2}[:h.]?\d{2})(?:\s*(?:e|,)\s*\d{1,2}[:h.]?\d{2})*)$/);
+    if (!m) return '';
+    const horas = m[2].split(/\s*(?:e|,)\s*/).map(x => { const k = x.match(/^(\d{1,2})[:h.]?(\d{2})$/); return k && +k[1] < 24 && +k[2] < 60 ? k[1].padStart(2, '0') + ':' + k[2] : null; });
+    if (horas.includes(null)) return '';
+    out.push(((m[1] || '').trim() ? m[1].trim() + ' ' : '') + horas.join(' e '));
+  }
+  return out.join(' / ').slice(0, 80);
 }
 function paraEnvio(i) {
   return { id: i.existente && i.substituir ? i.existente : '', codigo: String(i.codigo || '').trim(), nome: String(i.nome || '').trim(),
@@ -626,7 +675,7 @@ function abrirEdicao(r) {
     <h3>Editar rota</h3>
     <div class="fields">
       <div class="field"><label>Código</label><input id="e-codigo" value="${esc(r.codigo)}"></div>
-      <div class="field"><label>Horário</label><input id="e-horario" value="${esc(r.horario)}" placeholder="hh:mm" maxlength="5"></div>
+      <div class="field"><label>Dias / horário</label><input id="e-horario" value="${esc(r.horario)}" placeholder="seg a sex 06:55" maxlength="80"></div>
       <div class="field full"><label>Nome</label><input id="e-nome" value="${esc(r.nome)}"></div>
       <div class="field"><label>Sentido</label><select id="e-sentido">${Rotas.SENTIDOS.map(s => `<option ${s === r.sentido ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
       <div class="field"><label>Tempo (min)</label><input id="e-minutos" type="number" min="0" value="${esc(r.minutos)}"></div>
@@ -656,7 +705,7 @@ function abrirEdicao(r) {
       trajeto: novo ? novo.trajeto : r.trajeto
     };
     if (!dados.codigo) { aviso('O código é obrigatório.', true); return; }
-    if (m.querySelector('#e-horario').value.trim() && !dados.horario) { aviso('Horário inválido. Use hh:mm.', true); return; }
+    if (m.querySelector('#e-horario').value.trim() && !dados.horario) { aviso('Dias / horário inválido. Ex.: 06:55, seg a sex 06:55 ou seg a seg 18:55 / sáb a dom 06:55.', true); return; }
     const fim = ocupado();
     try { rotas = await chamar('salvarRotas', [dados]); fechar(); renderTabela(); const atual = rotas.find(x => x.id === r.id); if (atual) mostrarNoMapa(atual); aviso('Rota atualizada.'); }
     catch (e) { aviso('Não foi possível salvar: ' + msgErro(e), true); }
