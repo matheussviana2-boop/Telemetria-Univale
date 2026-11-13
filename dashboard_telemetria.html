@@ -170,6 +170,14 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f7fbfb}
 #tbl th:nth-child(5),#tbl td:nth-child(5){width:76px}
 #tbl .evth{width:84px;min-width:76px;overflow-wrap:anywhere}
 #tbl th:last-child,#tbl td:last-child{width:92px;min-width:86px;padding-right:10px}
+#tbl th:nth-child(6),#tbl td:nth-child(6){width:78px}
+#tbl th:nth-child(7),#tbl td:nth-child(7){width:96px}
+#tbl tr.km-sep td{background:#f3f6f8;color:#5b6b76;font-weight:800;font-size:11px;letter-spacing:.03em;text-align:left;padding:10px 12px;border-top:2px solid #d5e0e6}
+#tbl tr.km-low td{color:#7a8a94}
+.ppill.p-low{background:#eef2f4;color:#7a8a94}
+.sit-tag{display:inline-block;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:99px;line-height:1.2}
+.sit-tag.ok{background:#e6f6ee;color:#116b3a}
+.sit-tag.low{background:#eef2f4;color:#6b7a84}
 #tbl .nmcell{white-space:normal;overflow-wrap:anywhere;font-size:12.5px;line-height:1.35}
 .mot-mini-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:0 0 16px}
 .mini-ev{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:12px 12px;min-height:82px;display:flex;flex-direction:column;justify-content:center}
@@ -4587,6 +4595,12 @@ function fmt(n){return Math.round(n).toLocaleString('pt-BR')}
 function fmtDec(n,d){return Number(n||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})}
 function kmPorEvento(km,ev){return ev?km/ev:0}
 function calcPerf(km,ev){if(!km||km<=0)return null;return (1-(ev/km))*100}
+// KM mínimo para o motorista entrar no ranking de performance (mesma regra do Resumo, Detalhado, Excel e PDF).
+var MIN_KM_RANK=250;
+function drvEligible(d){return (Number(d.km)||0)>=MIN_KM_RANK&&drvPerf(d)!=null}
+function drvKmeVal(d){var ev=Number(d.pts)||0;return ev>0?(Number(d.km)||0)/ev:Infinity}
+function drvKmeText(d){var ev=Number(d.pts)||0;return ev>0?fmtDec((Number(d.km)||0)/ev,1):'Sem eventos'}
+function drvSituacao(d){return drvEligible(d)?'No ranking':'Abaixo de '+MIN_KM_RANK+' km'}
 // Ordenação dos rankings: performance, quantidade de eventos e, em caso de empate, maior KM.
 // Assim, dois registros com 0 eventos e 100% de performance são ordenados pelo maior percurso.
 function compareBestPerformance(a,b){
@@ -5258,9 +5272,9 @@ function render(){
   safeText('t10wSub','Considerando mínimo 250 km rodados em '+periodLabelShort()+'.');
   safeText('t10bSub','Considerando mínimo 250 km rodados em '+periodLabelShort()+'.');
   function rowFn(d,i){var perf=drvPerf(d);return'<tr><td class="rank">'+(i+1)+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+pPill(perf)+'</td><td>'+fmtDec(d.km,1)+'</td><td>'+fmt(d.pts)+'</td><td><span class="dtag">'+esc(d.dom)+'</span></td></tr>'}
-  var rw=D.drivers.filter(function(d){return d.km>250&&drvPerf(d)!=null}).sort(compareWorstPerformance).slice(0,10);
+  var rw=D.drivers.filter(drvEligible).sort(compareWorstPerformance).slice(0,10);
   safeSet('top10w',rw.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>');
-  var rb=D.drivers.filter(function(d){return d.km>250&&drvPerf(d)!=null}).sort(compareBestPerformance).slice(0,10);
+  var rb=D.drivers.filter(drvEligible).sort(compareBestPerformance).slice(0,10);
   safeSet('top10b',rb.map(rowFn).join('')||'<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">Nenhum motorista acima de 250 km.</td></tr>');
   renderDiag();
   setupTable(D);
@@ -5917,7 +5931,7 @@ function setupTable(D){
   renderMotEventCards(D);
   updatePerfHint();
   updatePerfButtons();
-  document.getElementById('tblHead').innerHTML='<th>#</th><th class="s" data-k="nome">Motorista ↕</th><th class="s" data-k="activePerf">'+perfTitle()+' ↕</th><th class="s" data-k="km">KM ↕</th><th class="s" data-k="pts">Eventos ↕</th>'+ep.map(function(e){return'<th class="evth">'+evLabel(e)+'</th>'}).join('');
+  document.getElementById('tblHead').innerHTML='<th>#</th><th class="s" data-k="nome">Motorista ↕</th><th class="s" data-k="activePerf">'+perfTitle()+' ↕</th><th class="s" data-k="km">KM ↕</th><th class="s" data-k="pts">Eventos ↕</th><th class="s" data-k="kme">KM/Evento ↕</th><th class="s" data-k="sit">Situação ↕</th>'+ep.map(function(e){return'<th class="evth">'+evLabel(e)+'</th>'}).join('');
   document.querySelectorAll('#tbl th.s').forEach(function(th){th.addEventListener('click',function(){var k=th.dataset.k;if(TBL.sortK===k)TBL.sortDir*=-1;else{TBL.sortK=k;TBL.sortDir=(k==='nome')?1:-1};renderTable()})});
   renderTable()
 }
@@ -5927,24 +5941,36 @@ function getDetailedDriverRows(){
   var q=qEl?qEl.value.trim().toUpperCase():'';
   var rows=D.drivers.filter(function(d){return !q||d.nome.toUpperCase().indexOf(q)>=0});
   var k=TBL.sortK,dir=TBL.sortDir;
+  function byName(a,b){return String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR')}
+  function val(d){
+    if(k==='kme')return drvKmeVal(d);
+    if(k==='sit')return drvEligible(d)?0:1;
+    var v=d[k];return v==null?-999999:v;
+  }
   rows.sort(function(a,b){
-    var x,y;
-    if(k==='activePerf'){
-      x=drvPerf(a);y=drvPerf(b);
-      if(x==null)x=-999999;if(y==null)y=-999999;
-      var perfCmp=dir*(x-y);
-      if(perfCmp!==0)return perfCmp;
-      // Em empate de performance (principalmente 100%), prioriza sempre quem rodou mais KM.
-      var kmCmp=(Number(b.km)||0)-(Number(a.km)||0);
-      if(kmCmp!==0)return kmCmp;
-      return String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR');
+    // 1º: quem tem KM suficiente sempre vem antes (é quem disputa o ranking)
+    var ea=drvEligible(a),eb=drvEligible(b);
+    if(ea!==eb)return ea?-1:1;
+    if(k==='activePerf'||k==='sit'){
+      if(ea){
+        // Mesma regra dos Top 10: performance (km por evento), menos eventos, mais KM
+        return dir===-1||k==='sit'?compareBestPerformance(a,b):compareWorstPerformance(a,b);
+      }
+      // Abaixo do KM mínimo: performance não é comparável, ordena por KM rodado
+      var kc=(Number(b.km)||0)-(Number(a.km)||0);
+      return kc!==0?kc:byName(a,b);
     }
-    x=a[k];y=b[k];
-    if(x==null)x=-999999;if(y==null)y=-999999;
-    var cmp=typeof x==='string'?dir*x.localeCompare(y,'pt-BR'):dir*(x-y);
+    var x=val(a),y=val(b),cmp;
+    if(typeof x==='string')cmp=dir*x.localeCompare(y,'pt-BR');
+    else if(x===y)cmp=0;
+    else cmp=dir*(x>y?1:-1);
     if(cmp!==0)return cmp;
-    return String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR');
+    var kc2=(Number(b.km)||0)-(Number(a.km)||0);
+    return kc2!==0?kc2:byName(a,b);
   });
+  // posição no ranking só para quem tem KM suficiente
+  var pos=0;
+  rows.forEach(function(d){d._rank=drvEligible(d)?(++pos):null});
   return rows;
 }
 function exportSafeName(v){
@@ -5983,7 +6009,7 @@ async function exportDriversExcel(){
     var ws=wb.addWorksheet('Motoristas',{views:[{state:'frozen',ySplit:8,xSplit:0,showGridLines:false}]});
 
     var DARK='0A4E78', MID='0E5D8E', LIGHT='EAF2F8', LIGHT2='F7FBFE', GRID='C7D6E3', TEXT='243847', WHITE='FFFFFF', PERF='C8F0D4', PERF_TXT='116B3A', ORANGE='F26F21', KPI_BG='F6FAFD';
-    var headers=['#','Motorista','Performance (%)','KM','Eventos Totais'].concat(EV_COLS.map(function(e){return evLabel(e).replace(/<br>/g,' ')}));
+    var headers=['#','Motorista','Performance (%)','KM','Eventos Totais','KM/Evento','Situação'].concat(EV_COLS.map(function(e){return evLabel(e).replace(/<br>/g,' ')}));
     var lastCol=headers.length;
     var lastColLetter=ws.getColumn(lastCol).letter;
 
@@ -6029,18 +6055,18 @@ async function exportDriversExcel(){
     ws.getRow(4).height=18;ws.getRow(5).height=18;ws.getRow(6).height=18;
 
     // Faixa de período + agrupador de eventos
-    ws.mergeCells('A7:E7');
+    ws.mergeCells('A7:G7');
     ws.getCell('A7').value='Período - '+meta.period;
     ws.getCell('A7').font={name:'Arial',size:10,bold:true,color:{argb:WHITE}};
     ws.getCell('A7').alignment={horizontal:'center',vertical:'middle'};
     ws.getCell('A7').fill={type:'pattern',pattern:'solid',fgColor:{argb:DARK}};
     ws.getCell('A7').border={top:{style:'thin',color:{argb:'5D8CAA'}},left:{style:'thin',color:{argb:'5D8CAA'}},right:{style:'thin',color:{argb:'5D8CAA'}},bottom:{style:'thin',color:{argb:'5D8CAA'}}};
-    ws.mergeCells('F7:'+lastColLetter+'7');
-    ws.getCell('F7').value='Eventos por tipo';
-    ws.getCell('F7').font={name:'Arial',size:10,bold:true,color:{argb:WHITE}};
-    ws.getCell('F7').alignment={horizontal:'center',vertical:'middle'};
-    ws.getCell('F7').fill={type:'pattern',pattern:'solid',fgColor:{argb:MID}};
-    ws.getCell('F7').border={top:{style:'thin',color:{argb:'5D8CAA'}},left:{style:'thin',color:{argb:'5D8CAA'}},right:{style:'thin',color:{argb:'5D8CAA'}},bottom:{style:'thin',color:{argb:'5D8CAA'}}};
+    ws.mergeCells('H7:'+lastColLetter+'7');
+    ws.getCell('H7').value='Eventos por tipo';
+    ws.getCell('H7').font={name:'Arial',size:10,bold:true,color:{argb:WHITE}};
+    ws.getCell('H7').alignment={horizontal:'center',vertical:'middle'};
+    ws.getCell('H7').fill={type:'pattern',pattern:'solid',fgColor:{argb:MID}};
+    ws.getCell('H7').border={top:{style:'thin',color:{argb:'5D8CAA'}},left:{style:'thin',color:{argb:'5D8CAA'}},right:{style:'thin',color:{argb:'5D8CAA'}},bottom:{style:'thin',color:{argb:'5D8CAA'}}};
     ws.getRow(7).height=19;
 
     headers.forEach(function(h,i){
@@ -6054,18 +6080,22 @@ async function exportDriversExcel(){
     ws.getRow(8).height=34;
 
     rows.forEach(function(d,i){
-      var r=9+i, perf=drvPerf(d), vals=[i+1,d.nome,perf==null?null:Number(perf)/100,Number(d.km)||0,Number(d.pts)||0].concat(EV_COLS.map(function(e){return Number(d.ev[e]||0)}));
+      var ok=drvEligible(d), kmeV=drvKmeVal(d);
+      var r=9+i, perf=drvPerf(d), vals=[ok?d._rank:'—',d.nome,perf==null?null:Number(perf)/100,Number(d.km)||0,Number(d.pts)||0,isFinite(kmeV)?Math.round(kmeV*10)/10:'Sem eventos',drvSituacao(d)].concat(EV_COLS.map(function(e){return Number(d.ev[e]||0)}));
       vals.forEach(function(v,j){
         var cell=ws.getCell(r,j+1);
         cell.value=v;
-        cell.font={name:'Arial',size:9,color:{argb:TEXT},bold:j===1};
+        cell.font={name:'Arial',size:9,color:{argb:ok?TEXT:'7A8A94'},bold:j===1};
         cell.alignment={vertical:'middle',horizontal:j===1?'left':'center',wrapText:j===1};
         cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:i%2===0?LIGHT2:WHITE}};
         cell.border={left:{style:'hair',color:{argb:GRID}},right:{style:'hair',color:{argb:GRID}},bottom:{style:'hair',color:{argb:GRID}}};
       });
-      var pc=ws.getCell(r,3);pc.numFmt='0.00%';pc.font={name:'Arial',size:9,bold:true,color:{argb:PERF_TXT}};pc.fill={type:'pattern',pattern:'solid',fgColor:{argb:PERF}};
-      ws.getCell(r,4).numFmt='#,##0.0';ws.getCell(r,5).numFmt='#,##0';
-      for(var ec=6;ec<=lastCol;ec++)ws.getCell(r,ec).numFmt='0';
+      var pc=ws.getCell(r,3);pc.numFmt='0.00%';
+      if(ok){pc.font={name:'Arial',size:9,bold:true,color:{argb:PERF_TXT}};pc.fill={type:'pattern',pattern:'solid',fgColor:{argb:PERF}};}
+      else{pc.font={name:'Arial',size:9,bold:true,color:{argb:'7A8A94'}};pc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'EEF2F4'}};}
+      ws.getCell(r,4).numFmt='#,##0.0';ws.getCell(r,5).numFmt='#,##0';ws.getCell(r,6).numFmt='#,##0.0';
+      var sc=ws.getCell(r,7);sc.font={name:'Arial',size:8.5,bold:true,color:{argb:ok?PERF_TXT:'6B7A84'}};
+      for(var ec=8;ec<=lastCol;ec++)ws.getCell(r,ec).numFmt='0';
       ws.getRow(r).height=19;
     });
 
@@ -6081,7 +6111,9 @@ async function exportDriversExcel(){
     ws.getCell(totalRow,3).numFmt='0.00%';
     ws.getCell(totalRow,4).value=totalKm;ws.getCell(totalRow,4).numFmt='#,##0.0';
     ws.getCell(totalRow,5).value=totalEv;ws.getCell(totalRow,5).numFmt='#,##0';
-    eventTotals.forEach(function(v,idx){ws.getCell(totalRow,6+idx).value=v;ws.getCell(totalRow,6+idx).numFmt='#,##0';});
+    ws.getCell(totalRow,6).value=totalEv?Math.round(totalKm/totalEv*10)/10:'Sem eventos';ws.getCell(totalRow,6).numFmt='#,##0.0';
+    ws.getCell(totalRow,7).value=rows.filter(drvEligible).length+' no ranking';
+    eventTotals.forEach(function(v,idx){ws.getCell(totalRow,8+idx).value=v;ws.getCell(totalRow,8+idx).numFmt='#,##0';});
     for(var tc=1;tc<=lastCol;tc++){
       var tcell=ws.getCell(totalRow,tc);
       tcell.font={name:'Arial',size:9,bold:true,color:{argb:tc===3?PERF_TXT:TEXT}};
@@ -6091,7 +6123,7 @@ async function exportDriversExcel(){
     }
     ws.getRow(totalRow).height=20;
 
-    var widths=[5,31,16,11,13].concat(EV_COLS.map(function(){return 14;}));
+    var widths=[6,31,16,11,13,12,18].concat(EV_COLS.map(function(){return 14;}));
     widths.forEach(function(w,i){ws.getColumn(i+1).width=w;});
     ws.autoFilter={from:{row:8,column:1},to:{row:8,column:lastCol}};
     ws.pageSetup={orientation:'landscape',paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:0.22,right:0.22,top:0.25,bottom:0.25,header:0.1,footer:0.1},printTitlesRow:'1:8'};
@@ -6129,13 +6161,15 @@ function exportDriversPdf(){
         {content:'Performance\n(%)',rowSpan:2,styles:{valign:'middle'}},
         {content:'KM',rowSpan:2,styles:{valign:'middle'}},
         {content:'Eventos Totais',rowSpan:2,styles:{valign:'middle'}},
+        {content:'KM/Evento',rowSpan:2,styles:{valign:'middle'}},
+        {content:'Situação',rowSpan:2,styles:{valign:'middle'}},
         {content:'Eventos por tipo',colSpan:eventHeaders.length,styles:{halign:'center',valign:'middle',fillColor:MID}}
       ],
       eventHeaders
     ];
-    var body=rows.map(function(d,i){var perf=drvPerf(d);return[i+1,d.nome,perf==null?'-':fmtDec(perf,2)+'%',fmtDec(d.km,1),fmt(d.pts)].concat(EV_COLS.map(function(e){return fmt(d.ev[e]||0)}));});
+    var body=rows.map(function(d,i){var perf=drvPerf(d),ok=drvEligible(d);return[ok?d._rank:'—',d.nome,perf==null?'-':fmtDec(perf,2)+'%',fmtDec(d.km,1),fmt(d.pts),drvKmeText(d),drvSituacao(d)].concat(EV_COLS.map(function(e){return fmt(d.ev[e]||0)}));});
     var pdfEventTotals=EV_COLS.map(function(e){return rows.reduce(function(acc,d){return acc+(Number(d.ev[e])||0)},0)});
-    body.push(['','TOTAL',totalPerf==null?'-':fmtDec(totalPerf,2)+'%',fmtDec(totalKm,1),fmt(totalEv)].concat(pdfEventTotals.map(function(v){return fmt(v)})));
+    body.push(['','TOTAL',totalPerf==null?'-':fmtDec(totalPerf,2)+'%',fmtDec(totalKm,1),fmt(totalEv),totalEv?fmtDec(totalKm/totalEv,1):'Sem eventos',rows.filter(drvEligible).length+' no ranking'].concat(pdfEventTotals.map(function(v){return fmt(v)})));
 
     function drawCard(x,y,w,h,label,value,opts){
       opts=opts||{};
@@ -6170,11 +6204,13 @@ function exportDriversPdf(){
       styles:{font:'helvetica',fontSize:5.7,cellPadding:2.4,valign:'middle',overflow:'linebreak',lineColor:GRID,lineWidth:.35,textColor:TEXT,minCellHeight:14},
       headStyles:{fillColor:DARK,textColor:[255,255,255],fontStyle:'bold',halign:'center',fontSize:5.8,lineColor:[93,140,170],lineWidth:.45},
       alternateRowStyles:{fillColor:LIGHT2},
-      columnStyles:{0:{cellWidth:20,halign:'center'},1:{cellWidth:120,halign:'left',fontStyle:'bold'},2:{cellWidth:55,halign:'center'},3:{cellWidth:42,halign:'center'},4:{cellWidth:48,halign:'center'}},
+      columnStyles:{0:{cellWidth:20,halign:'center'},1:{cellWidth:110,halign:'left',fontStyle:'bold'},2:{cellWidth:50,halign:'center'},3:{cellWidth:40,halign:'center'},4:{cellWidth:40,halign:'center'},5:{cellWidth:40,halign:'center'},6:{cellWidth:52,halign:'center'}},
       didParseCell:function(data){
         if(data.section==='body'){
           if(data.column.index>=5)data.cell.styles.halign='center';
-          if(data.column.index===2){data.cell.styles.fillColor=PERF;data.cell.styles.textColor=PERF_TXT;data.cell.styles.fontStyle='bold';}
+          var rd=rows[data.row.index], low=rd&&!drvEligible(rd);
+          if(low)data.cell.styles.textColor=[122,138,148];
+          if(data.column.index===2){data.cell.styles.fillColor=low?[238,242,244]:PERF;data.cell.styles.textColor=low?[122,138,148]:PERF_TXT;data.cell.styles.fontStyle='bold';}
           if(data.row.index===body.length-1){
             data.cell.styles.fontStyle='bold';
             data.cell.styles.fillColor=data.column.index===2?PERF:[220,233,243];
@@ -6195,10 +6231,12 @@ function renderTable(){
   var D=TBL.D;if(!D)return;
   var ep=EV_COLS;
   var rows=getDetailedDriverRows();
-  document.getElementById('cnt').textContent=rows.length+' motoristas';
+  var nOk=rows.filter(drvEligible).length;
+  document.getElementById('cnt').textContent=rows.length+' motoristas · '+nOk+' no ranking (≥ '+MIN_KM_RANK+' km) · '+(rows.length-nOk)+' abaixo do KM mínimo';
   document.getElementById('tbody').innerHTML=rows.map(function(d,i){
-    var perf=drvPerf(d);
-    return'<tr><td class="rank">'+(i+1)+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+pPill(perf)+'</td><td>'+fmtDec(d.km,1)+'</td><td>'+fmt(d.pts)+'</td>'+ep.map(function(e){return'<td>'+(d.ev[e]||0)+'</td>'}).join('')+'</tr>'
+    var perf=drvPerf(d), ok=drvEligible(d);
+    var sep=(!ok&&(i===0||drvEligible(rows[i-1])))?'<tr class="km-sep"><td colspan="'+(7+ep.length)+'">Motoristas com menos de '+MIN_KM_RANK+' km no período — fora do ranking (performance não comparável)</td></tr>':'';
+    return sep+'<tr'+(ok?'':' class="km-low"')+'><td class="rank">'+(ok?d._rank:'—')+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+(ok?pPill(perf):'<span class="ppill p-low">'+(perf==null?'—':fmtDec(perf,2)+'%')+'</span>')+'</td><td>'+fmtDec(d.km,1)+'</td><td>'+fmt(d.pts)+'</td><td>'+drvKmeText(d)+'</td><td><span class="sit-tag '+(ok?'ok':'low')+'">'+drvSituacao(d)+'</span></td>'+ep.map(function(e){return'<td>'+(d.ev[e]||0)+'</td>'}).join('')+'</tr>'
   }).join('')||'<tr><td colspan="20" style="padding:24px;text-align:center;color:var(--muted)">Nenhum motorista encontrado.</td></tr>'
 }
 function populateSectorSel(){
