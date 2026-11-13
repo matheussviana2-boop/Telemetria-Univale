@@ -171,7 +171,6 @@ tbody tr:last-child td{border-bottom:none} tbody tr:hover{background:#f7fbfb}
 #tbl .evth{width:84px;min-width:76px;overflow-wrap:anywhere}
 #tbl th:last-child,#tbl td:last-child{width:92px;min-width:86px;padding-right:10px}
 #tbl th:nth-child(6),#tbl td:nth-child(6){width:78px}
-#tbl th:nth-child(7),#tbl td:nth-child(7){width:96px}
 #tbl tr.km-sep td{background:#f3f6f8;color:#5b6b76;font-weight:800;font-size:11px;letter-spacing:.03em;text-align:left;padding:10px 12px;border-top:2px solid #d5e0e6}
 #tbl tr.km-low td{color:#7a8a94}
 .ppill.p-low{background:#eef2f4;color:#7a8a94}
@@ -5931,7 +5930,7 @@ function setupTable(D){
   renderMotEventCards(D);
   updatePerfHint();
   updatePerfButtons();
-  document.getElementById('tblHead').innerHTML='<th>#</th><th class="s" data-k="nome">Motorista ↕</th><th class="s" data-k="activePerf">'+perfTitle()+' ↕</th><th class="s" data-k="km">KM ↕</th><th class="s" data-k="pts">Eventos ↕</th><th class="s" data-k="kme">KM/Evento ↕</th><th class="s" data-k="sit">Situação ↕</th>'+ep.map(function(e){return'<th class="evth">'+evLabel(e)+'</th>'}).join('');
+  document.getElementById('tblHead').innerHTML='<th>#</th><th class="s" data-k="nome">Motorista ↕</th><th class="s" data-k="activePerf">'+perfTitle()+' ↕</th><th class="s" data-k="km">KM ↕</th><th class="s" data-k="pts">Eventos ↕</th><th class="s" data-k="kme">KM/Evento ↕</th>'+ep.map(function(e){return'<th class="evth">'+evLabel(e)+'</th>'}).join('');
   document.querySelectorAll('#tbl th.s').forEach(function(th){th.addEventListener('click',function(){var k=th.dataset.k;if(TBL.sortK===k)TBL.sortDir*=-1;else{TBL.sortK=k;TBL.sortDir=(k==='nome')?1:-1};renderTable()})});
   renderTable()
 }
@@ -6009,7 +6008,7 @@ async function exportDriversExcel(){
     var ws=wb.addWorksheet('Motoristas',{views:[{state:'frozen',ySplit:8,xSplit:0,showGridLines:false}]});
 
     var DARK='0A4E78', MID='0E5D8E', LIGHT='EAF2F8', LIGHT2='F7FBFE', GRID='C7D6E3', TEXT='243847', WHITE='FFFFFF', PERF='C8F0D4', PERF_TXT='116B3A', ORANGE='F26F21', KPI_BG='F6FAFD';
-    var headers=['#','Motorista','Performance (%)','KM','Eventos Totais','KM/Evento','Situação'].concat(EV_COLS.map(function(e){return evLabel(e).replace(/<br>/g,' ')}));
+    var headers=['#','Motorista','Performance (%)','KM','Eventos Totais','KM/Evento'].concat(EV_COLS.map(function(e){return evLabel(e).replace(/<br>/g,' ')}));
     var lastCol=headers.length;
     var lastColLetter=ws.getColumn(lastCol).letter;
 
@@ -6055,18 +6054,18 @@ async function exportDriversExcel(){
     ws.getRow(4).height=18;ws.getRow(5).height=18;ws.getRow(6).height=18;
 
     // Faixa de período + agrupador de eventos
-    ws.mergeCells('A7:G7');
+    ws.mergeCells('A7:F7');
     ws.getCell('A7').value='Período - '+meta.period;
     ws.getCell('A7').font={name:'Arial',size:10,bold:true,color:{argb:WHITE}};
     ws.getCell('A7').alignment={horizontal:'center',vertical:'middle'};
     ws.getCell('A7').fill={type:'pattern',pattern:'solid',fgColor:{argb:DARK}};
     ws.getCell('A7').border={top:{style:'thin',color:{argb:'5D8CAA'}},left:{style:'thin',color:{argb:'5D8CAA'}},right:{style:'thin',color:{argb:'5D8CAA'}},bottom:{style:'thin',color:{argb:'5D8CAA'}}};
-    ws.mergeCells('H7:'+lastColLetter+'7');
-    ws.getCell('H7').value='Eventos por tipo';
-    ws.getCell('H7').font={name:'Arial',size:10,bold:true,color:{argb:WHITE}};
-    ws.getCell('H7').alignment={horizontal:'center',vertical:'middle'};
-    ws.getCell('H7').fill={type:'pattern',pattern:'solid',fgColor:{argb:MID}};
-    ws.getCell('H7').border={top:{style:'thin',color:{argb:'5D8CAA'}},left:{style:'thin',color:{argb:'5D8CAA'}},right:{style:'thin',color:{argb:'5D8CAA'}},bottom:{style:'thin',color:{argb:'5D8CAA'}}};
+    ws.mergeCells('G7:'+lastColLetter+'7');
+    ws.getCell('G7').value='Eventos por tipo';
+    ws.getCell('G7').font={name:'Arial',size:10,bold:true,color:{argb:WHITE}};
+    ws.getCell('G7').alignment={horizontal:'center',vertical:'middle'};
+    ws.getCell('G7').fill={type:'pattern',pattern:'solid',fgColor:{argb:MID}};
+    ws.getCell('G7').border={top:{style:'thin',color:{argb:'5D8CAA'}},left:{style:'thin',color:{argb:'5D8CAA'}},right:{style:'thin',color:{argb:'5D8CAA'}},bottom:{style:'thin',color:{argb:'5D8CAA'}}};
     ws.getRow(7).height=19;
 
     headers.forEach(function(h,i){
@@ -6081,7 +6080,7 @@ async function exportDriversExcel(){
 
     rows.forEach(function(d,i){
       var ok=drvEligible(d), kmeV=drvKmeVal(d);
-      var r=9+i, perf=drvPerf(d), vals=[ok?d._rank:'—',d.nome,perf==null?null:Number(perf)/100,Number(d.km)||0,Number(d.pts)||0,isFinite(kmeV)?Math.round(kmeV*10)/10:'Sem eventos',drvSituacao(d)].concat(EV_COLS.map(function(e){return Number(d.ev[e]||0)}));
+      var r=9+i, perf=drvPerf(d), vals=[ok?d._rank:'—',d.nome,perf==null?null:Number(perf)/100,Number(d.km)||0,Number(d.pts)||0,isFinite(kmeV)?Math.round(kmeV*10)/10:'Sem eventos'].concat(EV_COLS.map(function(e){return Number(d.ev[e]||0)}));
       vals.forEach(function(v,j){
         var cell=ws.getCell(r,j+1);
         cell.value=v;
@@ -6094,8 +6093,7 @@ async function exportDriversExcel(){
       if(ok){pc.font={name:'Arial',size:9,bold:true,color:{argb:PERF_TXT}};pc.fill={type:'pattern',pattern:'solid',fgColor:{argb:PERF}};}
       else{pc.font={name:'Arial',size:9,bold:true,color:{argb:'7A8A94'}};pc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'EEF2F4'}};}
       ws.getCell(r,4).numFmt='#,##0.0';ws.getCell(r,5).numFmt='#,##0';ws.getCell(r,6).numFmt='#,##0.0';
-      var sc=ws.getCell(r,7);sc.font={name:'Arial',size:8.5,bold:true,color:{argb:ok?PERF_TXT:'6B7A84'}};
-      for(var ec=8;ec<=lastCol;ec++)ws.getCell(r,ec).numFmt='0';
+      for(var ec=7;ec<=lastCol;ec++)ws.getCell(r,ec).numFmt='0';
       ws.getRow(r).height=19;
     });
 
@@ -6112,8 +6110,7 @@ async function exportDriversExcel(){
     ws.getCell(totalRow,4).value=totalKm;ws.getCell(totalRow,4).numFmt='#,##0.0';
     ws.getCell(totalRow,5).value=totalEv;ws.getCell(totalRow,5).numFmt='#,##0';
     ws.getCell(totalRow,6).value=totalEv?Math.round(totalKm/totalEv*10)/10:'Sem eventos';ws.getCell(totalRow,6).numFmt='#,##0.0';
-    ws.getCell(totalRow,7).value=rows.filter(drvEligible).length+' no ranking';
-    eventTotals.forEach(function(v,idx){ws.getCell(totalRow,8+idx).value=v;ws.getCell(totalRow,8+idx).numFmt='#,##0';});
+    eventTotals.forEach(function(v,idx){ws.getCell(totalRow,7+idx).value=v;ws.getCell(totalRow,7+idx).numFmt='#,##0';});
     for(var tc=1;tc<=lastCol;tc++){
       var tcell=ws.getCell(totalRow,tc);
       tcell.font={name:'Arial',size:9,bold:true,color:{argb:tc===3?PERF_TXT:TEXT}};
@@ -6123,7 +6120,7 @@ async function exportDriversExcel(){
     }
     ws.getRow(totalRow).height=20;
 
-    var widths=[6,31,16,11,13,12,18].concat(EV_COLS.map(function(){return 14;}));
+    var widths=[6,31,16,11,13,12].concat(EV_COLS.map(function(){return 14;}));
     widths.forEach(function(w,i){ws.getColumn(i+1).width=w;});
     ws.autoFilter={from:{row:8,column:1},to:{row:8,column:lastCol}};
     ws.pageSetup={orientation:'landscape',paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:0.22,right:0.22,top:0.25,bottom:0.25,header:0.1,footer:0.1},printTitlesRow:'1:8'};
@@ -6162,14 +6159,13 @@ function exportDriversPdf(){
         {content:'KM',rowSpan:2,styles:{valign:'middle'}},
         {content:'Eventos Totais',rowSpan:2,styles:{valign:'middle'}},
         {content:'KM/Evento',rowSpan:2,styles:{valign:'middle'}},
-        {content:'Situação',rowSpan:2,styles:{valign:'middle'}},
         {content:'Eventos por tipo',colSpan:eventHeaders.length,styles:{halign:'center',valign:'middle',fillColor:MID}}
       ],
       eventHeaders
     ];
-    var body=rows.map(function(d,i){var perf=drvPerf(d),ok=drvEligible(d);return[ok?d._rank:'—',d.nome,perf==null?'-':fmtDec(perf,2)+'%',fmtDec(d.km,1),fmt(d.pts),drvKmeText(d),drvSituacao(d)].concat(EV_COLS.map(function(e){return fmt(d.ev[e]||0)}));});
+    var body=rows.map(function(d,i){var perf=drvPerf(d),ok=drvEligible(d);return[ok?d._rank:'—',d.nome,perf==null?'-':fmtDec(perf,2)+'%',fmtDec(d.km,1),fmt(d.pts),drvKmeText(d)].concat(EV_COLS.map(function(e){return fmt(d.ev[e]||0)}));});
     var pdfEventTotals=EV_COLS.map(function(e){return rows.reduce(function(acc,d){return acc+(Number(d.ev[e])||0)},0)});
-    body.push(['','TOTAL',totalPerf==null?'-':fmtDec(totalPerf,2)+'%',fmtDec(totalKm,1),fmt(totalEv),totalEv?fmtDec(totalKm/totalEv,1):'Sem eventos',rows.filter(drvEligible).length+' no ranking'].concat(pdfEventTotals.map(function(v){return fmt(v)})));
+    body.push(['','TOTAL',totalPerf==null?'-':fmtDec(totalPerf,2)+'%',fmtDec(totalKm,1),fmt(totalEv),totalEv?fmtDec(totalKm/totalEv,1):'Sem eventos'].concat(pdfEventTotals.map(function(v){return fmt(v)})));
 
     function drawCard(x,y,w,h,label,value,opts){
       opts=opts||{};
@@ -6204,7 +6200,7 @@ function exportDriversPdf(){
       styles:{font:'helvetica',fontSize:5.7,cellPadding:2.4,valign:'middle',overflow:'linebreak',lineColor:GRID,lineWidth:.35,textColor:TEXT,minCellHeight:14},
       headStyles:{fillColor:DARK,textColor:[255,255,255],fontStyle:'bold',halign:'center',fontSize:5.8,lineColor:[93,140,170],lineWidth:.45},
       alternateRowStyles:{fillColor:LIGHT2},
-      columnStyles:{0:{cellWidth:20,halign:'center'},1:{cellWidth:110,halign:'left',fontStyle:'bold'},2:{cellWidth:50,halign:'center'},3:{cellWidth:40,halign:'center'},4:{cellWidth:40,halign:'center'},5:{cellWidth:40,halign:'center'},6:{cellWidth:52,halign:'center'}},
+      columnStyles:{0:{cellWidth:20,halign:'center'},1:{cellWidth:110,halign:'left',fontStyle:'bold'},2:{cellWidth:50,halign:'center'},3:{cellWidth:40,halign:'center'},4:{cellWidth:40,halign:'center'},5:{cellWidth:40,halign:'center'}},
       didParseCell:function(data){
         if(data.section==='body'){
           if(data.column.index>=5)data.cell.styles.halign='center';
@@ -6235,8 +6231,8 @@ function renderTable(){
   document.getElementById('cnt').textContent=rows.length+' motoristas · '+nOk+' no ranking (≥ '+MIN_KM_RANK+' km) · '+(rows.length-nOk)+' abaixo do KM mínimo';
   document.getElementById('tbody').innerHTML=rows.map(function(d,i){
     var perf=drvPerf(d), ok=drvEligible(d);
-    var sep=(!ok&&(i===0||drvEligible(rows[i-1])))?'<tr class="km-sep"><td colspan="'+(7+ep.length)+'">Motoristas com menos de '+MIN_KM_RANK+' km no período — fora do ranking (performance não comparável)</td></tr>':'';
-    return sep+'<tr'+(ok?'':' class="km-low"')+'><td class="rank">'+(ok?d._rank:'—')+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+(ok?pPill(perf):'<span class="ppill p-low">'+(perf==null?'—':fmtDec(perf,2)+'%')+'</span>')+'</td><td>'+fmtDec(d.km,1)+'</td><td>'+fmt(d.pts)+'</td><td>'+drvKmeText(d)+'</td><td><span class="sit-tag '+(ok?'ok':'low')+'">'+drvSituacao(d)+'</span></td>'+ep.map(function(e){return'<td>'+(d.ev[e]||0)+'</td>'}).join('')+'</tr>'
+    var sep=(!ok&&(i===0||drvEligible(rows[i-1])))?'<tr class="km-sep"><td colspan="'+(6+ep.length)+'">Motoristas com menos de '+MIN_KM_RANK+' km no período — fora do ranking (performance não comparável)</td></tr>':'';
+    return sep+'<tr'+(ok?'':' class="km-low"')+'><td class="rank">'+(ok?d._rank:'—')+'</td><td class="nmcell">'+esc(d.nome)+'</td><td>'+(ok?pPill(perf):'<span class="ppill p-low">'+(perf==null?'—':fmtDec(perf,2)+'%')+'</span>')+'</td><td>'+fmtDec(d.km,1)+'</td><td>'+fmt(d.pts)+'</td><td>'+drvKmeText(d)+'</td>'+ep.map(function(e){return'<td>'+(d.ev[e]||0)+'</td>'}).join('')+'</tr>'
   }).join('')||'<tr><td colspan="20" style="padding:24px;text-align:center;color:var(--muted)">Nenhum motorista encontrado.</td></tr>'
 }
 function populateSectorSel(){
