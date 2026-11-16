@@ -638,10 +638,9 @@ function cruzar(viagens,eventos,opt){
       }
     }
 
-    // VOLTA: o veículo chega ao raio do ponto inicial, espera e parte. Na borda do raio o GPS costuma
-    // gerar pares entrada/saída logo na chegada; a "primeira saída" então caía praticamente no horário
-    // de chegada. A referência correta é a ÚLTIMA saída do raio do ponto inicial, antes de o veículo
-    // aparecer em outro ponto de pontualidade.
+    // VOLTA: a referência é SEMPRE a ÚLTIMA saída do raio do ponto inicial dentro da janela da viagem.
+    // Cobre (1) pares entrada/saída gerados pelo GPS na borda do raio logo na chegada e (2) carros que
+    // saem do ponto (ex.: vão até a rodoviária), voltam ao ponto e só então partem de fato.
     if(sentido==='volta'){
       var pontoIni=entrada ? normTexto(entrada.ponto) : null;
       if(!pontoIni){
@@ -650,10 +649,7 @@ function cruzar(viagens,eventos,opt){
       var ultSaida=null;
       for(var q=0;q<achados.length;q++){
         var eq=achados[q];
-        if(normTexto(eq.ponto)!==pontoIni){
-          if(ultSaida) break; // já saiu do ponto inicial e entrou em outro ponto: para aqui
-          continue;
-        }
+        if(normTexto(eq.ponto)!==pontoIni) continue; // eventos de outros pontos não interrompem a busca
         if(eq.tipo==='saida' && (!entrada || eq.ts>=entrada.ts)) ultSaida=eq;
       }
       if(ultSaida) saida=ultSaida;
@@ -1059,7 +1055,7 @@ var COLUNAS=[
   {k:'id',       r:'ID Viagem',  g:0, left:false, get:function(r){return r.viagem.id}},
   {k:'carro',    r:'Carro',      g:0, left:true,  get:function(r){return r.viagem.carro}},
   {k:'motorista',r:'Motorista',  g:0, left:true,  get:function(r){return r.viagem.motorista}},
-  {k:'operadora',r:'Operadora',  g:0, left:true,  get:function(r){return r.viagem.operadora}},
+  {k:'grupo',    r:'Grupo',      g:0, left:true,  get:function(r){return r.viagem.grupo}},
   {k:'linha',    r:'Linha',      g:0, left:true,  get:function(r){return r.viagem.linha}},
   {k:'itinerario',r:'Viagem',    g:0, left:true,  get:function(r){return r.viagem.itinerario}},
   {k:'ponto0',   r:'Ponto',      g:1, left:true,  get:function(r){return r.viagem.ponto0}},
@@ -1143,7 +1139,7 @@ function desenhar(){
         td('<span class="mono">'+esc(v.id!=null?v.id:'—')+'</span>')+
         tdL(esc(v.carro)+'<span class="pt">'+esc(p?p.chapa:'')+'</span>')+
         tdW(esc(v.motorista)+(r.divergeMotorista?' <span class="pill p-warn" title="Evento registrado com '+esc(p.motorista)+'">≠</span>':''))+
-        tdL(esc(v.operadora))+
+        tdL(esc(v.grupo))+
         tdL(esc(v.linha))+
         tdW(esc(v.itinerario))+
         tdW(esc(v.ponto0))+
@@ -1237,7 +1233,7 @@ async function exportarExcel(){
   tit.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0B4A45'}};
   ws.getRow(1).height=26;
 
-  var headers=['ID Viagem','Carro','Placa','Motorista','Operadora','Linha','Viagem','Tipo','Data',
+  var headers=['ID Viagem','Carro','Placa','Motorista','Grupo','Linha','Viagem','Tipo','Data',
     'Ponto','H.Prog','H.Real','Situação',
     'Ponto','H.Prog','H.Pontualidade','H.Real','Situação',
     'Ponto de pontualidade','Embarques Únicos','A bordo Pontualidade','Observação'];
@@ -1280,7 +1276,7 @@ async function exportarExcel(){
   linhas.forEach(function(r,idx){
     var v=r.viagem,p=r.ponto;
     var rowIdx=idx+4;
-    var vals=[v.id!=null?v.id:'',v.carro,p?p.chapa:'',v.motorista,v.operadora,v.linha,v.itinerario,v.tipo,
+    var vals=[v.id!=null?v.id:'',v.carro,p?p.chapa:'',v.motorista,v.grupo,v.linha,v.itinerario,v.tipo,
       v.real0?ddmm(v.real0):(v.prog0?ddmm(v.prog0):''),
       v.ponto0,v.prog0?hhmm(v.prog0):'',v.real0?hhmm(v.real0):'',resumoStatus(v.res0),
       v.ponto1,v.prog1?hhmm(v.prog1):'',p?hhmm(p.dt):'',v.fim?hhmm(v.fim):'',resumoStatus(v.res1),
